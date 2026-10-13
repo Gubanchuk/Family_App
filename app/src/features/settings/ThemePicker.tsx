@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Icon from '../shell/Icon';
 import { getThemeChoice, isDarkNow, setThemeChoice, watchSystemTheme, type ThemeChoice } from '../../lib/theme';
 
-export default function ThemePicker() {
+export default function ThemePicker({ onPick }: { onPick?: (c: ThemeChoice) => void } = {}) {
   const [choice, setChoice] = useState<ThemeChoice>(getThemeChoice());
   const [dark, setDark] = useState(isDarkNow());
   useEffect(() => watchSystemTheme(() => setDark(isDarkNow())), []);
@@ -11,6 +11,7 @@ export default function ThemePicker() {
     setThemeChoice(c);
     setChoice(c);
     setDark(isDarkNow());
+    onPick?.(c);
   };
   const auto = choice === 'auto';
   const card = (t: 'light' | 'dark', label: string, icon: string) => {
