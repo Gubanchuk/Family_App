@@ -10,3 +10,7 @@ do $$ begin
 end $$;
 grant usage on schema public, auth to anon, authenticated;
 grant execute on function auth.uid() to anon, authenticated;
+-- Supabase grants table privileges to anon and authenticated by default; row level security is the real barrier.
+alter default privileges in schema public grant select, insert, update, delete on tables to anon, authenticated;
+alter default privileges in schema public grant usage, select on sequences to anon, authenticated;
+alter default privileges in schema public grant execute on functions to anon, authenticated;
