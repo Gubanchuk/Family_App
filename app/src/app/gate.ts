@@ -1,0 +1,11 @@
+export type GateInput = { path: string; loadingSession: boolean; session: boolean; loadingFamily: boolean; hasMember: boolean; inviteCode: string | null };
+export type GateResult = 'loading' | 'probe' | 'sign-in' | 'accept-invite' | 'onboarding' | 'app';
+
+export function gate(i: GateInput): GateResult {
+  if (i.path === '/probe') return 'probe';
+  if (i.loadingSession) return 'loading';
+  if (!i.session) return 'sign-in';
+  if (i.loadingFamily) return 'loading';
+  if (!i.hasMember) return i.inviteCode ? 'accept-invite' : 'onboarding';
+  return 'app';
+}
