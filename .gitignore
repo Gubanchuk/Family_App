@@ -1,0 +1,22 @@
+node_modules/
+.env
+.env.*
+!.env.example
+
+# Local tooling output
+.playwright-mcp/
+mockups/.playwright-mcp/
+mockups/_preview.html
+content/book/_preview.html
+.impeccable/questions/
+.impeccable/review/
+
+# App, Supabase and Vercel local state
+app/dist/
+app/.env.local
+app/dev-dist/
+supabase/.temp/
+supabase/.branches/
+.vercel/
+app/.vercel/
+.superpowers/

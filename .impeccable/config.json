@@ -1,0 +1,45 @@
+{
+  "buildPath": "code",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "caveat",
+        "createdAt": "2026-10-13T17:59:11.270Z",
+        "reason": "Claude: font of a comparison variant (diary/cards/shelf/chat) in mockups; DESIGN.md documents only the chosen Схема world"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "pt sans",
+        "createdAt": "2026-10-13T17:59:11.742Z",
+        "reason": "Claude: font of a comparison variant (diary/cards/shelf/chat) in mockups; DESIGN.md documents only the chosen Схема world"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "manrope",
+        "createdAt": "2026-10-13T17:59:12.242Z",
+        "reason": "Claude: font of a comparison variant (diary/cards/shelf/chat) in mockups; DESIGN.md documents only the chosen Схема world"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "golos text",
+        "createdAt": "2026-10-13T17:59:12.683Z",
+        "reason": "Claude: font of a comparison variant (diary/cards/shelf/chat) in mockups; DESIGN.md documents only the chosen Схема world"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "neucha",
+        "createdAt": "2026-10-13T17:59:13.131Z",
+        "reason": "Claude: font of a comparison variant (diary/cards/shelf/chat) in mockups; DESIGN.md documents only the chosen Схема world"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "onest",
+        "createdAt": "2026-10-13T17:59:13.611Z",
+        "reason": "Claude: font of a comparison variant (diary/cards/shelf/chat) in mockups; DESIGN.md documents only the chosen Схема world"
+      }
+    ]
+  }
+}

@@ -1,0 +1,228 @@
+<title>Книга рецептов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap">
+<style>
+:root {
+  --bg: #F6F0F2; --card: #FFFFFF; --ink: #15161A; --ink-2: #5C606B; --rule: #E7E8EC;
+  --primary: #C92A62; --primary-ink: #FFFFFF; --meal: #EE6A3B; --dima: #F2A900;
+  --tint: 14%; --shadow: rgba(21, 22, 26, 0.07);
+  --font: "Onest", "Segoe UI", Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #121014; --card: #1A1C22; --ink: #F2F3F6; --ink-2: #A5ABB8; --rule: #2A2D36; --tint: 20%; --shadow: rgba(0, 0, 0, 0.4); --dima: #F5BE2E; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #121014; --card: #1A1C22; --ink: #F2F3F6; --ink-2: #A5ABB8; --rule: #2A2D36; --tint: 20%; --shadow: rgba(0, 0, 0, 0.4); --dima: #F5BE2E; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.45 var(--font); -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+::selection { background: color-mix(in oklab, var(--primary) 30%, transparent); }
+:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; border-radius: 8px; }
+a { color: color-mix(in oklab, var(--primary) 82%, var(--ink)); text-underline-offset: 3px; }
+
+.wrap { max-width: 760px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 64px; }
+header h1 { margin: 0; font: 800 32px/1.05 var(--font); letter-spacing: -0.03em; text-wrap: balance; }
+header p { margin: 8px 0 0; max-width: 60ch; color: var(--ink-2); }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 14px 0 20px; font-size: 14px; color: var(--ink-2); }
+.stats b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.segs { display: flex; gap: 6px; padding: 4px; margin-bottom: 14px; border-radius: 16px; background: var(--card); box-shadow: 0 1px 2px var(--shadow); }
+.segs button { flex: 1; border: 0; border-radius: 12px; padding: 10px; background: none; font-weight: 600; font-size: 15px; color: var(--ink-2); cursor: pointer; }
+.segs button[aria-selected="true"] { background: var(--primary); color: var(--primary-ink); }
+
+.search { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; margin-bottom: 12px; border-radius: 16px; background: var(--card); box-shadow: 0 1px 2px var(--shadow); color: var(--ink-2); }
+.search:focus-within { outline: 3px solid var(--primary); outline-offset: 2px; }
+.search svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.search input { flex: 1; min-width: 0; padding: 12px 0; border: 0; background: none; outline: none; font-size: 16px; }
+.search input::placeholder { color: var(--ink-2); opacity: 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.chips button { min-height: 38px; padding: 8px 14px; border: 0; border-radius: 999px; background: var(--card); font-weight: 600; font-size: 14px; cursor: pointer; box-shadow: 0 1px 2px var(--shadow); }
+.chips button[aria-pressed="true"] { background: var(--ink); color: var(--card); }
+.chips.soft button { background: color-mix(in oklab, var(--ink) 5%, var(--bg)); box-shadow: none; }
+.chips.soft button[aria-pressed="true"] { background: var(--ink); color: var(--card); }
+.count { margin: 6px 2px 12px; font-size: 14px; color: var(--ink-2); }
+
+.list { display: grid; gap: 10px; }
+.rc { border-radius: 20px; background: var(--card); box-shadow: 0 1px 2px var(--shadow); }
+.rc > summary { list-style: none; cursor: pointer; padding: 14px 16px; display: grid; gap: 4px; }
+.rc > summary::-webkit-details-marker { display: none; }
+.rc[open] > summary { border-bottom: 1px solid var(--rule); }
+.rc .nm { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.rc .nm b { font: 700 18px/1.25 var(--font); letter-spacing: -0.01em; }
+.rc .nm span { flex: none; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.rc .ab { color: var(--ink-2); font-size: 14px; }
+.meta { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 2px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.meta .t { color: color-mix(in oklab, var(--meal) 68%, var(--ink)); }
+.meta .d { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-weight: 500; }
+.meta .d::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--dima); }
+.body { padding: 4px 16px 16px; display: grid; gap: 4px; }
+.body h3 { margin: 12px 0 2px; font: 800 16px var(--font); }
+.ing { list-style: none; margin: 0; padding: 0; }
+.ing li { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--rule); font-size: 15px; }
+.ing li:first-child { border-top: 0; }
+.ing li > span:last-child { color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ing small { display: block; font-size: 12px; color: var(--ink-2); }
+.steps { margin: 0; padding-left: 22px; display: grid; gap: 6px; font-size: 15px; }
+.steps li::marker { font-weight: 800; color: color-mix(in oklab, var(--meal) 68%, var(--ink)); }
+.note { margin: 0; padding: 10px 12px; border-radius: 14px; background: color-mix(in oklab, var(--dima) var(--tint), var(--card)); font-size: 14px; }
+.facts { margin: 8px 0 0; font-size: 13px; color: var(--ink-2); }
+
+.week { margin-bottom: 14px; padding: 16px; border-radius: 22px; background: var(--card); box-shadow: 0 1px 2px var(--shadow); }
+.week h2 { margin: 0; font: 800 22px var(--font); letter-spacing: -0.02em; }
+.week > p { margin: 4px 0 10px; color: var(--ink-2); }
+.day { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 4px 10px; padding: 10px 0; border-top: 1px solid var(--rule); }
+.day > b { font-weight: 800; color: color-mix(in oklab, var(--primary) 82%, var(--ink)); padding-top: 1px; }
+.day dl { margin: 0; display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 3px 8px; font-size: 14px; }
+.day dt { color: var(--ink-2); }
+.day dd { margin: 0; }
+.lead { margin: 0 0 14px; color: var(--ink-2); max-width: 65ch; }
+.cost { display: grid; gap: 2px; margin: 0 0 10px; padding: 12px 14px; border-radius: 16px; background: color-mix(in oklab, var(--primary) var(--tint), var(--card)); }
+.cost b { font: 800 24px/1.1 var(--font); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.cost span { font-size: 14px; color: var(--ink); }
+.cost small { font-size: 12px; color: var(--ink-2); }
+.empty { padding: 18px; border-radius: 20px; background: var(--card); color: var(--ink-2); }
+footer { margin-top: 28px; font-size: 13px; color: var(--ink-2); max-width: 65ch; }
+@media (max-width: 420px) { header h1 { font-size: 28px; } .day dl { grid-template-columns: 64px minmax(0, 1fr); } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Книга рецептов</h1>
+    <p>Начальная база «Семейного помощника». У каждого блюда — ссылка на страницу, по которой сверяли пропорции, и пометка для Димы. Проверьте, что оставить, а что убрать: комментарии можно писать прямо на этой странице.</p>
+  </header>
+  <div class="stats" id="stats"></div>
+  <div class="segs" role="tablist" aria-label="Разделы">
+    <button type="button" role="tab" data-tab="dishes" aria-selected="true">Блюда</button>
+    <button type="button" role="tab" data-tab="weeks" aria-selected="false">Недели</button>
+  </div>
+  <section id="dishes">
+    <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><span hidden>Найти блюдо</span><input type="search" id="q" placeholder="Блюдо или продукт: курица, творог" autocomplete="off"></label>
+    <div class="chips" id="cats" role="group" aria-label="Раздел"></div>
+    <div class="chips soft" id="flags" role="group" aria-label="Отбор">
+      <button type="button" data-flag="weekday" aria-pressed="false">На будни</button>
+      <button type="button" data-flag="dima" aria-pressed="false">Диме без поправок</button>
+      <button type="button" data-flag="lent" aria-pressed="false">Постное</button>
+    </div>
+    <p class="count" id="count" aria-live="polite"></p>
+    <div class="list" id="list"></div>
+  </section>
+  <section id="weeks" hidden></section>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+(() => {
+  const CATS = [
+    ['all', 'Все'], ['breakfast', 'Завтраки'], ['soup', 'Супы'], ['salad', 'Салаты'], ['main', 'Основное'],
+    ['side', 'Гарниры'], ['sweet', 'Полдники и выпечка'], ['drink', 'Напитки'], ['discover', 'Что покушать'],
+  ];
+  const CAT_NAME = { breakfast: 'завтрак', soup: 'суп', salad: 'салат', main: 'основное', side: 'гарнир', snack: 'полдник', dessert: 'выпечка и десерт', drink: 'напиток' };
+  const DIMA = { ok: 'Диме можно', adapt: 'Диме с поправкой', skip: 'Диме нельзя' };
+  const DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const rub = (n) => n.toLocaleString('ru-RU') + ' ₽';
+  const state = { cat: 'all', flags: new Set(), q: '' };
+  let data = null;
+  let byId = {};
+
+  const matchCat = (r) => state.cat === 'all'
+    || (state.cat === 'discover' ? r.id.startsWith('ex-')
+      : state.cat === 'sweet' ? (!r.id.startsWith('ex-') && (r.cat === 'snack' || r.cat === 'dessert'))
+        : (!r.id.startsWith('ex-') && r.cat === state.cat));
+
+  function card(r) {
+    const ing = r.ing.map(([n, q, pantry, note, opt]) => `<li><span>${esc(n)}${note || opt ? `<small>${esc([note, opt ? 'по желанию' : ''].filter(Boolean).join(', '))}</small>` : ''}</span><span>${pantry ? (q === 'по вкусу' ? 'по вкусу' : esc(q)) + ' · есть дома' : esc(q)}</span></li>`).join('');
+    const facts = [
+      esc(r.section),
+      r.keeps ? `хранится ${r.keeps} ${r.keeps === 1 ? 'день' : r.keeps < 5 ? 'дня' : 'дней'}` : '',
+      r.tags.length ? r.tags.join(', ') : '',
+      Array.isArray(r.season) ? `сезон: ${r.season.map((s) => ({ winter: 'зима', spring: 'весна', summer: 'лето', autumn: 'осень' }[s])).join(', ')}` : '',
+    ].filter(Boolean).join(' · ');
+    return `<details class="rc" id="${r.id}"><summary>
+        <span class="nm"><b>${esc(r.name)}</b><span>${r.id.startsWith('ex-') ? 'что покушать' : CAT_NAME[r.cat] || ''}</span></span>
+        ${r.about ? `<span class="ab">${esc(r.about)}</span>` : ''}
+        <span class="meta"><span class="t">${r.time.total} мин</span><span>${r.serv} ${r.serv % 10 === 1 && r.serv !== 11 ? 'порция' : r.serv % 10 >= 2 && r.serv % 10 <= 4 && (r.serv < 12 || r.serv > 14) ? 'порции' : 'порций'}</span>${r.cost ? `<span>≈ ${rub(r.cost)}</span>` : ''}<span class="d">${DIMA[r.dima]}</span></span>
+      </summary><div class="body">
+        ${r.dimaNote ? `<p class="note"><b>Диме:</b> ${esc(r.dimaNote)}</p>` : ''}
+        <h3>Продукты</h3><ul class="ing">${ing}</ul>
+        <h3>Как готовить</h3><ol class="steps">${r.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>
+        <p class="facts">${esc(facts)}${r.src ? ` · источник: <a href="${esc(r.src.url)}" target="_blank" rel="noopener">${esc(r.src.site || 'страница')}</a>` : ' · базовый рецепт без источника'}</p>
+      </div></details>`;
+  }
+
+  function renderList() {
+    const q = state.q.trim().toLowerCase();
+    const list = data.recipes.filter((r) => matchCat(r)
+      && (!state.flags.has('weekday') || r.tags.includes('будни') || r.tags.includes('быстро'))
+      && (!state.flags.has('dima') || r.dima === 'ok')
+      && (!state.flags.has('lent') || r.tags.includes('постное'))
+      && (!q || (r.name + ' ' + r.about + ' ' + r.ing.map((i) => i[0]).join(' ')).toLowerCase().includes(q)));
+    document.getElementById('count').textContent = list.length ? `Показано ${list.length} из ${data.recipes.length}` : 'Ничего не нашли. Попробуйте продукт: «курица», «творог», «рис».';
+    document.getElementById('list').innerHTML = list.map(card).join('');
+  }
+
+  function renderChips() {
+    document.getElementById('cats').innerHTML = CATS.map(([id, label]) => `<button type="button" data-cat="${id}" aria-pressed="${state.cat === id}">${label}</button>`).join('');
+  }
+
+  function dish(id, extra) {
+    const r = byId[id];
+    return r ? `<a href="#${id}" data-open="${id}">${esc(r.name)}</a>${extra ? ` + ${extra}` : ''}` : esc(id);
+  }
+
+  function renderWeeks() {
+    const el = document.getElementById('weeks');
+    if (!data.weeks.length) { el.innerHTML = '<p class="empty">Шаблоны недель ещё собираются: их проверяет скрипт баланса. Обновлю страницу, когда будут готовы.</p>'; return; }
+    el.innerHTML = `<p class="lead">Сколько стоит неделя на семью: двое взрослых, Сын как взрослый, Дима половину. Суп считаем кастрюлей. Хлеб к столу, чай, кофе и кефир Диме на ночь сюда не входят.</p>` + data.weeks.map((w) => `<article class="week"><h2>${esc(w.name)}</h2><p>${esc(w.note || '')}</p>
+      ${w.cost ? `<div class="cost"><b>≈ ${rub(Math.round(w.cost.total / 100) * 100)}</b><span>за неделю · ≈ ${Math.round(w.cost.perMonth / 1000)} тыс. ₽ в месяц · ${rub(w.cost.perDay)} в день</span>${Object.keys(w.cost.unpriced).length ? `<small>без цены: ${Object.entries(w.cost.unpriced).map(([k, v]) => `${esc(k)} ${v}`).join(', ')}</small>` : ''}</div>` : ''}
+      ${w.days.map((d, i) => {
+        const lunch = d.lunch || {}; const din = d.dinner || {};
+        const snack = d.snack && typeof d.snack === 'object' ? esc(d.snack.simple) : d.snack ? dish(d.snack) : '—';
+        return `<div class="day"><b>${DAYS[i]}</b><dl>
+          <dt>Завтрак</dt><dd>${d.breakfast ? dish(d.breakfast) : '—'}</dd>
+          <dt>Обед</dt><dd>${lunch.soup ? dish(lunch.soup) : '—'}${lunch.salad ? `, ${dish(lunch.salad)}` : ''}</dd>
+          <dt>Полдник</dt><dd>${snack}</dd>
+          <dt>Ужин</dt><dd>${din.main ? dish(din.main, din.side && byId[din.side] ? dish(din.side) : '') : '—'}${din.salad ? `, ${dish(din.salad)}` : ''}</dd>
+        </dl></div>`;
+      }).join('')}</article>`).join('');
+  }
+
+  function openRecipe(id) {
+    if (!byId[id]) return;
+    state.cat = 'all'; state.flags.clear(); state.q = ''; document.getElementById('q').value = '';
+    document.querySelectorAll('#flags button').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    showTab('dishes'); renderChips(); renderList();
+    const d = document.getElementById(id);
+    if (d) { d.open = true; d.scrollIntoView({ block: 'start' }); d.querySelector('summary').focus({ preventScroll: true }); }
+  }
+
+  function showTab(t) {
+    document.querySelectorAll('.segs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+    document.getElementById('dishes').hidden = t !== 'dishes';
+    document.getElementById('weeks').hidden = t !== 'weeks';
+  }
+
+  document.querySelector('.segs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab); });
+  document.getElementById('cats').addEventListener('click', (e) => { const b = e.target.closest('[data-cat]'); if (b) { state.cat = b.dataset.cat; renderChips(); renderList(); } });
+  document.getElementById('flags').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-flag]'); if (!b) return;
+    const f = b.dataset.flag; if (state.flags.has(f)) state.flags.delete(f); else state.flags.add(f);
+    b.setAttribute('aria-pressed', String(state.flags.has(f))); renderList();
+  });
+  document.getElementById('q').addEventListener('input', (e) => { state.q = e.target.value; renderList(); });
+  document.getElementById('weeks').addEventListener('click', (e) => { const a = e.target.closest('[data-open]'); if (a) { e.preventDefault(); openRecipe(a.dataset.open); } });
+  window.addEventListener('hashchange', () => openRecipe(location.hash.slice(1)));
+
+  fetch('book-data.json').then((r) => r.json()).then((d) => {
+    data = d;
+    byId = Object.fromEntries(d.recipes.map((r) => [r.id, r]));
+    const n = (f) => d.recipes.filter(f).length;
+    document.getElementById('stats').innerHTML = `<span><b>${d.recipes.length}</b> блюд</span><span><b>${n((r) => r.src)}</b> с источником</span><span><b>${n((r) => r.tags.includes('будни') || r.tags.includes('быстро'))}</b> на будни</span><span><b>${n((r) => r.dima === 'ok')}</b> Диме без поправок</span>${d.weeks.length ? `<span><b>${d.weeks.length}</b> шаблонов недель</span>` : ''}`;
+    document.querySelector('[data-tab="weeks"]').textContent = d.weeks.length ? `Недели · ${d.weeks.length}` : 'Недели';
+    document.getElementById('foot').textContent = `Цены «≈» — по продуктам, у которых есть средняя цена: ${d.prices}. Где цены нет у заметной части продуктов, сумму не показываем. Не едим: грибы, печень — таких блюд в базе нет.`;
+    renderChips(); renderList(); renderWeeks();
+    if (location.hash.length > 1) openRecipe(location.hash.slice(1));
+  }).catch(() => { document.getElementById('list').innerHTML = '<p class="empty">Не удалось загрузить рецепты. Обновите страницу.</p>'; });
+})();
+</script>

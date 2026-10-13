@@ -1,0 +1,10 @@
+{
+  "name": "family-app",
+  "private": true,
+  "workspaces": ["app"],
+  "scripts": {
+    "dev": "npm -w app run dev",
+    "build": "npm -w app run build",
+    "test": "npm -w app run test"
+  }
+}

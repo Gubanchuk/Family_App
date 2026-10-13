@@ -1,0 +1,576 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-13T21:11:45.657Z",
+  "title": "Design System: Семейный помощник",
+  "extensions": {
+    "colorMeta": {
+      "k-primary": {
+        "role": "primary",
+        "displayName": "Ягода",
+        "canonical": "#C92A62",
+        "tonalRamp": [
+          "oklch(15% 0.085 2)",
+          "oklch(27% 0.17 2)",
+          "oklch(39% 0.17 2)",
+          "oklch(51% 0.17 2)",
+          "oklch(63% 0.17 2)",
+          "oklch(75% 0.17 2)",
+          "oklch(87% 0.17 2)",
+          "oklch(96% 0.043 2)"
+        ]
+      },
+      "k-primary-ink": {
+        "role": "primary",
+        "displayName": "Текст на ягоде",
+        "canonical": "#FFFFFF"
+      },
+      "k-bgtint": {
+        "role": "primary",
+        "displayName": "Оттенок поля",
+        "canonical": "#C92A62"
+      },
+      "k-meal": {
+        "role": "secondary",
+        "displayName": "Еда, коралл",
+        "canonical": "#EE6A3B",
+        "tonalRamp": [
+          "oklch(15% 0.08 42)",
+          "oklch(27% 0.16 42)",
+          "oklch(39% 0.16 42)",
+          "oklch(51% 0.16 42)",
+          "oklch(63% 0.16 42)",
+          "oklch(75% 0.16 42)",
+          "oklch(87% 0.16 42)",
+          "oklch(96% 0.04 42)"
+        ]
+      },
+      "k-shop": {
+        "role": "secondary",
+        "displayName": "Покупки, зелень",
+        "canonical": "#1E9E64",
+        "tonalRamp": [
+          "oklch(15% 0.065 158)",
+          "oklch(27% 0.13 158)",
+          "oklch(39% 0.13 158)",
+          "oklch(51% 0.13 158)",
+          "oklch(63% 0.13 158)",
+          "oklch(75% 0.13 158)",
+          "oklch(87% 0.13 158)",
+          "oklch(96% 0.033 158)"
+        ]
+      },
+      "k-goal": {
+        "role": "secondary",
+        "displayName": "Цели, синий",
+        "canonical": "#4F5BD5",
+        "tonalRamp": [
+          "oklch(15% 0.08 275)",
+          "oklch(27% 0.16 275)",
+          "oklch(39% 0.16 275)",
+          "oklch(51% 0.16 275)",
+          "oklch(63% 0.16 275)",
+          "oklch(75% 0.16 275)",
+          "oklch(87% 0.16 275)",
+          "oklch(96% 0.04 275)"
+        ]
+      },
+      "k-money": {
+        "role": "secondary",
+        "displayName": "Деньги, ягода",
+        "canonical": "#C92A62"
+      },
+      "k-urgent": {
+        "role": "secondary",
+        "displayName": "Срочно",
+        "canonical": "#E5384C",
+        "tonalRamp": [
+          "oklch(15% 0.095 20)",
+          "oklch(27% 0.19 20)",
+          "oklch(39% 0.19 20)",
+          "oklch(51% 0.19 20)",
+          "oklch(63% 0.19 20)",
+          "oklch(75% 0.19 20)",
+          "oklch(87% 0.19 20)",
+          "oklch(96% 0.048 20)"
+        ]
+      },
+      "k-base": {
+        "role": "neutral",
+        "displayName": "Поле",
+        "canonical": "#F4F4F6",
+        "tonalRamp": [
+          "oklch(15% 0.002 270)",
+          "oklch(27% 0.004 270)",
+          "oklch(39% 0.004 270)",
+          "oklch(51% 0.004 270)",
+          "oklch(63% 0.004 270)",
+          "oklch(75% 0.004 270)",
+          "oklch(87% 0.004 270)",
+          "oklch(96% 0.001 270)"
+        ]
+      },
+      "k-card": {
+        "role": "neutral",
+        "displayName": "Карточка",
+        "canonical": "#FFFFFF"
+      },
+      "k-ink": {
+        "role": "neutral",
+        "displayName": "Чернила",
+        "canonical": "#15161A"
+      },
+      "k-ink-2": {
+        "role": "neutral",
+        "displayName": "Вторичный текст",
+        "canonical": "#5C606B"
+      },
+      "k-rule": {
+        "role": "neutral",
+        "displayName": "Линейка",
+        "canonical": "#E7E8EC"
+      },
+      "k-shadow": {
+        "role": "neutral",
+        "displayName": "Тень",
+        "canonical": "rgba(21, 22, 26, 0.07)"
+      },
+      "k-scrim": {
+        "role": "neutral",
+        "displayName": "Затемнение под листом",
+        "canonical": "rgba(21, 22, 26, 0.42)"
+      },
+      "k-knob": {
+        "role": "neutral",
+        "displayName": "Ручка переключателя",
+        "canonical": "#FFFFFF"
+      },
+      "k-base-dark": {
+        "role": "neutral",
+        "displayName": "Поле, ночь",
+        "canonical": "#0F1014"
+      },
+      "k-card-dark": {
+        "role": "neutral",
+        "displayName": "Карточка, ночь",
+        "canonical": "#1A1C22"
+      },
+      "k-ink-dark": {
+        "role": "neutral",
+        "displayName": "Чернила, ночь",
+        "canonical": "#F2F3F6"
+      },
+      "k-ink-2-dark": {
+        "role": "neutral",
+        "displayName": "Вторичный текст, ночь",
+        "canonical": "#A5ABB8"
+      },
+      "k-rule-dark": {
+        "role": "neutral",
+        "displayName": "Линейка, ночь",
+        "canonical": "#2A2D36"
+      },
+      "k-shadow-dark": {
+        "role": "neutral",
+        "displayName": "Тень, ночь",
+        "canonical": "rgba(0, 0, 0, 0.4)"
+      },
+      "k-scrim-dark": {
+        "role": "neutral",
+        "displayName": "Затемнение, ночь",
+        "canonical": "rgba(0, 0, 0, 0.6)"
+      },
+      "tp-day-bg": {
+        "role": "neutral",
+        "displayName": "Превью «День»: поле",
+        "canonical": "#F7F0F2"
+      },
+      "tp-day-card": {
+        "role": "neutral",
+        "displayName": "Превью «День»: карточка",
+        "canonical": "#FFFFFF"
+      },
+      "tp-night-bg": {
+        "role": "neutral",
+        "displayName": "Превью «Ночь»: поле",
+        "canonical": "#121317"
+      },
+      "tp-night-card": {
+        "role": "neutral",
+        "displayName": "Превью «Ночь»: карточка",
+        "canonical": "#262830"
+      },
+      "tp-hero": {
+        "role": "neutral",
+        "displayName": "Превью: герой",
+        "canonical": "#C92A62"
+      },
+      "papa": {
+        "role": "tertiary",
+        "displayName": "Папа",
+        "canonical": "#2F6FDB"
+      },
+      "mama": {
+        "role": "tertiary",
+        "displayName": "Мама",
+        "canonical": "#E0457B"
+      },
+      "son": {
+        "role": "tertiary",
+        "displayName": "Сын",
+        "canonical": "#1FA463"
+      },
+      "dima": {
+        "role": "tertiary",
+        "displayName": "Дима",
+        "canonical": "#F2A900"
+      },
+      "papa-dark": {
+        "role": "tertiary",
+        "displayName": "Папа, ночь",
+        "canonical": "#5B8FF0"
+      },
+      "mama-dark": {
+        "role": "tertiary",
+        "displayName": "Мама, ночь",
+        "canonical": "#F06A98"
+      },
+      "son-dark": {
+        "role": "tertiary",
+        "displayName": "Сын, ночь",
+        "canonical": "#3CC383"
+      },
+      "dima-dark": {
+        "role": "tertiary",
+        "displayName": "Дима, ночь",
+        "canonical": "#F5BE2E"
+      }
+    },
+    "typographyMeta": {
+      "screen-title": {
+        "displayName": "Заголовок экрана",
+        "purpose": "Приветствие на Главной, названия разделов, «Настройки»."
+      },
+      "sheet-title": {
+        "displayName": "Заголовок листа",
+        "purpose": "Название блюда в рецепте."
+      },
+      "hero-title": {
+        "displayName": "Заголовок героя",
+        "purpose": "Главная просьба или предложение."
+      },
+      "numeral": {
+        "displayName": "Цифра",
+        "purpose": "Число в плитке; время еды 30px и время идеи 22px той же манеры."
+      },
+      "section-title": {
+        "displayName": "Заголовок секции",
+        "purpose": "Над группой вне карточки."
+      },
+      "card-title": {
+        "displayName": "Заголовок карточки",
+        "purpose": "Шапка белой карточки."
+      },
+      "tile-value": {
+        "displayName": "Значение плитки",
+        "purpose": "Текстовое значение, когда не число."
+      },
+      "idea-title": {
+        "displayName": "Название идеи",
+        "purpose": "Компактная идея; широкая — 800/21px."
+      },
+      "body": {
+        "displayName": "Текст",
+        "purpose": "Основной текст."
+      },
+      "row-title": {
+        "displayName": "Строка",
+        "purpose": "Заголовок строки списка."
+      },
+      "meta": {
+        "displayName": "Подпись",
+        "purpose": "Подписи, цвет k-ink-2."
+      },
+      "button": {
+        "displayName": "Кнопка",
+        "purpose": "Сплошные и мягкие кнопки."
+      },
+      "control": {
+        "displayName": "Управление",
+        "purpose": "Пилюли шапки, чипы, сегменты, ссылка «Все»."
+      },
+      "tab-label": {
+        "displayName": "Вкладка",
+        "purpose": "Подпись нижней вкладки; активная 700."
+      }
+    },
+    "mixes": [
+      {
+        "name": "--k-tint",
+        "value": "14% / 24% (ночь)",
+        "purpose": "Тинт раздела: color-mix(in oklab, hue var(--k-tint), var(--k-card))."
+      },
+      {
+        "name": "--k-tint-focal",
+        "value": "14% / 10% (ночь)",
+        "purpose": "Одна главная карточка группы: ближайшая еда, широкая идея."
+      },
+      {
+        "name": "--k-bg",
+        "value": "color-mix(in oklab, var(--k-bgtint) 7%, var(--k-base))",
+        "purpose": "Фон экрана."
+      },
+      {
+        "name": "ink-well",
+        "value": "color-mix(in oklab, var(--k-ink) 4–6%, var(--k-card))",
+        "purpose": "Нейтральные колодцы: превью темы 5%, «Кому и когда» 4%, варианты выбора и «Закрыть» 6%."
+      },
+      {
+        "name": "text-on-tint",
+        "value": "color-mix(in oklab, hue 80–85%, var(--k-ink))",
+        "purpose": "Текст и иконки на тинте."
+      },
+      {
+        "name": "hero-chip",
+        "value": "color-mix(in oklab, var(--k-hero-ink) 14%, var(--k-hero))",
+        "purpose": "Полупрозрачный чип на герое."
+      }
+    ],
+    "shadows": [
+      {
+        "name": "touch",
+        "value": "0 1px 2px var(--k-shadow)",
+        "purpose": "Белые карточки, компактные идеи, дни, сегменты, поиск, чипы подборок, пилюли шапки, круглые кнопки."
+      },
+      {
+        "name": "popup",
+        "value": "0 10px 30px var(--k-shadow)",
+        "purpose": "Тост; лист рецепта — 0 -10px 30px."
+      },
+      {
+        "name": "knob",
+        "value": "0 1px 3px var(--k-shadow), 0 1px 1px var(--k-shadow)",
+        "purpose": "Ручка переключателя."
+      },
+      {
+        "name": "member-ring",
+        "value": "0 0 0 3px var(--k-bg), 0 0 0 5px var(--c)",
+        "purpose": "Аватар 58px в ряду «Семья»; у профиля 64px зазор var(--k-card)."
+      },
+      {
+        "name": "theme-ring",
+        "value": "inset 0 0 0 2px var(--k-primary) | outline: 2px dashed var(--k-primary), offset -2px",
+        "purpose": "Действующая тема: сплошное кольцо при ручном выборе, пунктир в режиме «авто»."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Единая кривая."
+      },
+      {
+        "name": "check-fill",
+        "value": "200ms",
+        "purpose": "Заливка галочки; значок 150ms."
+      },
+      {
+        "name": "switch",
+        "value": "200ms",
+        "purpose": "Фон и ручка переключателя, кольцо выбранной темы."
+      },
+      {
+        "name": "press",
+        "value": "scale(0.98), 160ms",
+        "purpose": "Нажатие плитки и идеи."
+      },
+      {
+        "name": "tile-to-screen",
+        "value": "view-transition k-expand, 280ms",
+        "purpose": "Плитка раскрывается в экран раздела."
+      },
+      {
+        "name": "screen-swap",
+        "value": "view-transition root, 180ms",
+        "purpose": "Смена экрана и смена темы — перетекание."
+      },
+      {
+        "name": "sheet-in",
+        "value": "translateY(48px) → 0, 260ms; затемнение 200ms",
+        "purpose": "Лист рецепта."
+      },
+      {
+        "name": "toast-in",
+        "value": "220ms",
+        "purpose": "Появление тоста."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "1ms",
+        "purpose": "prefers-reduced-motion: reduce гасит анимации; View Transition не запускается."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "max-width: 599px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Сплошная кнопка",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Главное действие группы, ягодный.",
+      "html": "<button class=\"ds-btn\">Предложить</button>",
+      "css": ".ds-btn { --k-primary:#C92A62;--k-primary-ink:#FFFFFF;--k-card:#FFFFFF;--k-ink:#15161A;--k-ink-2:#5C606B;--k-rule:#E7E8EC;--k-shadow:rgba(21,22,26,0.07);--k-meal:#EE6A3B;--k-shop:#1E9E64;--k-urgent:#E5384C;--k-knob:#FFFFFF;--k-tint:14%;--k-tint-focal:14%;--dima:#F2A900; font-family: Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 12px 18px; border-radius: 16px; border: 0; background: var(--k-primary); color: var(--k-primary-ink); font: 700 15px Onest, 'Segoe UI', Roboto, Arial, sans-serif; cursor: pointer; } .ds-btn:active { transform: scale(0.98); } .ds-btn:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 2px; }"
+    },
+    {
+      "name": "Мягкая малая кнопка",
+      "kind": "button",
+      "refersTo": "button-small",
+      "description": "Второстепенное действие на тинте главного; нажатая становится сплошной.",
+      "html": "<button class=\"ds-soft\" aria-pressed=\"false\" onclick=\"this.setAttribute('aria-pressed', this.getAttribute('aria-pressed')!=='true')\">Сделаю</button>",
+      "css": ".ds-soft { --k-primary:#C92A62;--k-primary-ink:#FFFFFF;--k-card:#FFFFFF;--k-ink:#15161A;--k-ink-2:#5C606B;--k-rule:#E7E8EC;--k-shadow:rgba(21,22,26,0.07);--k-meal:#EE6A3B;--k-shop:#1E9E64;--k-urgent:#E5384C;--k-knob:#FFFFFF;--k-tint:14%;--k-tint-focal:14%;--dima:#F2A900; font-family: Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-soft { min-height: 38px; padding: 8px 14px; border-radius: 12px; border: 0; background: color-mix(in oklab, var(--k-primary) var(--k-tint), var(--k-card)); color: color-mix(in oklab, var(--k-primary) 82%, var(--k-ink)); font: 700 14px Onest, 'Segoe UI', Roboto, Arial, sans-serif; cursor: pointer; } .ds-soft[aria-pressed=\"true\"] { background: var(--k-primary); color: var(--k-primary-ink); } .ds-soft:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 2px; }"
+    },
+    {
+      "name": "Пилюля шапки",
+      "kind": "button",
+      "refersTo": "head-pill",
+      "description": "Действие экрана в шапке: иконка и подпись.",
+      "html": "<button class=\"ds-hp\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" width=\"18\" height=\"18\"><path d=\"M12 5v14M5 12h14\"/></svg>Добавить</button>",
+      "css": ".ds-hp { --k-primary:#C92A62;--k-primary-ink:#FFFFFF;--k-card:#FFFFFF;--k-ink:#15161A;--k-ink-2:#5C606B;--k-rule:#E7E8EC;--k-shadow:rgba(21,22,26,0.07);--k-meal:#EE6A3B;--k-shop:#1E9E64;--k-urgent:#E5384C;--k-knob:#FFFFFF;--k-tint:14%;--k-tint-focal:14%;--dima:#F2A900; font-family: Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-hp { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px 0 12px; border: 0; border-radius: 999px; background: var(--k-card); color: var(--k-ink); font: 600 14px Onest, 'Segoe UI', Roboto, Arial, sans-serif; box-shadow: 0 1px 2px var(--k-shadow); cursor: pointer; } .ds-hp:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 2px; }"
+    },
+    {
+      "name": "Герой-блок",
+      "kind": "card",
+      "refersTo": "hero",
+      "description": "Главное сейчас: заголовок, кто просит, сплошной «Сделаю» и полупрозрачный чип.",
+      "html": "<section class=\"ds-hero\"><h2>Забрать посылку до 18:00</h2><p>Просит Мама, срочно</p><div class=\"ds-chips\"><button class=\"ds-chip ds-chip-p\">Сделаю</button><button class=\"ds-chip\">Все дела · 3</button></div></section>",
+      "css": ".ds-hero { --k-primary:#C92A62;--k-primary-ink:#FFFFFF;--k-card:#FFFFFF;--k-ink:#15161A;--k-ink-2:#5C606B;--k-rule:#E7E8EC;--k-shadow:rgba(21,22,26,0.07);--k-meal:#EE6A3B;--k-shop:#1E9E64;--k-urgent:#E5384C;--k-knob:#FFFFFF;--k-tint:14%;--k-tint-focal:14%;--dima:#F2A900; font-family: Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-hero { width: 320px; padding: 18px; border-radius: 26px; background: var(--k-primary); color: var(--k-primary-ink); } .ds-hero h2 { margin: 0; font: 800 24px/1.15 Onest, 'Segoe UI', Roboto, Arial, sans-serif; letter-spacing: -0.02em; } .ds-hero p { margin: 6px 0 0; font-size: 15px; color: color-mix(in oklab, var(--k-primary-ink) 80%, var(--k-primary)); } .ds-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; } .ds-chip { min-height: 44px; padding: 10px 14px; border-radius: 999px; border: 0; background: color-mix(in oklab, var(--k-primary-ink) 14%, var(--k-primary)); color: var(--k-primary-ink); font: 600 14px Onest, 'Segoe UI', Roboto, Arial, sans-serif; cursor: pointer; } .ds-chip-p { padding: 10px 18px; background: var(--k-primary-ink); color: var(--k-primary); font-weight: 800; } .ds-chip:focus-visible { outline: 3px solid var(--k-primary-ink); outline-offset: 2px; }"
+    },
+    {
+      "name": "Плитка раздела",
+      "kind": "card",
+      "refersTo": "tile",
+      "description": "Тинт оттенка раздела, метка, крупная цифра, подпись.",
+      "html": "<button class=\"ds-tile\"><span class=\"ds-tk\">Покупки</span><span class=\"ds-tv\">7</span><span class=\"ds-ts\">осталось купить · ≈&nbsp;2 340 ₽</span></button>",
+      "css": ".ds-tile { --k-primary:#C92A62;--k-primary-ink:#FFFFFF;--k-card:#FFFFFF;--k-ink:#15161A;--k-ink-2:#5C606B;--k-rule:#E7E8EC;--k-shadow:rgba(21,22,26,0.07);--k-meal:#EE6A3B;--k-shop:#1E9E64;--k-urgent:#E5384C;--k-knob:#FFFFFF;--k-tint:14%;--k-tint-focal:14%;--dima:#F2A900; font-family: Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-tile { --h: var(--k-shop); display: flex; flex-direction: column; gap: 6px; min-height: 120px; width: 170px; padding: 14px; border-radius: 22px; border: 0; text-align: left; background: color-mix(in oklab, var(--h) var(--k-tint), var(--k-card)); color: var(--k-ink); cursor: pointer; transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-tile:active { transform: scale(0.98); } .ds-tk { font: 600 13px Onest, 'Segoe UI', Roboto, Arial, sans-serif; color: color-mix(in oklab, var(--h) 82%, var(--k-ink)); } .ds-tv { font: 800 32px/1 Onest, 'Segoe UI', Roboto, Arial, sans-serif; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; } .ds-ts { margin-top: auto; font-size: 13px; color: var(--k-ink-2); } .ds-tile:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 2px; }"
+    },
+    {
+      "name": "Карточка со строкой и галочкой",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Белая карточка 22px, строки через линейку, галочка заливается главным за 200ms.",
+      "html": "<section class=\"ds-card\"><h2>Ещё просьбы</h2><button class=\"ds-row\" aria-pressed=\"false\" onclick=\"this.setAttribute('aria-pressed', this.getAttribute('aria-pressed')!=='true')\"><span class=\"ds-check\"></span><span><b>Вынести мусор</b><small>просит Папа</small></span></button></section>",
+      "css": ".ds-card { --k-primary:#C92A62;--k-primary-ink:#FFFFFF;--k-card:#FFFFFF;--k-ink:#15161A;--k-ink-2:#5C606B;--k-rule:#E7E8EC;--k-shadow:rgba(21,22,26,0.07);--k-meal:#EE6A3B;--k-shop:#1E9E64;--k-urgent:#E5384C;--k-knob:#FFFFFF;--k-tint:14%;--k-tint-focal:14%;--dima:#F2A900; font-family: Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-card { width: 300px; padding: 16px; border-radius: 22px; background: var(--k-card); box-shadow: 0 1px 2px var(--k-shadow); color: var(--k-ink); } .ds-card h2 { margin: 0 0 6px; font: 700 18px/1.2 Onest, 'Segoe UI', Roboto, Arial, sans-serif; letter-spacing: -0.01em; } .ds-row { all: unset; display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 0; cursor: pointer; } .ds-row b { display: block; font: 600 16px/1.3 Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-row small { display: block; font-size: 13px; color: var(--k-ink-2); } .ds-check { width: 26px; height: 26px; border-radius: 9px; border: 2px solid var(--k-rule); box-sizing: border-box; flex: none; transition: background 200ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 200ms; } .ds-row[aria-pressed=\"true\"] .ds-check { background: var(--k-primary); border-color: var(--k-primary); } .ds-row[aria-pressed=\"true\"] b { text-decoration: line-through; color: var(--k-ink-2); } .ds-row:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 2px; border-radius: 10px; }"
+    },
+    {
+      "name": "Чипы выбора",
+      "kind": "chip",
+      "refersTo": "chip-choice",
+      "description": "Подборки идей; выбранный залит чернилами, не главным.",
+      "html": "<div class=\"ds-cc\"><button aria-pressed=\"true\">Все</button><button aria-pressed=\"false\">Быстро</button><button aria-pressed=\"false\">Для Димы</button></div>",
+      "css": ".ds-cc { --k-primary:#C92A62;--k-primary-ink:#FFFFFF;--k-card:#FFFFFF;--k-ink:#15161A;--k-ink-2:#5C606B;--k-rule:#E7E8EC;--k-shadow:rgba(21,22,26,0.07);--k-meal:#EE6A3B;--k-shop:#1E9E64;--k-urgent:#E5384C;--k-knob:#FFFFFF;--k-tint:14%;--k-tint-focal:14%;--dima:#F2A900; font-family: Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-cc { display: flex; gap: 8px; } .ds-cc button { min-height: 38px; padding: 8px 14px; border: 0; border-radius: 999px; background: var(--k-card); color: var(--k-ink); font: 600 14px Onest, 'Segoe UI', Roboto, Arial, sans-serif; box-shadow: 0 1px 2px var(--k-shadow); cursor: pointer; } .ds-cc button[aria-pressed=\"true\"] { background: var(--k-ink); color: var(--k-card); } .ds-cc button:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 2px; }"
+    },
+    {
+      "name": "Поиск",
+      "kind": "input",
+      "refersTo": "search",
+      "description": "Белое поле 48px с иконкой; фокус на всём поле.",
+      "html": "<label class=\"ds-search\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" width=\"18\" height=\"18\"><circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"m16 16 4.5 4.5\"/></svg><input type=\"search\" placeholder=\"Блюдо или продукт: курица, яйца\"></label>",
+      "css": ".ds-search { --k-primary:#C92A62;--k-primary-ink:#FFFFFF;--k-card:#FFFFFF;--k-ink:#15161A;--k-ink-2:#5C606B;--k-rule:#E7E8EC;--k-shadow:rgba(21,22,26,0.07);--k-meal:#EE6A3B;--k-shop:#1E9E64;--k-urgent:#E5384C;--k-knob:#FFFFFF;--k-tint:14%;--k-tint-focal:14%;--dima:#F2A900; font-family: Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-search { display: flex; align-items: center; gap: 10px; width: 320px; min-height: 48px; padding: 0 14px; border-radius: 16px; background: var(--k-card); color: var(--k-ink-2); box-shadow: 0 1px 2px var(--k-shadow); } .ds-search:focus-within { outline: 3px solid var(--k-primary); outline-offset: 2px; } .ds-search input { flex: 1; min-width: 0; padding: 12px 0; border: 0; background: none; font: 400 16px Onest, 'Segoe UI', Roboto, Arial, sans-serif; color: var(--k-ink); outline: none; } .ds-search input::placeholder { color: var(--k-ink-2); opacity: 1; }"
+    },
+    {
+      "name": "Идея блюда",
+      "kind": "card",
+      "refersTo": "idea",
+      "description": "Широкая первая на фокусном тинте еды; компактная белая, время — главная цифра.",
+      "html": "<div class=\"ds-ideas\"><button class=\"ds-idea ds-wide\"><b>Сырники с изюмом</b><span class=\"ds-about\">Мягкие, на завтрак всей семье</span><span class=\"ds-meta\"><span class=\"ds-min\">25<small>мин</small></span><span>≈&nbsp;320 ₽</span></span><span class=\"ds-dima\">Диме можно</span></button><button class=\"ds-idea\"><b>Омлет с сыром</b><span class=\"ds-meta\"><span class=\"ds-min\">15<small>мин</small></span><span>≈&nbsp;180 ₽</span></span><span class=\"ds-dima\">Диме можно</span></button></div>",
+      "css": ".ds-ideas { --k-primary:#C92A62;--k-primary-ink:#FFFFFF;--k-card:#FFFFFF;--k-ink:#15161A;--k-ink-2:#5C606B;--k-rule:#E7E8EC;--k-shadow:rgba(21,22,26,0.07);--k-meal:#EE6A3B;--k-shop:#1E9E64;--k-urgent:#E5384C;--k-knob:#FFFFFF;--k-tint:14%;--k-tint-focal:14%;--dima:#F2A900; font-family: Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-ideas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 340px; } .ds-idea { display: flex; flex-direction: column; gap: 6px; padding: 14px; border: 0; border-radius: 22px; background: var(--k-card); color: var(--k-ink); text-align: left; cursor: pointer; box-shadow: 0 1px 2px var(--k-shadow); transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-idea:active { transform: scale(0.98); } .ds-idea:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 2px; } .ds-wide { grid-column: 1 / -1; padding: 16px; background: color-mix(in oklab, var(--k-meal) var(--k-tint-focal), var(--k-card)); box-shadow: none; } .ds-idea b { font: 700 17px/1.2 Onest, 'Segoe UI', Roboto, Arial, sans-serif; letter-spacing: -0.01em; } .ds-wide b { font-size: 21px; font-weight: 800; letter-spacing: -0.02em; } .ds-about { font-size: 14px; color: var(--k-ink-2); } .ds-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-top: 10px; font: 600 13px Onest, 'Segoe UI', Roboto, Arial, sans-serif; font-variant-numeric: tabular-nums; } .ds-wide .ds-meta { justify-content: flex-start; gap: 16px; } .ds-min { font: 800 22px/1 Onest, 'Segoe UI', Roboto, Arial, sans-serif; letter-spacing: -0.02em; color: color-mix(in oklab, var(--k-meal) 85%, var(--k-ink)); } .ds-min small { margin-left: 3px; font: 600 13px Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-dima { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--k-ink-2); } .ds-dima::before { content: \"\"; width: 8px; height: 8px; border-radius: 50%; background: var(--dima); }"
+    },
+    {
+      "name": "Переключатель",
+      "kind": "custom",
+      "refersTo": "switch",
+      "description": "Капсула 52×32, включён — ягодный, ручка 26px.",
+      "html": "<button class=\"ds-sw\" role=\"switch\" aria-checked=\"true\" aria-label=\"Как в телефоне\" onclick=\"this.setAttribute('aria-checked', this.getAttribute('aria-checked')!=='true')\"><i></i></button>",
+      "css": ".ds-sw { --k-primary:#C92A62;--k-primary-ink:#FFFFFF;--k-card:#FFFFFF;--k-ink:#15161A;--k-ink-2:#5C606B;--k-rule:#E7E8EC;--k-shadow:rgba(21,22,26,0.07);--k-meal:#EE6A3B;--k-shop:#1E9E64;--k-urgent:#E5384C;--k-knob:#FFFFFF;--k-tint:14%;--k-tint-focal:14%;--dima:#F2A900; font-family: Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-sw { position: relative; width: 52px; height: 32px; border: 0; border-radius: 999px; background: color-mix(in oklab, var(--k-ink) 18%, var(--k-card)); cursor: pointer; transition: background 200ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-sw i { position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: var(--k-knob); box-shadow: 0 1px 3px var(--k-shadow), 0 1px 1px var(--k-shadow); transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-sw[aria-checked=\"true\"] { background: var(--k-primary); } .ds-sw[aria-checked=\"true\"] i { transform: translateX(20px); } .ds-sw:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 2px; }"
+    },
+    {
+      "name": "Выбор темы",
+      "kind": "custom",
+      "description": "Две карточки с мини-превью; действующая обведена: сплошно вручную, пунктиром в «авто».",
+      "html": "<div class=\"ds-tpick\"><button class=\"ds-tp\" aria-checked=\"true\"><span class=\"ds-mini ds-day\"><i></i><b></b><b></b></span><span class=\"ds-tl\">День</span></button><button class=\"ds-tp ds-auto\" aria-checked=\"true\"><span class=\"ds-mini ds-night\"><i></i><b></b><b></b></span><span class=\"ds-tl\">Ночь<small>авто</small></span></button></div>",
+      "css": ".ds-tpick { --k-primary:#C92A62;--k-primary-ink:#FFFFFF;--k-card:#FFFFFF;--k-ink:#15161A;--k-ink-2:#5C606B;--k-rule:#E7E8EC;--k-shadow:rgba(21,22,26,0.07);--k-meal:#EE6A3B;--k-shop:#1E9E64;--k-urgent:#E5384C;--k-knob:#FFFFFF;--k-tint:14%;--k-tint-focal:14%;--dima:#F2A900; font-family: Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-tpick { --tp-day-bg: #F7F0F2; --tp-day-card: #FFFFFF; --tp-night-bg: #121317; --tp-night-card: #262830; --tp-hero: #C92A62; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 300px; } .ds-tp { display: grid; gap: 8px; padding: 8px 8px 10px; border: 0; border-radius: 18px; background: color-mix(in oklab, var(--k-ink) 5%, var(--k-card)); color: var(--k-ink); text-align: left; cursor: pointer; } .ds-tp[aria-checked=\"true\"] { box-shadow: inset 0 0 0 2px var(--k-primary); } .ds-tp.ds-auto[aria-checked=\"true\"] { box-shadow: none; outline: 2px dashed var(--k-primary); outline-offset: -2px; } .ds-mini { display: grid; align-content: start; gap: 6px; height: 78px; padding: 8px; border-radius: 12px; box-sizing: border-box; } .ds-day { background: var(--tp-day-bg); } .ds-night { background: var(--tp-night-bg); } .ds-mini i { height: 28px; border-radius: 8px; background: var(--tp-hero); } .ds-mini b { height: 9px; border-radius: 5px; } .ds-mini b:last-child { width: 62%; } .ds-day b { background: var(--tp-day-card); } .ds-night b { background: var(--tp-night-card); } .ds-tl { display: flex; align-items: center; gap: 6px; padding: 0 4px; font: 700 15px Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-tl small { margin-left: auto; font: 600 12px Onest, 'Segoe UI', Roboto, Arial, sans-serif; color: var(--k-ink-2); }"
+    },
+    {
+      "name": "Нижние вкладки",
+      "kind": "nav",
+      "description": "Иконка с подписью; активная — капсула на тинте главного.",
+      "html": "<nav class=\"ds-tabs\"><button class=\"ds-tab\" aria-current=\"page\"><span class=\"ds-icw\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" width=\"18\" height=\"18\"><path d=\"M3 10.5 12 3l9 7.5\"/><path d=\"M5 9.5V21h14V9.5\"/><path d=\"M10 21v-6h4v6\"/></svg></span>Главная</button><button class=\"ds-tab\"><span class=\"ds-icw\"><svg class=\"ds-ic\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" width=\"18\" height=\"18\"><path d=\"M3 4h2.2l2.3 11h10.8l2.2-8H7\"/><circle cx=\"9.5\" cy=\"19.5\" r=\"1.5\"/><circle cx=\"17\" cy=\"19.5\" r=\"1.5\"/></svg></span>Покупки</button></nav>",
+      "css": ".ds-tabs { --k-primary:#C92A62;--k-primary-ink:#FFFFFF;--k-card:#FFFFFF;--k-ink:#15161A;--k-ink-2:#5C606B;--k-rule:#E7E8EC;--k-shadow:rgba(21,22,26,0.07);--k-meal:#EE6A3B;--k-shop:#1E9E64;--k-urgent:#E5384C;--k-knob:#FFFFFF;--k-tint:14%;--k-tint-focal:14%;--dima:#F2A900; font-family: Onest, 'Segoe UI', Roboto, Arial, sans-serif; } .ds-tabs { display: grid; grid-template-columns: repeat(2, 1fr); width: 300px; background: var(--k-card); border-top: 1px solid var(--k-rule); } .ds-tab { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 2px 10px; border: 0; background: none; font: 500 11px Onest, 'Segoe UI', Roboto, Arial, sans-serif; color: var(--k-ink-2); cursor: pointer; } .ds-tab .ds-ic { width: 24px; height: 24px; } .ds-icw { display: grid; place-items: center; width: 52px; height: 30px; border-radius: 15px; transition: background 200ms; } .ds-tab[aria-current=\"page\"] { color: var(--k-ink); font-weight: 700; } .ds-tab[aria-current=\"page\"] .ds-icw { background: color-mix(in oklab, var(--k-primary) var(--k-tint), var(--k-card)); color: color-mix(in oklab, var(--k-primary) 80%, var(--k-ink)); } .ds-tab:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Как у всех, но на совесть",
+    "overview": "Стандарт категории семейных органайзеров — карточки, круглые аватары своих цветов, нижние вкладки — исполненный на уровне Т-Банка и Яндекса (Go, Лавка, Еда). Семья выбрала этот мир сама, а 13.10.2026 выбрала версию «Ягода». Чиним то, что в стандарте плохо: бледность, одинаковость, отсутствие главного.\n\nОдна версия, оттенки живут на `:root`. Нейтрали и цвета участников переключаются темой «День / Ночь», тинты смешиваются из оттенков. У каждого экрана есть главное — цветной герой-блок; цвет несёт смысл раздела; плитки разного размера с живыми цифрами вместо стопки одинаковых белых карточек.\n\nФото блюд в «Что покушать» пока нет: решение за семьёй. До него карточки идей текстовые, без заглушек и иллюстраций.",
+    "keyCharacteristics": [
+      "Светлое поле с лёгким ягодным оттенком, белые карточки 22px.",
+      "Один сплошной герой-блок на экран, в нём главная просьба и главное действие.",
+      "Разделы окрашены своими оттенками: еда, покупки, цели, деньги.",
+      "Onest 400–800, крупные табличные цифры.",
+      "Линейные иконки 1.8px, всегда с подписью."
+    ],
+    "rules": [
+      {
+        "name": "The Meaningful Hue Rule",
+        "body": "Цвет раздела всегда один: плитка, иконка, полоса и время еды — `k-meal`, покупок — `k-shop` и так далее. Декоративного цвета нет.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Hero Rule",
+        "body": "Сплошной главный цвет крупным пятном — только герой-блок, один на экран.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink Selection Rule",
+        "body": "Выбор фильтра или ответа (подборки, «Кому и когда») — заливка `k-ink` с текстом `k-card`. Главный цвет остаётся за действием и навигацией (сегменты, дни, переключатель).",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Money Rule",
+        "body": "Суммы, время, минуты и счётчики — `font-variant-numeric: tabular-nums`. Знак «≈» не отрывается от суммы: между ними неразрывный пробел.",
+        "section": "typography"
+      },
+      {
+        "name": "The Self-Hosted Font Rule",
+        "body": "В рабочем PWA Onest раздаётся со своего сервера: семья в России без VPN. Google Fonts в макете — только из-за песочницы.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tint Over Shadow Rule",
+        "body": "Цветной блок (герой, плитка, ближайшая еда, широкая идея, уведомление о замене) не получает тени: глубину даёт тинт.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** смешивать тинты в `oklab` через `--k-tint` (14% / 24%), а не заводить отдельные светлые цвета.",
+      "**Do** брать `--k-tint-focal` (14% / 10%) только для одной главной карточки группы.",
+      "**Do** держать на экране один герой-блок и одно сплошное главное действие в нём.",
+      "**Do** красить раздел его оттенком везде, где он встречается.",
+      "**Do** выбранный чип выбора заливать чернилами, а не главным цветом.",
+      "**Do** ставить подпись рядом с иконкой (без подписи только круглые «Назад» и «Закрыть»); линейные иконки 22px, штрих 1.8px.",
+      "**Do** приглушать прошедшее цветом `k-ink-2`, а не прозрачностью.",
+      "**Do** раздавать Onest со своего сервера в PWA."
+    ],
+    "donts": [
+      "**Don't** собирать экран из стопки одинаковых белых карточек: главное — в герое, разделы — в плитках разного размера.",
+      "**Don't** вешать тень на цветные блоки.",
+      "**Don't** вводить цвет без смысла раздела или участника.",
+      "**Don't** ставить в шапку кнопку-иконку без подписи.",
+      "**Don't** подкладывать заглушки и иллюстрации вместо фото блюд: пока фото нет, карточка текстовая.",
+      "**Don't** отрывать «≈» от суммы."
+    ]
+  }
+}

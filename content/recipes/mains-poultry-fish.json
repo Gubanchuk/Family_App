@@ -1,0 +1,3117 @@
+{
+  "section": "Птица, рыба, гарниры",
+  "recipes": [
+    {
+      "id": "mn-kuritsa-s-kartoshkoy",
+      "name": "Курица с картошкой в духовке",
+      "about": "Бёдра и картошка в одной форме: гарнир печётся вместе с мясом",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 60
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "poultry",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "куриные бёдра",
+          "qty": 700,
+          "note": "с кожей, на кости или без",
+          "optional": false
+        },
+        {
+          "item": "картофель",
+          "qty": 450,
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 100,
+          "note": "лучше красный",
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 10,
+          "note": "или 1 ст. л. сушёного",
+          "optional": false
+        },
+        {
+          "item": "паприка сладкая",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Включить духовку на 180 °C. Бёдра вымыть, обсушить, срезать лишний жир.",
+        "Картошку почистить и нарезать кубиками среднего размера, лук — дольками.",
+        "Сложить курицу и картошку в миску, добавить рубленый чеснок, паприку, соль и перец, перемешать. Пусть постоит, пока греется духовка.",
+        "Переложить всё в форму, разложить лук и полить маслом.",
+        "Запекать 40 минут, пару раз полив соком со дна формы.",
+        "Поднять температуру до 200 °C и подрумянить ещё 5–7 минут."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Его кусок отложить до соли и перца и запечь рядом. Кожу снять, мясо снять с кости и нарезать."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/35826-kurinye-bedryshki-s-kartoshkoi",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-kurinye-kotlety",
+      "name": "Рубленые куриные котлеты",
+      "about": "Сочные котлеты из филе, нарезанного ножом, — мясорубка не нужна",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 25,
+        "total": 40
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "poultry",
+      "sides": [
+        "side-pyure",
+        "side-grechka",
+        "side-makarony",
+        "side-ris"
+      ],
+      "tags": [
+        "будни",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "куриное филе",
+          "qty": 500,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 5,
+          "note": "или 0,5 ч. л. сушёного",
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 15,
+          "note": "для жарки",
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Филе нарезать ножом мелким кубиком, примерно по полсантиметра.",
+        "Добавить яйцо, сметану, муку, мелко рубленый чеснок и соль, перемешать. Дать постоять 15 минут.",
+        "Разогреть сковороду с маслом. Выкладывать массу столовой ложкой и слегка приплющивать.",
+        "Жарить на среднем огне по 4–5 минут с каждой стороны до румяной корочки.",
+        "Накрыть крышкой, убавить огонь и подержать ещё 5 минут."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Часть массы отложить до перца и не жарить: выложить ложкой на пергамент и запечь 20 минут при 190 °C."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/34465-kurinye-kotlety-nejnye",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-kotlety-iz-indeyki-na-paru",
+      "name": "Котлеты из индейки на пару",
+      "about": "Нежные паровые котлеты с картошкой в фарше — без жарки и масла",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 25,
+        "total": 45
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "poultry",
+      "sides": [
+        "side-grechka",
+        "side-pyure",
+        "side-brokkoli",
+        "side-ris"
+      ],
+      "tags": [
+        "будни",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "филе индейки",
+          "qty": 670,
+          "note": "можно часть заменить мякотью бедра",
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 130,
+          "optional": false
+        },
+        {
+          "item": "картофель",
+          "qty": 170,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "панировочные сухари",
+          "qty": 35,
+          "note": "или белый хлеб без корок",
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "item": "петрушка",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Залить сухари молоком, чтобы набухли.",
+        "Индейку, картошку и лук нарезать крупно и прокрутить через мясорубку. Для нежности — два раза.",
+        "Добавить сухари с молоком, яйцо, рубленую петрушку и соль. Хорошо вымешать.",
+        "Мокрыми руками слепить котлеты и выложить на решётку пароварки или мультиварки.",
+        "Готовить на пару 20–25 минут."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Паровые котлеты подходят. Перец в фарш не класть, солить умеренно."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/14545-kotlety-iz-indeiki-na-paru",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-bedra-v-smetane-s-syrom",
+      "name": "Куриные бёдра в сметане с сыром",
+      "about": "Бёдра под сметаной и сырной корочкой: пять минут работы, остальное — духовка",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 10,
+        "total": 45
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "poultry",
+      "sides": [
+        "side-kartofel-zapechenny",
+        "side-ris",
+        "side-grechka",
+        "side-ovoshchi-zapechenye"
+      ],
+      "tags": [
+        "будни",
+        "духовка",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "куриные бёдра",
+          "qty": 600,
+          "note": "4 штуки, без кости пекутся быстрее",
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "сыр твёрдый",
+          "qty": 80,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Включить духовку на 180 °C. Бёдра вымыть, обсушить, посолить и поперчить.",
+        "Перемешать курицу со сметаной и выложить в форму.",
+        "Сыр натереть на крупной тёрке и посыпать сверху.",
+        "Запекать до румяной корочки: бёдра без кости — около 30 минут, на кости — около 40."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Кожу снять, мясо снять с кости и нарезать мелко. Его кусок не перчить."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/30397-kurinye-bedra-v-smetane",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-grudka-v-slivochnom-souse",
+      "name": "Куриная грудка в сливочном соусе",
+      "about": "Кусочки грудки, тушённые с луком в сливках с чесноком",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 20,
+        "total": 35
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "poultry",
+      "sides": [
+        "side-makarony",
+        "side-ris",
+        "side-pyure",
+        "side-grechka"
+      ],
+      "tags": [
+        "будни",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "куриное филе",
+          "qty": 500,
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "сливки 10%",
+          "qty": 150,
+          "note": "подойдут любой жирности",
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 15,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "паприка сладкая",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Филе нарезать крупными кусками, лук — мелко.",
+        "Обжарить курицу на горячей сковороде с маслом по 2–3 минуты с каждой стороны.",
+        "Добавить лук, посолить, приправить. Накрыть крышкой и тушить на слабом огне 10–15 минут.",
+        "Муку размешать в 150 мл холодной воды, чеснок измельчить.",
+        "Влить к курице сливки и воду с мукой, добавить чеснок. Довести до кипения и прогреть, пока соус не загустеет."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Тушёная курица подходит. Солить умеренно, кусочки для него нарезать мельче."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/35020-file-kurinoe-v-slivochnom-souse-na-skovorode",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-kuritsa-tushenaya-s-ovoshchami",
+      "name": "Курица, тушённая с овощами",
+      "about": "Курица с картошкой, кабачком и капустой в одной сковороде — сразу с гарниром",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 25,
+        "total": 45
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "poultry",
+      "sides": [],
+      "tags": [
+        "будни",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "куриные бёдра",
+          "qty": 800,
+          "note": "или другие части, кусками",
+          "optional": false
+        },
+        {
+          "item": "картофель",
+          "qty": 840,
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "морковь",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "капуста белокочанная",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "кабачок",
+          "qty": 300,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "паприка сладкая",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Курицу нарезать кусками и обжарить на масле в глубокой сковороде или сотейнике до светлой корочки.",
+        "Добавить нарезанные лук и морковь, жарить ещё 3–4 минуты.",
+        "Картошку нарезать крупно, капусту нашинковать, кабачок нарезать кубиками. Выложить всё к курице.",
+        "Влить 500 мл горячей воды, посолить, приправить.",
+        "Тушить под крышкой 20–25 минут, пока курица не приготовится, а картошка не станет мягкой. В конце добавить рубленый чеснок."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Мясо снять с кости, всё нарезать мелко. Его порцию отложить до досаливания."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/66150-ovoschnoe-ragu-s-kuricei-i-kabachkami",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-kurinye-tefteli-v-slivochnom-souse",
+      "name": "Куриные тефтели в сливочном соусе",
+      "about": "Тефтели из курицы, запечённые в сливочном соусе под сыром",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 30,
+        "total": 60
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "poultry",
+      "sides": [
+        "side-makarony",
+        "side-ris",
+        "side-pyure",
+        "side-grechka"
+      ],
+      "tags": [
+        "духовка",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "куриное филе",
+          "qty": 400,
+          "optional": false
+        },
+        {
+          "item": "куриные бёдра",
+          "qty": 200,
+          "note": "мякоть без кожи и кости",
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 150,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 15,
+          "optional": false
+        },
+        {
+          "item": "паприка сладкая",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 50,
+          "note": "для жарки",
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 15,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "сливки 20%",
+          "qty": 500,
+          "optional": false
+        },
+        {
+          "item": "сыр твёрдый",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Лук и чеснок крупно нарезать и вместе с курицей измельчить в блендере или мясорубке. Посолить, добавить паприку и перец, перемешать.",
+        "Слепить шарики чуть больше грецкого ореха.",
+        "Обжарить тефтели на масле со всех сторон до румяности и переложить в форму. Включить духовку на 180 °C.",
+        "Для соуса слегка подсушить муку на сухой сковороде, добавить сливочное масло и растопить.",
+        "Влить сливки, мешая венчиком, и прогреть до лёгкого загустения. Посолить.",
+        "Залить тефтели соусом, посыпать тёртым сыром и запекать 30 минут."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Часть фарша отложить до перца. Его тефтели не обжаривать, а сразу положить в форму — пропекутся в соусе."
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/56088/kurinye-tefteli-v-slivochnom-souse",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "mn-kuritsa-s-risom-v-duhovke",
+      "name": "Курица с рисом в духовке",
+      "about": "Рис пропитывается соком курицы — мясо и гарнир готовы в одной форме",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 60
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "poultry",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "бюджетное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "куриные бёдра",
+          "qty": 700,
+          "note": "или любые части курицы",
+          "optional": false
+        },
+        {
+          "item": "рис длиннозёрный",
+          "qty": 200,
+          "note": "1 стакан",
+          "optional": false
+        },
+        {
+          "item": "морковь",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "томатная паста",
+          "qty": 25,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 10,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "паприка сладкая",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Включить духовку на 180 °C. Рис промыть несколько раз и выложить ровным слоем в форму.",
+        "Томатную пасту размешать в 500 мл воды и залить рис.",
+        "Курицу нарезать кусками и уложить на рис, слегка вдавливая. Сверху — кружочки моркови и чеснок через пресс. Посолить, приправить.",
+        "Накрыть форму фольгой и запекать 20 минут.",
+        "Снять фольгу, смазать курицу маслом и запекать ещё 20–30 минут, пока рис не станет мягким, а курица не подрумянится."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Мясо снять с кости, кожу убрать. Его порцию отложить до досаливания."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/44358-ris-s-kuricei-v-duxovke",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-gulyash-iz-indeyki",
+      "name": "Гуляш из индейки",
+      "about": "Индейка в томатно-сметанной подливке — к гречке, пюре или макаронам",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 45
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "poultry",
+      "sides": [
+        "side-grechka",
+        "side-pyure",
+        "side-makarony",
+        "side-ris"
+      ],
+      "tags": [
+        "будни",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "филе индейки",
+          "qty": 500,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "томатная паста",
+          "qty": 75,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 15,
+          "optional": false
+        },
+        {
+          "item": "паприка сладкая",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Индейку нарезать кусочками среднего размера.",
+        "Обжарить на разогретом масле, помешивая, до светлой корочки.",
+        "Всыпать муку и жарить, помешивая, ещё 2 минуты.",
+        "Добавить томатную пасту и сметану, влить 200 мл горячей воды, посолить, добавить паприку и перемешать.",
+        "Накрыть крышкой и тушить на самом слабом огне 30 минут, пока мясо не станет мягким."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Тушёное мясо подходит. Перец не добавлять, кусочки для него нарезать мельче."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/26798-gulyash-iz-indeiki-s-podlivkoi",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-kurinye-otbivnye",
+      "name": "Куриные отбивные в кляре",
+      "about": "Тонкие отбивные в пышном кляре на взбитых белках",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 30,
+        "total": 35
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "poultry",
+      "sides": [
+        "side-pyure",
+        "side-kartofel-otvarnoy",
+        "side-grechka",
+        "side-ovoshchnoe-ragu"
+      ],
+      "tags": [
+        "будни",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "куриное филе",
+          "qty": 600,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 85,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 3,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "note": "для жарки",
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Филе разрезать вдоль на пласты толщиной около сантиметра и отбить через плёнку. Посолить и поперчить.",
+        "Отделить белки от желтков. Желтки взбить с ложкой холодной воды, белки — со щепоткой соли в пышную пену.",
+        "Каждый пласт обмакнуть в желтки, обвалять в муке, затем окунуть во взбитые белки.",
+        "Жарить на разогретом масле на среднем огне по 3–4 минуты с каждой стороны до золотистого цвета."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Его кусочек отбить, без кляра и перца, и запечь на пергаменте 15–20 минут при 190 °C или приготовить на пару."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/40842-kurinye-otbivnye-na-skovorode",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-goleni-v-medovo-soevom-souse",
+      "name": "Голени в медово-соевом соусе",
+      "about": "Голени в глянцевой глазури из мёда и соевого соуса",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 90
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "poultry",
+      "sides": [
+        "side-ris",
+        "side-kartofel-zapechenny",
+        "side-ovoshchi-zapechenye",
+        "side-brokkoli"
+      ],
+      "tags": [
+        "духовка",
+        "выходные",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "куриные голени",
+          "qty": 1000,
+          "note": "9 штук",
+          "optional": false
+        },
+        {
+          "item": "соевый соус",
+          "qty": 90,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 45,
+          "optional": false
+        },
+        {
+          "item": "мёд",
+          "qty": 60,
+          "optional": false
+        },
+        {
+          "item": "лимон",
+          "qty": 40,
+          "note": "нужен сок, около 1 ст. л.",
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 10,
+          "optional": false
+        },
+        {
+          "item": "паприка сладкая",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "note": "почти не нужна: соевый соус солёный",
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Смешать соевый соус, 1 ст. л. мёда, чеснок через пресс, лимонный сок, 2 ст. л. масла, паприку и перец.",
+        "Голени обсушить, залить маринадом, перемешать и оставить на 30–40 минут.",
+        "Разогреть духовку до 180 °C, форму смазать оставшимся маслом. Выложить голени в один слой и полить маринадом.",
+        "Накрыть фольгой и запекать 30 минут. Проколоть самую толстую голень: если сок не прозрачный — ещё 10 минут.",
+        "Снять фольгу, смазать голени оставшимся мёдом, поднять температуру до 210 °C и запекать ещё 10 минут до глянцевой корочки."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Соевый соус малышу нельзя: одну голень отложить до маринада и запечь рядом в фольге с каплей масла. Кожу снять, мясо снять с кости."
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/91/kurinaya-golen-v-medovom-souse",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "mn-kartofelnaya-zapekanka-s-kurinym-farshem",
+      "name": "Картофельная запеканка с куриным фаршем",
+      "about": "Картошка, морковь и фарш слоями под сметанно-сырной заливкой",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 25,
+        "total": 70
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "poultry",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "детское",
+        "выходные"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "картофель",
+          "qty": 600,
+          "optional": false
+        },
+        {
+          "item": "фарш куриный",
+          "qty": 350,
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "петрушка",
+          "qty": 5,
+          "optional": false
+        },
+        {
+          "item": "морковь",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "сыр твёрдый",
+          "qty": 80,
+          "optional": false
+        },
+        {
+          "item": "помидоры",
+          "qty": 120,
+          "optional": false
+        },
+        {
+          "item": "орегано",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Лук натереть на мелкой тёрке, петрушку порубить. Смешать с фаршем, посолить и поперчить.",
+        "Картошку и морковь нарезать тонкими кружочками, посолить, приправить травами и полить маслом.",
+        "В смазанную форму выложить половину овощей, сверху ровным слоем фарш, затем остальные овощи.",
+        "Накрыть фольгой и запекать при 190 °C 35–40 минут, пока картошка не станет мягкой.",
+        "Взбить сметану с яйцом и тёртым сыром. Снять фольгу, залить запеканку, сверху разложить кружочки помидора.",
+        "Запекать без фольги ещё 10 минут до румяного верха."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Запеканка подходит. Перец в фарш не класть, солить умеренно."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/19469-zapekanka-kartofel-s-kurinym-farshem-v-duxovke",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-kurinaya-grudka-s-pomidorami-v-folge",
+      "name": "Куриная грудка с помидорами в фольге",
+      "about": "Филе в сметане с ломтиками помидора, запечённое в фольге, — сочно и без жарки",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 40
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "poultry",
+      "sides": [
+        "side-pyure",
+        "side-grechka",
+        "side-ris",
+        "side-kartofel-otvarnoy"
+      ],
+      "tags": [
+        "будни",
+        "духовка"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "куриное филе",
+          "qty": 800,
+          "note": "4 половинки грудки, по одной на человека",
+          "optional": false
+        },
+        {
+          "item": "помидоры",
+          "qty": 480,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 80,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 10,
+          "optional": false
+        },
+        {
+          "item": "паприка сладкая",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Разогреть духовку до 200 °C. Смешать сметану, раздавленный чеснок, паприку, соль и перец.",
+        "На каждом филе сделать несколько поперечных надрезов, не прорезая до конца.",
+        "Смазать филе сметанной смесью и оставить на 10–15 минут.",
+        "Помидоры нарезать полукружьями и вложить в надрезы.",
+        "Каждое филе плотно завернуть в фольгу и запекать 25 минут. Проколоть: сок должен быть прозрачным."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Запечённое филе подходит. Его кусок не перчить, нарезать мелко."
+      },
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/13531",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "mn-kurinoe-sufle-na-paru",
+      "name": "Куриное суфле на пару",
+      "about": "Воздушное суфле из куриного филе — как в детском саду, только вкуснее",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 20,
+        "total": 40
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "poultry",
+      "sides": [
+        "side-pyure",
+        "side-grechka",
+        "side-brokkoli",
+        "side-ris"
+      ],
+      "tags": [
+        "будни",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "куриное филе",
+          "qty": 600,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 3,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 90,
+          "optional": false
+        },
+        {
+          "item": "манная крупа",
+          "qty": 35,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 20,
+          "note": "смазать формочки",
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Филе нарезать кусочками и измельчить в блендере или комбайне до однородности.",
+        "Добавить яйца и соль, снова взбить. Всыпать манку и перемешать.",
+        "Добавить сметану и хорошо взбить: чем дольше, тем воздушнее суфле.",
+        "Формочки смазать маслом и заполнить массой на две трети — суфле поднимется.",
+        "Готовить на пару 20–25 минут."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит как есть. Солить умеренно."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/15337-kurinoe-sufle-na-paru",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-makarony-s-kuritsey-i-brokkoli",
+      "name": "Макароны с курицей и брокколи",
+      "about": "Макароны в сливочном соусе с курицей и брокколи за полчаса",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 25,
+        "total": 30
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "poultry",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "будни",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "макароны",
+          "qty": 300,
+          "note": "феттучини или любые",
+          "optional": false
+        },
+        {
+          "item": "брокколи",
+          "qty": 400,
+          "optional": false
+        },
+        {
+          "item": "куриное филе",
+          "qty": 400,
+          "note": "или филе бедра",
+          "optional": false
+        },
+        {
+          "item": "сливки 33%",
+          "qty": 360,
+          "optional": false
+        },
+        {
+          "item": "сыр твёрдый",
+          "qty": 80,
+          "note": "в оригинале пармезан",
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "масло оливковое",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "петрушка",
+          "qty": 10,
+          "optional": true
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Макароны отварить в подсоленной воде по инструкции на пачке и откинуть.",
+        "Курицу нарезать небольшими кусочками и обжарить на масле до светлой корочки.",
+        "Добавить соцветия брокколи и мелко нарезанный чеснок, готовить 3–4 минуты.",
+        "Влить сливки, посолить, поперчить и потушить 2–3 минуты.",
+        "Посыпать рубленой петрушкой и тёртым сыром, добавить макароны и перемешать."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит. Курицу и брокколи для него порезать мельче, перец не добавлять."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/11776-pasta-v-slivochnom-souse-s-brokkoli",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-mintay-tushenyy-s-morkovyu",
+      "name": "Минтай, тушённый с морковью и луком",
+      "about": "Дешёвая рыба в томатной подливке с овощами, без жарки",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 35
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "fish",
+      "sides": [
+        "side-pyure",
+        "side-ris",
+        "side-kartofel-otvarnoy",
+        "side-grechka"
+      ],
+      "tags": [
+        "будни",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "минтай",
+          "qty": 800,
+          "note": "тушки без головы или филе",
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "морковь",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "томатная паста",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "паприка сладкая",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Минтай разморозить, почистить и нарезать порционными кусками.",
+        "Лук нарезать мелким кубиком, морковь натереть.",
+        "Обжарить овощи на масле до мягкости лука, добавить томатную пасту и паприку, перемешать.",
+        "Выложить рыбу на овощи, посолить и влить 200 мл воды.",
+        "Тушить под крышкой на слабом огне 15–20 минут."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Его кусочек разобрать и убрать все кости. С филе проще."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/31633-mintai-tushenyi-na-skovorode-s-lukom",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-rybnye-kotlety-iz-mintaya",
+      "name": "Рыбные котлеты из минтая в духовке",
+      "about": "Нежные котлеты из минтая без жарки — дети едят охотно",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 25,
+        "total": 55
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "fish",
+      "sides": [
+        "side-pyure",
+        "side-ris",
+        "side-kartofel-otvarnoy",
+        "side-brokkoli"
+      ],
+      "tags": [
+        "духовка",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "минтай",
+          "qty": 680,
+          "note": "филе",
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 45,
+          "optional": false
+        },
+        {
+          "item": "хлеб белый",
+          "qty": 50,
+          "note": "без корок",
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 5,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 45,
+          "optional": false
+        },
+        {
+          "item": "манная крупа",
+          "qty": 75,
+          "note": "или панировочные сухари",
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Хлеб залить молоком на 10 минут, затем отжать.",
+        "Филе проверить на мелкие кости и измельчить в блендере.",
+        "Добавить хлеб, яйца, растопленное масло, чеснок через пресс, соль и перец, вымесить. Если фарш жидкий, всыпать 1–2 ст. л. манки и дать постоять 10 минут.",
+        "Слепить небольшие котлеты, обвалять в манке и выложить на противень с пергаментом.",
+        "Запекать при 180 °C 30–35 минут."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Котлеты без жарки подходят. Перец в фарш не класть."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/21498-rybnye-kotlety-iz-mintaya-v-duxovke",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-treska-v-smetane",
+      "name": "Треска в сметане",
+      "about": "Треска, запечённая в сметанно-яичной заливке с укропом",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 10,
+        "total": 50
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "fish",
+      "sides": [
+        "side-kartofel-otvarnoy",
+        "side-pyure",
+        "side-ris",
+        "side-brokkoli"
+      ],
+      "tags": [
+        "духовка"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "треска",
+          "qty": 600,
+          "note": "стейки",
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 220,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 220,
+          "optional": false
+        },
+        {
+          "item": "укроп",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Включить духовку на 180 °C. Укроп мелко порубить.",
+        "Взбить яйца с молоком, добавить половину укропа, соль и перец.",
+        "Вылить смесь в смазанную маслом форму и уложить стейки. Рыба не должна полностью тонуть.",
+        "Посолить рыбу, посыпать оставшимся укропом и распределить сверху сметану.",
+        "Запекать 35–40 минут."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "В стейке хребтовая кость: его кусочек разобрать и проверить на кости."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/23340-treska-v-smetane-v-duxovke",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-gorbusha-v-folge",
+      "name": "Горбуша в фольге",
+      "about": "Недорогая красная рыба: стейки в фольге с лимоном и травами",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 10,
+        "total": 40
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "fish",
+      "sides": [
+        "side-kartofel-otvarnoy",
+        "side-ris",
+        "side-bulgur",
+        "side-ovoshchi-zapechenye"
+      ],
+      "tags": [
+        "будни",
+        "духовка"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "горбуша",
+          "qty": 800,
+          "note": "стейки",
+          "optional": false
+        },
+        {
+          "item": "лавровый лист",
+          "qty": null,
+          "toTaste": true,
+          "note": "3 листа",
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 25,
+          "optional": false
+        },
+        {
+          "item": "лимон",
+          "qty": 30,
+          "note": "нужен сок, около 1 ст. л.",
+          "optional": false
+        },
+        {
+          "item": "базилик сушёный",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 5,
+          "note": "или щепотка сушёного",
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Включить духовку на 180 °C. Стейки промыть и обсушить.",
+        "Полить рыбу маслом и лимонным соком, посыпать базиликом, чесноком, солью и перцем, перемешать.",
+        "Выложить стейки на лист фольги, между ними разложить лавровый лист.",
+        "Накрыть вторым листом фольги и плотно завернуть края, чтобы сок не вытекал.",
+        "Запекать 25–30 минут."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Его кусочек очистить от кожи и костей."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/66624-gorbusha-v-duxovke-sochnaya-v-folge-kusochkami",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-hek-v-klyare",
+      "name": "Хек в кляре",
+      "about": "Филе хека в сметанном кляре — быстро и без костей",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 20,
+        "total": 30
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "fish",
+      "sides": [
+        "side-pyure",
+        "side-kartofel-otvarnoy",
+        "side-ris",
+        "side-ovoshchnoe-ragu"
+      ],
+      "tags": [
+        "быстро",
+        "будни",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "хек",
+          "qty": 700,
+          "note": "филе",
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "note": "для жарки",
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Филе нарезать порционными кусками, посолить, поперчить и оставить на 10 минут.",
+        "Для кляра взбить яйца со сметаной и мукой до однородности, слегка посолить.",
+        "Разогреть сковороду с маслом. Обмакивать рыбу в кляр и выкладывать на сковороду.",
+        "Жарить на среднем огне по 3–4 минуты с каждой стороны до золотистого цвета.",
+        "Выложить на бумажное полотенце, чтобы стекло лишнее масло."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Его кусочек не жарить: без кляра и перца запечь в фольге 15 минут при 190 °C или приготовить на пару."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/17730-file-xeka-v-klyare",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-ryba-po-polski",
+      "name": "Рыба по-польски",
+      "about": "Отварной минтай под соусом из сливочного масла, яиц и зелени",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 25,
+        "total": 35
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "fish",
+      "sides": [
+        "side-kartofel-otvarnoy",
+        "side-pyure",
+        "side-ris"
+      ],
+      "tags": [
+        "будни",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "минтай",
+          "qty": 800,
+          "note": "филе",
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 4,
+          "optional": false
+        },
+        {
+          "item": "петрушка",
+          "qty": 40,
+          "note": "или укроп",
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 10,
+          "optional": false
+        },
+        {
+          "item": "лимон",
+          "qty": 50,
+          "note": "нужен сок, около 1,5 ст. л.",
+          "optional": false
+        },
+        {
+          "item": "лавровый лист",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Вскипятить в кастрюле воду с лавровым листом и солью.",
+        "Филе нарезать порционными кусками, опустить в кипяток и варить 3 минуты после закипания. Вынуть, бульон не выливать.",
+        "Яйца сварить вкрутую, очистить и мелко порубить. Зелень порубить.",
+        "Растопить сливочное масло, всыпать муку и перемешать. Добавить яйца и прогреть, помешивая.",
+        "Понемногу вливать бульон, размешивая, пока соус не станет густым, как сметана.",
+        "Снять с огня, добавить зелень и лимонный сок. Полить рыбу соусом."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Отварная рыба подходит. Филе проверить на мелкие кости."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/22916-ryba-po-polski-s-yaicom",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-skumbriya-s-morkovyu-i-lukom",
+      "name": "Скумбрия, запечённая с морковью и луком",
+      "about": "Филе скумбрии под овощной шубкой — сочная рыба без хребта и костей",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 30,
+        "total": 55
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "fish",
+      "sides": [
+        "side-kartofel-otvarnoy",
+        "side-pyure",
+        "side-ris",
+        "side-grechka"
+      ],
+      "tags": [
+        "духовка"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "скумбрия",
+          "qty": 900,
+          "note": "3 тушки",
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 150,
+          "optional": false
+        },
+        {
+          "item": "морковь",
+          "qty": 150,
+          "optional": false
+        },
+        {
+          "item": "лимон",
+          "qty": 40,
+          "note": "нужен сок, около 1 ст. л.",
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 45,
+          "optional": false
+        },
+        {
+          "item": "паприка сладкая",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Морковь натереть, лук нарезать мелко. Обжарить морковь на масле до мягкости, добавить лук и жарить ещё 2–3 минуты. Остудить.",
+        "Скумбрию разрезать вдоль по брюшку, удалить хребет и кости, промыть и обсушить.",
+        "Выложить филе кожей вниз на противень с пергаментом, сбрызнуть лимонным соком, посолить, приправить.",
+        "Смазать тонким слоем сметаны и распределить сверху овощи.",
+        "Запекать при 180 °C 20–25 минут."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Его кусочек без кожи; перед подачей ещё раз проверить на мелкие косточки."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/16795-skumbriya-zapechennaya-s-lukom-i-morkovu-v-duxovke",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-rybnaya-zapekanka-s-kartofelem",
+      "name": "Рыбная запеканка с картошкой",
+      "about": "Минтай, картошка и лук слоями под сметаной и сыром — ужин в одной форме",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 20,
+        "total": 60
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "fish",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "бюджетное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "картофель",
+          "qty": 600,
+          "optional": false
+        },
+        {
+          "item": "минтай",
+          "qty": 600,
+          "note": "филе",
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "лимон",
+          "qty": 40,
+          "note": "нужен сок, около 1 ст. л.",
+          "optional": false
+        },
+        {
+          "item": "укроп",
+          "qty": 30,
+          "note": "пучок",
+          "optional": false
+        },
+        {
+          "item": "сыр твёрдый",
+          "qty": 150,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Картошку нарезать тонкими кружочками, лук — мелким кубиком. Сметану смешать с рубленым укропом и посолить.",
+        "Форму смазать маслом, выложить половину картошки, смазать двумя ложками соуса и посыпать половиной лука.",
+        "Сверху уложить рыбу, посолить и сбрызнуть лимонным соком.",
+        "Добавить остальной лук и картошку, залить оставшимся соусом.",
+        "Посыпать тёртым сыром и запекать при 180 °C 40 минут, пока картошка не станет мягкой."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Запеканка подходит. Филе проверить на кости, солить умеренно."
+      },
+      "source": {
+        "url": "https://www.edimdoma.ru/retsepty/132294-rybno-kartofelnaya-zapekanka",
+        "site": "edimdoma.ru"
+      }
+    },
+    {
+      "id": "mn-rybnye-tefteli-v-tomatnom-souse",
+      "name": "Рыбные тефтели в томатном соусе",
+      "about": "Тефтели из минтая с овсянкой, томлённые в томатном соусе без жарки",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 30,
+        "total": 70
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "fish",
+      "sides": [
+        "side-pyure",
+        "side-ris",
+        "side-grechka",
+        "side-makarony"
+      ],
+      "tags": [
+        "духовка",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "минтай",
+          "qty": 560,
+          "note": "филе",
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "овсяные хлопья",
+          "qty": 50,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 65,
+          "optional": false
+        },
+        {
+          "item": "морковь",
+          "qty": 65,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 50,
+          "optional": false
+        },
+        {
+          "item": "томатная паста",
+          "qty": 50,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 8,
+          "optional": false
+        },
+        {
+          "item": "лавровый лист",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "укроп",
+          "qty": 15,
+          "note": "для подачи",
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Филе очистить от кожи и костей и измельчить в блендере вместе со сливочным маслом, овсяными хлопьями, яйцом, солью и перцем.",
+        "Слепить шарики и обвалять в муке.",
+        "Лук нарезать, морковь натереть и обжарить на растительном масле до мягкости. Добавить томатную пасту, посолить, влить немного кипятка и прогреть 5 минут.",
+        "Выложить соус в толстостенную форму или кастрюлю, сверху — тефтели. Подлить кипятка почти до верха тефтелей, добавить чеснок и лавровый лист.",
+        "Запекать при 180 °C 40 минут. Подавать с рубленым укропом."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Тефтели не жарятся — подходят. Перец в фарш не класть, лавровый лист вынуть."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/22970-rybnye-tefteli-v-tomatnom-souse",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "mn-semga-s-ovoshchami-v-folge",
+      "name": "Сёмга с овощами в фольге",
+      "about": "Стейки сёмги с помидорами и перцем в фольге — просто и по-праздничному",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 60
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "fish",
+      "sides": [
+        "side-ris",
+        "side-kartofel-otvarnoy",
+        "side-bulgur"
+      ],
+      "tags": [
+        "духовка",
+        "праздничное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "сёмга",
+          "qty": 800,
+          "note": "4 стейка",
+          "optional": false
+        },
+        {
+          "item": "помидоры",
+          "qty": 240,
+          "optional": false
+        },
+        {
+          "item": "перец болгарский",
+          "qty": 300,
+          "note": "лучше жёлтый",
+          "optional": false
+        },
+        {
+          "item": "лимон",
+          "qty": 240,
+          "note": "нужен сок, около 8 ст. л.",
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Стейки промыть, полить лимонным соком, посолить, поперчить и оставить на 30 минут.",
+        "Помидоры и перец нарезать. Включить духовку на 200 °C.",
+        "На каждый лист фольги выложить часть овощей, сверху стейк, накрыть оставшимися овощами.",
+        "Плотно завернуть фольгу и выложить свёртки на противень.",
+        "Запекать около 25 минут. Подавать прямо в фольге."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Его кусочек очистить от кожи и костей."
+      },
+      "source": {
+        "url": "https://www.edimdoma.ru/retsepty/70506-semga-s-pomidorami-i-pertsem-zapechennaya-v-folge",
+        "site": "edimdoma.ru"
+      }
+    },
+    {
+      "id": "mn-mintay-v-omlete",
+      "name": "Минтай в омлете",
+      "about": "Минтай с морковью под омлетом с сыром: рыба и яйца в одном блюде",
+      "category": "main",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 55
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "fish",
+      "sides": [
+        "side-kartofel-otvarnoy",
+        "side-pyure",
+        "side-brokkoli"
+      ],
+      "tags": [
+        "духовка",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "минтай",
+          "qty": 800,
+          "note": "филе",
+          "optional": false
+        },
+        {
+          "item": "сыр твёрдый",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 400,
+          "optional": false
+        },
+        {
+          "item": "морковь",
+          "qty": 300,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 6,
+          "optional": false
+        },
+        {
+          "item": "укроп",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "петрушка",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Морковь и сыр натереть на крупной тёрке, зелень мелко порубить, филе нарезать кусками.",
+        "Взбить яйца, влить молоко, добавить зелень, соль и перец и ещё раз перемешать.",
+        "Форму смазать маслом, выложить половину моркови, на неё рыбу, сверху остальную морковь.",
+        "Залить омлетной смесью и посыпать сыром.",
+        "Запекать при 180 °C 35–40 минут, пока омлет не схватится."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит. Филе проверить на кости, перец не добавлять."
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/31557-ryba-v-omlete-v-duxovke",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "side-grechka",
+      "name": "Гречка",
+      "about": "Рассыпчатая гречка со сливочным маслом — к мясу, рыбе и котлетам",
+      "category": "side",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 5,
+        "total": 25
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "будни",
+        "бюджетное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "гречка",
+          "qty": 250,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Гречку перебрать и промыть.",
+        "Залить 500 мл кипятка, посолить и довести до кипения.",
+        "Варить под крышкой на слабом огне 15–20 минут, пока вода не впитается.",
+        "Добавить масло, перемешать и дать постоять 5 минут."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит. Солить умеренно."
+      },
+      "source": null
+    },
+    {
+      "id": "side-ris",
+      "name": "Рис",
+      "about": "Рассыпчатый рис на воде — нейтральный гарнир к любому блюду",
+      "category": "side",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 5,
+        "total": 25
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "будни",
+        "бюджетное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "рис длиннозёрный",
+          "qty": 250,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Рис промыть до прозрачной воды.",
+        "Залить 500 мл воды, посолить и довести до кипения.",
+        "Варить под крышкой на слабом огне 15–18 минут.",
+        "Снять с огня, добавить масло и дать постоять под крышкой 5 минут."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит. Солить умеренно."
+      },
+      "source": null
+    },
+    {
+      "id": "side-pyure",
+      "name": "Картофельное пюре",
+      "about": "Нежное пюре на молоке со сливочным маслом",
+      "category": "side",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 35
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "будни",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "картофель",
+          "qty": 1000,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Картошку почистить, нарезать крупно, залить водой и посолить.",
+        "Варить 20 минут после закипания, пока не станет мягкой.",
+        "Слить воду, добавить масло и горячее молоко.",
+        "Растолочь толкушкой до однородности."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит. Его порцию отложить до досаливания."
+      },
+      "source": null
+    },
+    {
+      "id": "side-kartofel-otvarnoy",
+      "name": "Картофель отварной с укропом",
+      "about": "Молодая или обычная картошка с маслом и укропом",
+      "category": "side",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 10,
+        "total": 30
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "будни",
+        "бюджетное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "картофель",
+          "qty": 1000,
+          "optional": false
+        },
+        {
+          "item": "укроп",
+          "qty": 15,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Картошку почистить, крупную разрезать пополам.",
+        "Залить кипятком, посолить и варить 20 минут до мягкости.",
+        "Слить воду, добавить масло и рубленый укроп, аккуратно перемешать."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит. Его порцию отложить до досаливания и размять вилкой."
+      },
+      "source": null
+    },
+    {
+      "id": "side-kartofel-zapechenny",
+      "name": "Картофель, запечённый дольками",
+      "about": "Картошка дольками с румяной корочкой, почти без участия повара",
+      "category": "side",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 10,
+        "total": 45
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "будни",
+        "духовка",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "картофель",
+          "qty": 1000,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "паприка сладкая",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 10,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Включить духовку на 200 °C.",
+        "Картошку хорошо вымыть и нарезать дольками, кожуру можно оставить.",
+        "Перемешать с маслом, паприкой, солью и рубленым чесноком.",
+        "Выложить в один слой на противень с пергаментом и запекать 35 минут, один раз перевернув."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Запечённая картошка подходит. Его дольки без чеснока, кожуру снять."
+      },
+      "source": null
+    },
+    {
+      "id": "side-makarony",
+      "name": "Макароны",
+      "about": "Гарнир за 15 минут, который едят все",
+      "category": "side",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 5,
+        "total": 15
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "будни",
+        "бюджетное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "макароны",
+          "qty": 300,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Вскипятить 3 литра воды и посолить.",
+        "Всыпать макароны и варить по инструкции на пачке, помешивая.",
+        "Откинуть на дуршлаг и перемешать со сливочным маслом."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит как есть."
+      },
+      "source": null
+    },
+    {
+      "id": "side-bulgur",
+      "name": "Булгур",
+      "about": "Рассыпчатый булгур — замена рису и гречке для разнообразия",
+      "category": "side",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 5,
+        "total": 25
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "будни"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "булгур",
+          "qty": 250,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Растопить масло в кастрюле и обжарить в нём сухой булгур 2 минуты, помешивая.",
+        "Залить 500 мл кипятка, посолить.",
+        "Варить под крышкой на слабом огне 15 минут.",
+        "Снять с огня и дать постоять под крышкой 5 минут."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит. Солить умеренно."
+      },
+      "source": null
+    },
+    {
+      "id": "side-perlovka",
+      "name": "Перловка",
+      "about": "Дешёвая и сытная крупа; варится долго, зато хранится три дня",
+      "category": "side",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 10,
+        "total": 70
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "бюджетное",
+        "на 2–3 дня"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "перловка",
+          "qty": 250,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Перловку промыть. Если есть время, замочить в холодной воде на ночь — сварится быстрее.",
+        "Залить 750 мл воды, довести до кипения и посолить.",
+        "Варить под крышкой на слабом огне 50–60 минут без замачивания или 30–40 после него.",
+        "Добавить масло и дать постоять 10 минут."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит, если хорошо разварить."
+      },
+      "source": null
+    },
+    {
+      "id": "side-kapusta-tushenaya",
+      "name": "Тушёная капуста",
+      "about": "Капуста, тушённая с морковью и томатом, — к котлетам и рыбе",
+      "category": "side",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 50
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "бюджетное",
+        "постное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "капуста белокочанная",
+          "qty": 1000,
+          "optional": false
+        },
+        {
+          "item": "морковь",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "томатная паста",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "лавровый лист",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Капусту нашинковать, морковь натереть, лук мелко нарезать.",
+        "Обжарить лук и морковь на масле в глубокой сковороде 5 минут.",
+        "Добавить капусту, посолить, влить 100 мл воды и тушить под крышкой 25 минут, иногда помешивая.",
+        "Добавить томатную пасту и лавровый лист и тушить ещё 10 минут, пока капуста не станет мягкой."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит, если капуста мягкая. Лавровый лист вынуть."
+      },
+      "source": null
+    },
+    {
+      "id": "side-ovoshchnoe-ragu",
+      "name": "Овощное рагу",
+      "about": "Кабачок, перец, морковь и помидоры, тушённые до мягкости",
+      "category": "side",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 20,
+        "total": 45
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "будни",
+        "постное"
+      ],
+      "season": [
+        "summer",
+        "autumn"
+      ],
+      "ingredients": [
+        {
+          "item": "кабачок",
+          "qty": 300,
+          "optional": false
+        },
+        {
+          "item": "перец болгарский",
+          "qty": 150,
+          "optional": false
+        },
+        {
+          "item": "морковь",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "помидоры",
+          "qty": 240,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 10,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Лук нарезать, морковь натереть и обжарить на масле 5 минут.",
+        "Кабачок и перец нарезать кубиками, добавить к луку и тушить под крышкой 10 минут.",
+        "Помидоры нарезать, добавить к овощам, посолить.",
+        "Тушить ещё 15 минут до мягкости, в конце добавить рубленый чеснок."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит. Его порцию отложить до чеснока и соли."
+      },
+      "source": null
+    },
+    {
+      "id": "side-ovoshchi-zapechenye",
+      "name": "Запечённые овощи",
+      "about": "Овощи крупными кусками из духовки — без хлопот у плиты",
+      "category": "side",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 10,
+        "total": 40
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "будни",
+        "духовка",
+        "постное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "кабачок",
+          "qty": 300,
+          "optional": false
+        },
+        {
+          "item": "перец болгарский",
+          "qty": 300,
+          "optional": false
+        },
+        {
+          "item": "морковь",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "орегано",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Включить духовку на 200 °C.",
+        "Кабачок и перец нарезать крупно, морковь — брусочками, лук — дольками.",
+        "Перемешать овощи с маслом, солью и орегано.",
+        "Выложить в один слой на противень и запекать 30 минут до мягкости и румяных краёв."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Запечённые овощи подходят. Нарезать мелко или размять."
+      },
+      "source": null
+    },
+    {
+      "id": "side-brokkoli",
+      "name": "Брокколи и цветная капуста на пару",
+      "about": "Капуста на пару за 15 минут; подойдёт и замороженная",
+      "category": "side",
+      "meals": [
+        "lunch",
+        "dinner"
+      ],
+      "time": {
+        "active": 5,
+        "total": 20
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "будни",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "брокколи",
+          "qty": 400,
+          "note": "можно замороженную",
+          "optional": false
+        },
+        {
+          "item": "капуста цветная",
+          "qty": 400,
+          "note": "можно замороженную",
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 20,
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Капусту разобрать на соцветия.",
+        "Готовить на пару 10–12 минут, до мягкости.",
+        "Посолить и полить растопленным маслом."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Подходит как есть."
+      },
+      "source": null
+    }
+  ],
+  "newIngredients": [
+    {
+      "item": "сливки 20%",
+      "unit": "мл",
+      "dept": "Молочное и яйца",
+      "group": "dairy",
+      "pieceWeight": null,
+      "pantry": false
+    }
+  ]
+}

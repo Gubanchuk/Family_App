@@ -1,0 +1,4064 @@
+{
+  "section": "Завтраки, полдники, напитки",
+  "recipes": [
+    {
+      "id": "br-ovsyanka-yabloko",
+      "name": "Овсяная каша с яблоком",
+      "about": "Сладкая каша за 15 минут: яблоко и корица вместо варенья",
+      "category": "breakfast",
+      "meals": [
+        "breakfast"
+      ],
+      "time": {
+        "active": 10,
+        "total": 15
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "овсяные хлопья",
+          "qty": 150,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 400,
+          "optional": false
+        },
+        {
+          "item": "сок яблочный",
+          "qty": 400,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 50,
+          "optional": false
+        },
+        {
+          "item": "яблоки",
+          "qty": 360,
+          "note": "2 шт.",
+          "optional": false
+        },
+        {
+          "item": "корица",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "сливки 10%",
+          "qty": 70,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Хлопья залить молоком и соком, добавить сахар и поставить на средний огонь.",
+        "Довести до кипения, помешивая, убавить огонь и варить 5 минут.",
+        "Снять с огня, накрыть крышкой и оставить на 5–7 минут, чтобы каша загустела.",
+        "Яблоки очистить и нарезать тонкими ломтиками.",
+        "Добавить в кашу яблоки, корицу и сливки, перемешать и подавать."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Яблоко Диме натереть или нарезать мелко"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/2700/ovsyanaya-kasha-s-yablokom",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "br-grechka-molochnaya",
+      "name": "Гречневая каша с молоком",
+      "about": "Молочная гречка, как в детстве: сытно и недорого",
+      "category": "breakfast",
+      "meals": [
+        "breakfast"
+      ],
+      "time": {
+        "active": 10,
+        "total": 35
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "будни",
+        "бюджетное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "гречка",
+          "qty": 210,
+          "optional": false
+        },
+        {
+          "item": "вода",
+          "qty": 430,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 450,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Гречку перебрать и промыть до чистой воды.",
+        "Всыпать в кипящую подсоленную воду, накрыть и варить на самом слабом огне 20 минут.",
+        "Влить горячее молоко, добавить сахар и снова довести до кипения.",
+        "Положить масло, перемешать, накрыть и оставить на выключенной плите на 10–15 минут."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Соль и сахар класть по минимуму"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/25608/grechnevaja-kasha-na-moloke",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "br-mannaya",
+      "name": "Манная каша",
+      "about": "Каша за 10 минут без комочков: манку заливаем холодным молоком",
+      "category": "breakfast",
+      "meals": [
+        "breakfast"
+      ],
+      "time": {
+        "active": 10,
+        "total": 15
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "бюджетное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "молоко",
+          "qty": 1000,
+          "optional": false
+        },
+        {
+          "item": "манная крупа",
+          "qty": 120,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Манку, сахар и соль насыпать в сотейник с толстым дном.",
+        "Тонкой струйкой влить холодное молоко, всё время размешивая венчиком.",
+        "Поставить на небольшой огонь и мешать, пока каша не закипит и не загустеет.",
+        "Поварить 2–3 минуты, не переставая мешать.",
+        "Снять с огня, накрыть на пару минут и подавать с маслом."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Можно подать с тёртым яблоком вместо сахара"
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/1102-kasha-mannaya",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "br-pshennaya-tykva",
+      "name": "Пшённая каша с тыквой",
+      "about": "Осенняя каша: тыква делает пшено сладким и ярким",
+      "category": "breakfast",
+      "meals": [
+        "breakfast"
+      ],
+      "time": {
+        "active": 15,
+        "total": 40
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "будни",
+        "бюджетное"
+      ],
+      "season": [
+        "autumn",
+        "winter"
+      ],
+      "ingredients": [
+        {
+          "item": "пшено",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "тыква",
+          "qty": 200,
+          "note": "без кожуры",
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 800,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Тыкву нарезать мелким кубиком, залить половиной молока и потушить 5–10 минут после закипания.",
+        "Пшено промыть несколько раз холодной, а затем горячей водой.",
+        "Добавить к тыкве пшено, соль и остальное молоко, довести до кипения.",
+        "Варить под крышкой на слабом огне около 25 минут.",
+        "Дать постоять несколько минут, положить масло, по вкусу сахар или мёд."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Тыкву размять вилкой, сахар — по минимуму"
+      },
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/7892",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "br-risovaya-molochnaya",
+      "name": "Рисовая каша на молоке",
+      "about": "Нежная молочная каша, которую любят и малыши, и взрослые",
+      "category": "breakfast",
+      "meals": [
+        "breakfast"
+      ],
+      "time": {
+        "active": 15,
+        "total": 40
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "будни",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "рис круглозёрный",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "вода",
+          "qty": 600,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 500,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 70,
+          "optional": false
+        },
+        {
+          "item": "сахар ванильный",
+          "qty": 8,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 70,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Рис промыть в нескольких водах до прозрачности.",
+        "Вскипятить воду с солью, всыпать рис и варить под крышкой 10 минут.",
+        "Слить лишнюю воду, влить молоко, добавить сахар и ванильный сахар, довести до кипения.",
+        "Варить под крышкой на слабом огне около 12 минут, помешивая.",
+        "Выключить огонь, положить масло и дать каше постоять 10 минут."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Сахара в рецепте много: можно класть половину, взрослым досластить"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/58065/risovaja-kasha-na-moloke",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "br-kukuruznaya",
+      "name": "Кукурузная каша на молоке",
+      "about": "Из мелкой крупы варится 10 минут, глютена в ней нет",
+      "category": "breakfast",
+      "meals": [
+        "breakfast"
+      ],
+      "time": {
+        "active": 10,
+        "total": 15
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "бюджетное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "молоко",
+          "qty": 1000,
+          "optional": false
+        },
+        {
+          "item": "кукурузная крупа",
+          "qty": 140,
+          "note": "мелкого помола",
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Молоко довести до кипения с солью и сахаром.",
+        "Тонкой струйкой всыпать крупу, сразу размешивая венчиком, чтобы не было комков.",
+        "Варить на слабом огне 5–7 минут, всё время помешивая, пока каша не загустеет.",
+        "Снять с огня, вмешать масло и подавать тёплой."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Каша без глютена, малышу подходит как есть"
+      },
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/7853",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "br-kuskus",
+      "name": "Каша из кускуса с яблоком",
+      "about": "Самая быстрая каша: кускус почти не варится, сверху яблоко с изюмом",
+      "category": "breakfast",
+      "meals": [
+        "breakfast"
+      ],
+      "time": {
+        "active": 15,
+        "total": 20
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "кускус",
+          "qty": 90,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 500,
+          "optional": false
+        },
+        {
+          "item": "яблоки",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "изюм",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 60,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Яблоко нарезать кубиками, изюм промыть тёплой водой.",
+        "В сковороде растопить масло, положить яблоки, изюм и половину сахара и потушить 3–4 минуты.",
+        "В кастрюлю с толстым дном влить молоко, всыпать кускус, оставшийся сахар и соль.",
+        "Варить на небольшом огне 5 минут, помешивая.",
+        "Выключить огонь и оставить под крышкой на 10 минут.",
+        "Разложить кашу по тарелкам, сверху выложить яблоки с изюмом."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Изюм Диме порезать мельче"
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/34565-kasha-iz-kuskusa-s-molokom",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "br-druzhba",
+      "name": "Каша «Дружба»",
+      "about": "Рис и пшено вместе — каша из садиковского меню",
+      "category": "breakfast",
+      "meals": [
+        "breakfast"
+      ],
+      "time": {
+        "active": 25,
+        "total": 60
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "выходные",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "рис круглозёрный",
+          "qty": 80,
+          "optional": false
+        },
+        {
+          "item": "пшено",
+          "qty": 80,
+          "optional": false
+        },
+        {
+          "item": "вода",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 1200,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 50,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 50,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Рис и пшено перебрать и промыть сначала тёплой, потом горячей водой.",
+        "Вскипятить воду, всыпать пшено и варить 10–15 минут на небольшом огне, помешивая.",
+        "Добавить рис и варить ещё 5–10 минут.",
+        "Влить горячее молоко, посолить и добавить сахар.",
+        "Варить на маленьком огне до мягкости круп, около 20 минут, помешивая.",
+        "Заправить растопленным маслом."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Каша из садиковского меню, малышу как есть"
+      },
+      "source": {
+        "url": "https://menunedeli.ru/recipe/kasha-druzhba-kak-v-detskom-sadu/",
+        "site": "menunedeli.ru"
+      }
+    },
+    {
+      "id": "br-syrniki",
+      "name": "Сырники",
+      "about": "Сырники на всю семью за 20 минут",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack"
+      ],
+      "time": {
+        "active": 20,
+        "total": 20
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "cottage",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "творог",
+          "qty": 400,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 80,
+          "optional": false
+        },
+        {
+          "item": "манная крупа",
+          "qty": 50,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 80,
+          "note": "60 г в тесто, 20 г для обвалки",
+          "optional": false
+        },
+        {
+          "item": "сода",
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "item": "сахар ванильный",
+          "qty": 5,
+          "optional": true
+        },
+        {
+          "item": "масло растительное",
+          "qty": 40,
+          "note": "для жарки",
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 100,
+          "note": "к столу",
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Яйца взбить с сахаром.",
+        "Творог протереть через сито или размять вилкой и смешать с яйцами.",
+        "Добавить манку, соду, ванильный сахар и муку, замесить густое тесто.",
+        "Мокрой ложкой набирать тесто, лепить лепёшки и обваливать в муке.",
+        "Жарить на разогретом масле на небольшом огне по 2 минуты с каждой стороны.",
+        "Выложить на салфетку и подавать со сметаной, вареньем или ягодами."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме 2–3 сырника не жарить, а запечь на бумаге в духовке: 180°, 15–20 минут"
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/37190-prostye-syrniki-iz-tvoroga-na-skovorode",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "br-zapekanka-tvorozhnaya",
+      "name": "Творожная запеканка",
+      "about": "Запеканка как в садике: одна форма на два-три завтрака",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 45
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "cottage",
+      "sides": [],
+      "tags": [
+        "будни",
+        "духовка",
+        "детское",
+        "на 2–3 дня"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "творог",
+          "qty": 500,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 60,
+          "optional": false
+        },
+        {
+          "item": "манная крупа",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 50,
+          "note": "40 г в массу, остальное на форму",
+          "optional": false
+        },
+        {
+          "item": "изюм",
+          "qty": 100,
+          "optional": true
+        },
+        {
+          "item": "сметана",
+          "qty": 100,
+          "note": "смазать верх",
+          "optional": false
+        },
+        {
+          "item": "панировочные сухари",
+          "qty": 10,
+          "note": "для формы",
+          "optional": false
+        },
+        {
+          "item": "сахар ванильный",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Духовку разогреть до 180°. Творог растереть с мягким маслом.",
+        "Яйцо взбить с сахаром до пышной пены.",
+        "Соединить творог, яйцо, соль, ванильный сахар, изюм и манку, перемешать до однородности.",
+        "Форму смазать маслом и посыпать сухарями, выложить массу и смазать сверху сметаной.",
+        "Выпекать около 30 минут, пока верх не станет золотистым."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Изюм можно не класть или порезать мельче"
+      },
+      "source": {
+        "url": "https://www.edimdoma.ru/retsepty/44250-tvorozhnaya-zapekanka-kak-v-detskom-sadu",
+        "site": "edimdoma.ru"
+      }
+    },
+    {
+      "id": "br-lenivye-vareniki",
+      "name": "Ленивые вареники",
+      "about": "Вареники без лепки: творожное тесто режем и варим 2 минуты",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 20
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "cottage",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "творог",
+          "qty": 400,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 75,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 15,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 100,
+          "note": "к столу",
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Творог протереть через сито или пробить блендером, смешать с яйцом, сахаром и солью.",
+        "Понемногу добавлять муку, пока тесто не станет мягким и чуть липким.",
+        "Скатать колбаску толщиной 2–3 см и нарезать кусочками.",
+        "Опустить в кипящую подсоленную воду и варить 1–2 минуты после всплытия.",
+        "Вынуть шумовкой и подавать со сметаной."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Варёное и мягкое — Диме как есть"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/66791/lenivye-vareniki-s-tvorogom",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "br-tvorog-smetana-yagody",
+      "name": "Творог со сметаной и ягодами",
+      "about": "Завтрак без плиты за 5 минут",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack"
+      ],
+      "time": {
+        "active": 5,
+        "total": 10
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "cottage",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "без плиты",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "творог",
+          "qty": 500,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 250,
+          "optional": false
+        },
+        {
+          "item": "ягоды замороженные",
+          "qty": 200,
+          "note": "или свежие",
+          "optional": false
+        },
+        {
+          "item": "мёд",
+          "qty": 40,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Ягоды разморозить: с вечера в холодильнике или пару минут в микроволновке.",
+        "Творог перемешать со сметаной, при желании взбить блендером.",
+        "Разложить по тарелкам, сверху ягоды, полить мёдом по вкусу."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Мёд — только если нет аллергии"
+      },
+      "source": {
+        "url": "https://menunedeli.ru/2012/08/tvorog-so-smetanoj/",
+        "site": "menunedeli.ru"
+      }
+    },
+    {
+      "id": "br-tvorog-banan",
+      "name": "Творог с бананом",
+      "about": "Творожный крем с бананом из блендера — как десерт, но на завтрак",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack"
+      ],
+      "time": {
+        "active": 10,
+        "total": 15
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "cottage",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "без плиты",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "творог",
+          "qty": 600,
+          "optional": false
+        },
+        {
+          "item": "бананы",
+          "qty": 600,
+          "note": "4 шт.",
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "мёд",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "сахар ванильный",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "орехи грецкие",
+          "qty": 10,
+          "optional": true
+        },
+        {
+          "item": "печенье",
+          "qty": 20,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Бананы, кроме одного, нарезать и пробить блендером в пюре.",
+        "Добавить творог, сметану и ванильный сахар и взбить до гладкости.",
+        "Подсластить мёдом и ещё раз взбить.",
+        "Оставшийся банан нарезать кружками, печенье и орехи раскрошить.",
+        "Разложить по стаканам слоями: крем, банан, крошка."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме без орехов и печенья"
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/40300-tvorog-s-bananom",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "br-buterbrody-tvorozhnaya-pasta",
+      "name": "Бутерброды с творожной пастой и огурцом",
+      "about": "Несладкий творог: паста с зеленью на хлеб, сверху огурец",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack"
+      ],
+      "time": {
+        "active": 10,
+        "total": 10
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "cottage",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "без плиты"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "творог",
+          "qty": 300,
+          "optional": false
+        },
+        {
+          "item": "йогурт натуральный",
+          "qty": 70,
+          "optional": false
+        },
+        {
+          "item": "укроп",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "петрушка",
+          "qty": 20,
+          "note": "или кинза",
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 5,
+          "note": "1 зубчик",
+          "optional": true
+        },
+        {
+          "item": "хлеб ржаной",
+          "qty": 320,
+          "note": "8 ломтиков, можно батон",
+          "optional": false
+        },
+        {
+          "item": "огурцы",
+          "qty": 240,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Творог размять вилкой, комковатый — пробить блендером.",
+        "Зелень вымыть, обсушить и мелко порубить.",
+        "Смешать творог с йогуртом до густой пасты, добавить зелень, соль и перец.",
+        "По желанию выдавить зубчик чеснока и перемешать.",
+        "Намазать пасту на хлеб, сверху положить ломтики огурца."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Порцию пасты Диме отложить до чеснока и перца"
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/20107-tvorojnaya-pasta-s-zelenu-dlya-buterbrodov",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "br-omlet",
+      "name": "Омлет",
+      "about": "Пышный омлет на сковороде под крышкой",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "dinner"
+      ],
+      "time": {
+        "active": 10,
+        "total": 20
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "яйца",
+          "qty": 8,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 180,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 50,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 15,
+          "note": "смазать сковороду",
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "укроп",
+          "qty": 10,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Яйца с солью перемешать вилкой, не взбивая.",
+        "Добавить молоко и сметану и ещё раз перемешать.",
+        "Смазать сковороду маслом, прогреть на среднем огне и вылить смесь.",
+        "Готовить 2–3 минуты без крышки, приподнимая края лопаткой.",
+        "Накрыть крышкой и держать на слабом огне 5–7 минут, затем 5 минут под крышкой без огня."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Готовить без корочки, под крышкой на слабом огне"
+      },
+      "source": {
+        "url": "https://menunedeli.ru/recipe/recept-pyshnogo-omleta-na-skovorode-s-molokom/",
+        "site": "menunedeli.ru"
+      }
+    },
+    {
+      "id": "br-omlet-ovoshchi",
+      "name": "Омлет с помидорами и перцем",
+      "about": "Омлет, в котором уже есть овощи",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 20
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "быстро"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "яйца",
+          "qty": 8,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "помидоры",
+          "qty": 480,
+          "optional": false
+        },
+        {
+          "item": "перец болгарский",
+          "qty": 300,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "укроп",
+          "qty": 10,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Перец очистить от семян, нарезать кубиками и обжарить 1–2 минуты на небольшом огне.",
+        "Добавить нарезанные помидоры и прогреть 2–3 минуты, пока не дадут сок.",
+        "Яйца взбить с молоком, солью и перцем.",
+        "Залить овощи яичной смесью, накрыть крышкой и готовить 5–6 минут на малом огне.",
+        "Подавать сразу, посыпав зеленью."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Порцию Диме без чёрного перца; овощи не обжаривать, а потушить с ложкой воды"
+      },
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/33854",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "br-yaichnica-pomidory",
+      "name": "Яичница с помидорами и луком",
+      "about": "Сытная яичница с овощами за 20 минут",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "dinner"
+      ],
+      "time": {
+        "active": 10,
+        "total": 20
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "яйца",
+          "qty": 8,
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 200,
+          "note": "лучше красный",
+          "optional": false
+        },
+        {
+          "item": "помидоры",
+          "qty": 400,
+          "note": "4 некрупных",
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 60,
+          "optional": false
+        },
+        {
+          "item": "петрушка",
+          "qty": 10,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Лук нарезать соломкой, помидоры — дольками.",
+        "Обжарить лук на масле 5 минут, добавить помидоры и готовить ещё 5–8 минут, один раз перевернув.",
+        "Яйца взбить с солью и перцем и вылить на овощи.",
+        "Накрыть крышкой и готовить на слабом огне около 7 минут.",
+        "Посыпать рубленой петрушкой и подавать."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме без перца; лук и помидоры потушить с ложкой воды вместо обжарки"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/55915/jaichnica-s-pomidorami-i-lukom",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "br-skrembl-syr",
+      "name": "Скрэмбл с сыром",
+      "about": "Нежная болтунья с сыром за 10 минут",
+      "category": "breakfast",
+      "meals": [
+        "breakfast"
+      ],
+      "time": {
+        "active": 10,
+        "total": 15
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "яйца",
+          "qty": 8,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 60,
+          "optional": false
+        },
+        {
+          "item": "сыр твёрдый",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 10,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Сыр натереть на средней тёрке.",
+        "Яйца перемешать с молоком и солью, добавить сыр.",
+        "Разогреть сковороду с маслом на среднем огне и вылить смесь.",
+        "Помешивать лопаткой, пока яйца не соберутся в нежные хлопья.",
+        "Снять с огня, пока болтунья чуть влажная, и сразу подавать."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Порцию Диме — когда яйцо полностью схватится, без жидких участков"
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/88589-skrembl-s-syrom",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "br-omlet-sadik",
+      "name": "Высокий омлет в духовке, как в садике",
+      "about": "Высокий омлет из духовки, как в детском саду, без жарки",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "dinner"
+      ],
+      "time": {
+        "active": 10,
+        "total": 35
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "будни",
+        "духовка",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "яйца",
+          "qty": 10,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 500,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 120,
+          "note": "40 г на форму, остальное — на горячий омлет по вкусу",
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Духовку разогреть до 200°. Яйца перемешать вилкой, не взбивая в пену.",
+        "Влить холодное молоко, посолить и снова перемешать.",
+        "Форму смазать маслом и вылить смесь: она должна занять больше половины формы.",
+        "Выпекать около 20 минут, духовку не открывать.",
+        "Смазать горячий омлет маслом, дать немного остыть и нарезать."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Омлет из духовки малышу подходит как есть"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/46675/pyshnyj-omlet-kak-v-detskom-sadike",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "br-yaytsa-vsmyatku-grenki",
+      "name": "Яйца всмятку с гренками",
+      "about": "Яйцо всмятку и хрустящий хлеб — завтрак за 10 минут",
+      "category": "breakfast",
+      "meals": [
+        "breakfast"
+      ],
+      "time": {
+        "active": 5,
+        "total": 12
+      },
+      "servings": 4,
+      "keepsDays": 0,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "яйца",
+          "qty": 4,
+          "optional": false
+        },
+        {
+          "item": "хлеб белый",
+          "qty": 160,
+          "note": "4–8 ломтиков",
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Яйца заранее достать из холодильника, чтобы не треснули.",
+        "Вскипятить воду, посолить и опустить яйца ложкой.",
+        "Варить 4 минуты после закипания, затем переложить в холодную воду.",
+        "Пока варятся яйца, подсушить хлеб на сухой сковороде или в тостере, смазать маслом и нарезать брусочками.",
+        "Срезать верхушку яйца и подавать с гренками."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме яйцо сварить вкрутую, 8–10 минут: жидкий желток малышу лучше не давать"
+      },
+      "source": {
+        "url": "https://menunedeli.ru/recipe/yajca-vsmyatku-kak-pravilno-i-skolko-varit-posle-zakipaniya-vody/",
+        "site": "menunedeli.ru"
+      }
+    },
+    {
+      "id": "br-bliny",
+      "name": "Блины на молоке",
+      "about": "Тонкие блины на выходные: к сметане, варенью или творогу",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack"
+      ],
+      "time": {
+        "active": 35,
+        "total": 40
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "выходные",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "молоко",
+          "qty": 1000,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 340,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 60,
+          "note": "в тесто",
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 80,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 50,
+          "note": "смазать готовые блины",
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Продукты заранее достать, чтобы были комнатной температуры.",
+        "Смешать молоко, соль, сахар, растительное масло и яйца, взбить до однородности.",
+        "Просеять муку и вмешать до жидкого теста без комков.",
+        "Сковороду хорошо разогреть и смазать маслом.",
+        "Налить половник теста, быстро распределить по дну, печь до румяных краёв и перевернуть.",
+        "Горячие блины по желанию смазать сливочным маслом."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Печь на сухой антипригарной сковороде; Диме 1–2 мягких блина без поджаристых краёв, с творогом или сметаной"
+      },
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/14007",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "br-oladi-kefir",
+      "name": "Оладьи на кефире",
+      "about": "Пышные оладьи из самых простых продуктов",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack"
+      ],
+      "time": {
+        "active": 20,
+        "total": 30
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "будни",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "кефир",
+          "qty": 300,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 260,
+          "optional": false
+        },
+        {
+          "item": "сода",
+          "qty": 3,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 60,
+          "note": "для жарки",
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Кефир согреть до комнатной температуры и смешать с яйцом и сахаром.",
+        "Всыпать просеянную муку с содой, перемешать и оставить тесто на 15 минут.",
+        "Разогреть масло на сковороде и выкладывать тесто ложкой.",
+        "Жарить на умеренном огне до румяности с обеих сторон.",
+        "Выложить на бумажное полотенце, подавать с мёдом, сметаной или вареньем."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме испечь оладьи в духовке на бумаге: 200°, 10–12 минут"
+      },
+      "source": {
+        "url": "https://www.edimdoma.ru/retsepty/143647-pyshnye-oladi",
+        "site": "edimdoma.ru"
+      }
+    },
+    {
+      "id": "br-oladi-kabachki",
+      "name": "Оладьи из кабачков",
+      "about": "Овощи на завтрак, которые дети едят охотно",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack",
+        "dinner"
+      ],
+      "time": {
+        "active": 20,
+        "total": 25
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "детское",
+        "бюджетное"
+      ],
+      "season": [
+        "summer",
+        "autumn"
+      ],
+      "ingredients": [
+        {
+          "item": "кабачок",
+          "qty": 400,
+          "note": "молодой",
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 90,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 150,
+          "note": "50 г в тесто, остальное к столу",
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 5,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 7,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Кабачок вымыть, обрезать концы и натереть на мелкой тёрке.",
+        "Хорошо отжать лишнюю воду.",
+        "Добавить яйцо, муку, сметану, соль и сахар, перемешать и дать постоять 5 минут.",
+        "Смазать сковороду маслом и выкладывать тесто по столовой ложке.",
+        "Жарить на тихом огне по 2–3 минуты с каждой стороны до лёгкого румянца.",
+        "Подавать со сметаной."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме испечь оладьи в духовке на бумаге: 180°, 15–20 минут, перевернуть на середине"
+      },
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/15606",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "br-oladi-banan",
+      "name": "Банановые оладьи",
+      "about": "Перезревший банан пойдёт в дело: пышные сладкие оладьи",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack"
+      ],
+      "time": {
+        "active": 20,
+        "total": 20
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "бананы",
+          "qty": 150,
+          "note": "очень спелый",
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 220,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 50,
+          "note": "можно часть заменить ванильным",
+          "optional": false
+        },
+        {
+          "item": "разрыхлитель",
+          "qty": 10,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 15,
+          "note": "смазать сковороду",
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Банан размять вилкой в пюре и растереть с сахаром.",
+        "Добавить яйца и соль и слегка взбить.",
+        "Просеять муку с разрыхлителем и перемешать до густого теста.",
+        "Жарить на разогретой сковороде с минимумом масла по 2 минуты с каждой стороны.",
+        "Подавать с йогуртом или мёдом."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме испечь в духовке на бумаге: 200°, 10–12 минут; это сладкое — в счёт 2–3 раз в неделю"
+      },
+      "source": {
+        "url": "https://www.edimdoma.ru/retsepty/52187-bananovye-pankeyki",
+        "site": "edimdoma.ru"
+      }
+    },
+    {
+      "id": "br-draniki",
+      "name": "Драники",
+      "about": "Картофельные драники на выходной завтрак, со сметаной",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "dinner"
+      ],
+      "time": {
+        "active": 30,
+        "total": 40
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "выходные",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "картофель",
+          "qty": 800,
+          "optional": false
+        },
+        {
+          "item": "лук репчатый",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 75,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 100,
+          "note": "для жарки",
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "перец чёрный молотый",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 150,
+          "note": "к столу",
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Картофель и лук очистить, натереть на тёрке и отжать лишний сок.",
+        "Добавить яйцо, муку, соль и перец, перемешать.",
+        "Разогреть масло, выкладывать массу ложкой и слегка разравнивать.",
+        "Жарить на среднем огне по 3–4 минуты с каждой стороны до корочки.",
+        "Подавать горячими со сметаной."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме драники запечь в духовке на бумаге: 200°, 20 минут, перевернуть на середине; без перца"
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/3943-draniki-kartofelnye-klassicheskie",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "br-ovsyanoblin",
+      "name": "Овсяноблин с сыром",
+      "about": "Блин из овсянки и яйца с сыром внутри — сытно и быстро",
+      "category": "breakfast",
+      "meals": [
+        "breakfast"
+      ],
+      "time": {
+        "active": 20,
+        "total": 25
+      },
+      "servings": 4,
+      "keepsDays": 0,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "быстро"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "овсяные хлопья",
+          "qty": 160,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 4,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 240,
+          "optional": false
+        },
+        {
+          "item": "сыр твёрдый",
+          "qty": 80,
+          "optional": false
+        },
+        {
+          "item": "бананы",
+          "qty": 300,
+          "note": "2 шт., можно заменить помидором",
+          "optional": true
+        },
+        {
+          "item": "масло растительное",
+          "qty": 5,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Хлопья смолоть блендером в крупную муку.",
+        "Залить молоком, вбить яйца и взбить венчиком до однородности.",
+        "Разогреть антипригарную сковороду, при необходимости смазать каплей масла, вылить четверть теста.",
+        "Печь 2–3 минуты и перевернуть.",
+        "На половину блина выложить сыр и банан, накрыть крышкой на минуту, сложить пополам и подержать ещё минуту.",
+        "Так же испечь остальные блины."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме то же тесто запечь в формочке: 180°, 10–12 минут"
+      },
+      "source": {
+        "url": "https://menunedeli.ru/recipe/ovsyanoblin/",
+        "site": "menunedeli.ru"
+      }
+    },
+    {
+      "id": "br-grenki-sladkie",
+      "name": "Сладкие гренки",
+      "about": "Гренки из вчерашнего батона, яйца и молока",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack"
+      ],
+      "time": {
+        "active": 15,
+        "total": 20
+      },
+      "servings": 4,
+      "keepsDays": 0,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "хлеб белый",
+          "qty": 330,
+          "note": "10–12 ломтиков вчерашнего батона",
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 4,
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 130,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 100,
+          "note": "для жарки",
+          "optional": false
+        },
+        {
+          "item": "корица",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        },
+        {
+          "item": "варенье",
+          "qty": 100,
+          "note": "к столу",
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Яйца смешать с молоком и сахаром, по желанию добавить корицу и слегка взбить.",
+        "Каждый ломтик батона быстро обмакнуть в смесь с двух сторон.",
+        "Обжарить на прогретой сковороде с маслом по минуте с каждой стороны.",
+        "Подавать с вареньем, мёдом или сгущёнкой."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме гренку запечь в духовке: 180°, 10 минут; это сладкое — в счёт 2–3 раз в неделю"
+      },
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/12195",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "br-buterbrody-goryachie",
+      "name": "Горячие бутерброды с сыром и помидором",
+      "about": "Бутерброды из духовки: сыр, помидор, укроп",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack"
+      ],
+      "time": {
+        "active": 10,
+        "total": 25
+      },
+      "servings": 4,
+      "keepsDays": 0,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "духовка",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "хлеб белый",
+          "qty": 240,
+          "note": "батон или 2 булочки",
+          "optional": false
+        },
+        {
+          "item": "помидоры",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "сыр твёрдый",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "сыр плавленый",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "майонез",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "укроп",
+          "qty": 20,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Плавленый сыр подержать 15 минут в морозилке, чтобы легче натирался. Духовку разогреть до 200°.",
+        "Натереть оба сыра, укроп мелко порубить.",
+        "Смешать плавленый сыр с укропом и майонезом.",
+        "Хлеб нарезать, смазать сырной массой и положить кружки помидора.",
+        "Посыпать твёрдым сыром и запекать около 15 минут, пока сыр не расплавится."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме отдельный бутерброд: хлеб, помидор и твёрдый сыр, без майонеза и плавленого сыра"
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/23393-buterbrody-s-pomidorami-i-syrom-v-duxovke",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "br-buterbrody-yaytso-ogurets",
+      "name": "Бутерброды с яйцом и огурцом",
+      "about": "Яичная намазка и свежий огурец на хрустящем хлебе",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack"
+      ],
+      "time": {
+        "active": 15,
+        "total": 20
+      },
+      "servings": 4,
+      "keepsDays": 0,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "хлеб белый",
+          "qty": 300,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 4,
+          "optional": false
+        },
+        {
+          "item": "майонез",
+          "qty": 60,
+          "optional": false
+        },
+        {
+          "item": "чеснок",
+          "qty": 10,
+          "note": "2 зубчика",
+          "optional": false
+        },
+        {
+          "item": "огурцы",
+          "qty": 240,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Яйца сварить вкрутую, 12 минут, и остудить в холодной воде.",
+        "Батон нарезать и подсушить в тостере, духовке или на сухой сковороде.",
+        "Яйца очистить и натереть на мелкой тёрке вместе с чесноком.",
+        "Смешать с майонезом.",
+        "Намазать хлеб яичной массой, сверху выложить тонкие ломтики огурца."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме яичную массу смешать со сметаной вместо майонеза, без чеснока"
+      },
+      "source": {
+        "url": "https://iamcook.ru/showrecipe/36500",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "br-granola-yogurt",
+      "name": "Домашняя гранола с йогуртом",
+      "about": "Печём гранолу раз в две недели, утром — йогурт и горсть хлопьев",
+      "category": "breakfast",
+      "meals": [
+        "breakfast",
+        "snack"
+      ],
+      "time": {
+        "active": 15,
+        "total": 45
+      },
+      "servings": 8,
+      "keepsDays": 14,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "выходные",
+        "духовка",
+        "на 2–3 дня"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "овсяные хлопья",
+          "qty": 300,
+          "note": "долгой варки",
+          "optional": false
+        },
+        {
+          "item": "орехи грецкие",
+          "qty": 150,
+          "optional": false
+        },
+        {
+          "item": "изюм",
+          "qty": 100,
+          "note": "или курага",
+          "optional": false
+        },
+        {
+          "item": "мёд",
+          "qty": 75,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "йогурт натуральный",
+          "qty": 1000,
+          "note": "по 125 г на порцию",
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Духовку разогреть до 140°. Орехи порубить ножом, изюм промыть и обсушить.",
+        "Хлопья перемешать руками с орехами, мёдом и маслом, чтобы получились комочки.",
+        "Выложить на противень с бумагой и запекать 30–35 минут, перемешивая каждые 7–8 минут.",
+        "За 5 минут до конца добавить изюм.",
+        "Остудить и хранить в банке с крышкой до двух недель.",
+        "Утром насыпать гранолу в тарелку и залить йогуртом."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме гранолу без орехов (часть отсыпать до орехов) или орехи смолоть в крошку; мёд — в счёт сладкого"
+      },
+      "source": {
+        "url": "https://menunedeli.ru/recipe/domashnyaya-granola/",
+        "site": "menunedeli.ru"
+      }
+    },
+    {
+      "id": "sn-yabloki-tvorog",
+      "name": "Печёные яблоки с творогом",
+      "about": "Печёное яблоко с творогом: полдник без муки и почти без сахара",
+      "category": "snack",
+      "meals": [
+        "snack",
+        "breakfast"
+      ],
+      "time": {
+        "active": 10,
+        "total": 30
+      },
+      "servings": 4,
+      "keepsDays": 1,
+      "protein": "cottage",
+      "sides": [],
+      "tags": [
+        "будни",
+        "духовка",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "яблоки",
+          "qty": 720,
+          "note": "4 шт., кисло-сладкие",
+          "optional": false
+        },
+        {
+          "item": "творог",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "note": "только желток",
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "сахар ванильный",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Духовку разогреть до 200°. Творог протереть через сито или пробить блендером.",
+        "Желток растереть с сахаром и ванильным сахаром и смешать с творогом.",
+        "У яблок срезать верхушку-крышечку, ложкой вынуть сердцевину, бока наколоть вилкой.",
+        "Наполнить яблоки творогом и накрыть крышечками.",
+        "Запекать 10–15 минут, пока яблоки не станут мягкими."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Яблоко Диме дать без кожуры"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/27449/jabloki-s-tvorogom-v-duhovke",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "ds-sharlotka",
+      "name": "Шарлотка",
+      "about": "Классика из трёх яиц, стакана муки и стакана сахара",
+      "category": "dessert",
+      "meals": [
+        "snack"
+      ],
+      "time": {
+        "active": 20,
+        "total": 50
+      },
+      "servings": 8,
+      "keepsDays": 3,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "выходные",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "мука пшеничная",
+          "qty": 160,
+          "note": "1 стакан",
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 200,
+          "note": "1 стакан",
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 3,
+          "optional": false
+        },
+        {
+          "item": "яблоки",
+          "qty": 630,
+          "note": "3–4 шт.",
+          "optional": false
+        },
+        {
+          "item": "сода",
+          "qty": null,
+          "note": "щепотка",
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "сахар ванильный",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 10,
+          "note": "смазать форму",
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Духовку разогреть до 190°. Яйца взбить с сахаром миксером до светлой пышной массы.",
+        "Муку просеять с содой и ванильным сахаром и вмешать в яйца.",
+        "Яблоки разрезать, удалить сердцевину и нарезать ломтиками.",
+        "Смешать яблоки с тестом и переложить в смазанную маслом форму.",
+        "Выпекать 30 минут, готовность проверить деревянной шпажкой."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Сладкое: Диме небольшую порцию и не чаще 2–3 раз в неделю вместе с другими сладостями"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/24208/klassicheskaja-sharlotka-s-jablokami",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "ds-keks-tvorozhny",
+      "name": "Творожный кекс с изюмом",
+      "about": "Влажный кекс на твороге, неделю не черствеет",
+      "category": "dessert",
+      "meals": [
+        "snack",
+        "breakfast"
+      ],
+      "time": {
+        "active": 20,
+        "total": 75
+      },
+      "servings": 8,
+      "keepsDays": 4,
+      "protein": "cottage",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "выходные",
+        "детское",
+        "на 2–3 дня"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "мука пшеничная",
+          "qty": 250,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "творог",
+          "qty": 300,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 3,
+          "optional": false
+        },
+        {
+          "item": "изюм",
+          "qty": 80,
+          "optional": false
+        },
+        {
+          "item": "разрыхлитель",
+          "qty": 10,
+          "optional": false
+        },
+        {
+          "item": "лимон",
+          "qty": 30,
+          "note": "цедра 1 ч. л.",
+          "optional": true
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 10,
+          "note": "смазать форму",
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Изюм промыть и замочить в тёплой воде на 15 минут, затем обсушить.",
+        "Духовку разогреть до 170°. Яйца взбить с сахаром и добавить творог.",
+        "Понемногу вмешать муку с разрыхлителем.",
+        "Добавить изюм и тёртую лимонную цедру.",
+        "Выложить в смазанную маслом форму и печь 40–50 минут до сухой шпажки.",
+        "Остудить 10 минут в форме, затем на решётке."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Сладкое: Диме небольшую порцию и не чаще 2–3 раз в неделю вместе с другими сладостями"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/41476/tvorozhnyj-keks-s-izyumom",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "ds-maffiny-banan",
+      "name": "Банановые маффины",
+      "about": "Маффины на спелых бананах, 12 штук на несколько полдников",
+      "category": "dessert",
+      "meals": [
+        "snack",
+        "breakfast"
+      ],
+      "time": {
+        "active": 20,
+        "total": 60
+      },
+      "servings": 12,
+      "keepsDays": 3,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "выходные",
+        "детское",
+        "на 2–3 дня"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "бананы",
+          "qty": 450,
+          "note": "3 шт.",
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 150,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "item": "разрыхлитель",
+          "qty": 10,
+          "optional": false
+        },
+        {
+          "item": "сахар ванильный",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Масло заранее достать, духовку разогреть до 180°.",
+        "Мягкое масло взбить с сахаром до светлой пышной массы.",
+        "По одному добавить яйца, каждый раз перемешивая.",
+        "Бананы натереть на тёрке прямо перед добавлением и вмешать в тесто.",
+        "Муку просеять с разрыхлителем, солью и ванильным сахаром и вмешать в три приёма.",
+        "Разложить тесто по формочкам на 2/3 и печь около 25 минут до золотистого цвета."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Сладкое: Диме один маффин, не чаще 2–3 раз в неделю вместе с другими сладостями"
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/12209-bananovye-maffiny",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "ds-pechenye-ovsyanoe",
+      "name": "Овсяное печенье",
+      "about": "Простое печенье из продуктов, которые всегда есть дома",
+      "category": "dessert",
+      "meals": [
+        "snack"
+      ],
+      "time": {
+        "active": 10,
+        "total": 40
+      },
+      "servings": 4,
+      "keepsDays": 7,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "будни",
+        "духовка",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "овсяные хлопья",
+          "qty": 125,
+          "note": "долгой варки",
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 50,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "сода",
+          "qty": 3,
+          "optional": false
+        },
+        {
+          "item": "лимон",
+          "qty": 10,
+          "note": "несколько капель сока",
+          "optional": true
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Духовку разогреть до 180°. Хлопья немного измельчить блендером.",
+        "Яйцо смешать с сахаром и солью, добавить масло, соду и лимонный сок.",
+        "Всыпать хлопья и понемногу вмешивать муку, пока тесто не станет вязким и не будет держать форму.",
+        "Скатать 8 шариков и приплюснуть.",
+        "Выпекать на бумаге около 30 минут, до лёгкого румянца снизу."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Сладкое: Диме одно печенье, не чаще 2–3 раз в неделю вместе с другими сладостями"
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/17012-ovsyanoe-pechene-proshche-prostogo",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "ds-mannik",
+      "name": "Манник на кефире",
+      "about": "Пирог без муки: тесто замешивается за 10 минут",
+      "category": "dessert",
+      "meals": [
+        "snack"
+      ],
+      "time": {
+        "active": 15,
+        "total": 90
+      },
+      "servings": 6,
+      "keepsDays": 3,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "выходные",
+        "бюджетное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "манная крупа",
+          "qty": 250,
+          "optional": false
+        },
+        {
+          "item": "кефир",
+          "qty": 250,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 300,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 50,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "item": "сахар ванильный",
+          "qty": 10,
+          "optional": false
+        },
+        {
+          "item": "сода",
+          "qty": 5,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Смешать манку, сахар, ванильный сахар, соль и соду.",
+        "Добавить мягкое масло и яйцо и растереть руками в крошку.",
+        "Влить кефир комнатной температуры, перемешать до гладкости и оставить на 15–20 минут.",
+        "Духовку разогреть до 180°, форму смазать маслом.",
+        "Вылить тесто и печь 40–50 минут до сухой зубочистки.",
+        "Остудить в форме и только потом доставать."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Сладкое: Диме небольшую порцию и не чаще 2–3 раз в неделю вместе с другими сладостями"
+      },
+      "source": {
+        "url": "https://menunedeli.ru/recipe/mannik-na-kefire-recept-1-stakan/",
+        "site": "menunedeli.ru"
+      }
+    },
+    {
+      "id": "sn-fruktovy-salat",
+      "name": "Фруктовый салат с йогуртом",
+      "about": "Фрукты кубиками с йогуртом — полдник за 15 минут",
+      "category": "snack",
+      "meals": [
+        "snack",
+        "breakfast"
+      ],
+      "time": {
+        "active": 15,
+        "total": 15
+      },
+      "servings": 4,
+      "keepsDays": 0,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "без плиты",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "бананы",
+          "qty": 150,
+          "optional": false
+        },
+        {
+          "item": "яблоки",
+          "qty": 360,
+          "optional": false
+        },
+        {
+          "item": "груши",
+          "qty": 180,
+          "optional": false
+        },
+        {
+          "item": "апельсины",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "виноград",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "йогурт натуральный",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "мёд",
+          "qty": 10,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Фрукты вымыть и обсушить.",
+        "Банан нарезать кубиками, апельсин почистить, снять плёнки с долек и порезать.",
+        "Яблоки и грушу нарезать кубиками, виноградины разрезать.",
+        "Сложить всё в миску, полить мёдом и йогуртом и аккуратно перемешать.",
+        "Разложить по креманкам и сразу подавать."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме нарезать мельче, виноград — на четвертинки, яблоко без кожуры"
+      },
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/15901",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "sn-smuzi-banan-kefir",
+      "name": "Смузи банан-кефир",
+      "about": "Банан и кефир в блендере — полдник за 5 минут",
+      "category": "snack",
+      "meals": [
+        "snack",
+        "breakfast"
+      ],
+      "time": {
+        "active": 5,
+        "total": 5
+      },
+      "servings": 4,
+      "keepsDays": 0,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "без плиты",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "бананы",
+          "qty": 600,
+          "note": "4 шт.",
+          "optional": false
+        },
+        {
+          "item": "кефир",
+          "qty": 800,
+          "optional": false
+        },
+        {
+          "item": "мёд",
+          "qty": 40,
+          "optional": true
+        },
+        {
+          "item": "корица",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Бананы очистить, нарезать и сложить в блендер.",
+        "Влить кефир, добавить мёд и щепотку корицы.",
+        "Взбить до однородности и сразу разлить по стаканам."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Диме полстакана; мёд — если нет аллергии"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/60453/smuzi-iz-banana-i-kefira",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "ds-vatrushki",
+      "name": "Ватрушки с творогом",
+      "about": "Дрожжевые ватрушки по садиковской рецептуре",
+      "category": "dessert",
+      "meals": [
+        "snack",
+        "breakfast"
+      ],
+      "time": {
+        "active": 30,
+        "total": 210
+      },
+      "servings": 15,
+      "keepsDays": 3,
+      "protein": "cottage",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "выходные",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "мука пшеничная",
+          "qty": 490,
+          "note": "460 г в тесто, 30 г в начинку",
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "вода",
+          "qty": 50,
+          "optional": false
+        },
+        {
+          "item": "дрожжи сухие",
+          "qty": 6,
+          "note": "или 18 г живых",
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 70,
+          "note": "40 г в тесто, 30 г в начинку",
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 30,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 3,
+          "note": "в тесто, в начинку и для смазки",
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "творог",
+          "qty": 400,
+          "optional": false
+        },
+        {
+          "item": "сахар ванильный",
+          "qty": 5,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Дрожжи развести в тёплой воде, смешать с частью молока и муки и оставить опару в тепле на 1,5–2 часа.",
+        "Добавить яйцо, сахар, соль, остальное молоко и муку, вмешать растопленное масло в два приёма.",
+        "Дать тесту подняться вдвое, один-два раза обмяв.",
+        "Разделить на 15 шариков, выложить на противень и оставить на 15 минут. Духовку разогреть до 200°.",
+        "Творог растереть с яйцом, мукой, сахаром и ванильным сахаром.",
+        "Донышком стакана сделать в каждом шарике углубление и положить начинку.",
+        "Смазать взбитым яйцом и выпекать около 10 минут до румяной корочки."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Сладкое: Диме одну ватрушку, не чаще 2–3 раз в неделю вместе с другими сладостями"
+      },
+      "source": {
+        "url": "https://menunedeli.ru/recipe/vatrushka-s-tvorogom-iz-drozhzhevogo-testa-kak-v-detskom-sadu/",
+        "site": "menunedeli.ru"
+      }
+    },
+    {
+      "id": "ds-pirozhki-yabloko",
+      "name": "Пирожки с яблоками в духовке",
+      "about": "Пышные пирожки из духовки с тушёными яблоками и корицей",
+      "category": "dessert",
+      "meals": [
+        "snack"
+      ],
+      "time": {
+        "active": 40,
+        "total": 120
+      },
+      "servings": 10,
+      "keepsDays": 3,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "выходные",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "мука пшеничная",
+          "qty": 500,
+          "optional": false
+        },
+        {
+          "item": "дрожжи сухие",
+          "qty": 8,
+          "note": "или 25 г свежих",
+          "optional": false
+        },
+        {
+          "item": "молоко",
+          "qty": 185,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 200,
+          "note": "50 г в тесто, 150 г в начинку",
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 120,
+          "note": "пополам в тесто и в начинку",
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "яблоки",
+          "qty": 1000,
+          "optional": false
+        },
+        {
+          "item": "корица",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Дрожжи развести в тёплом молоке (около 35°) и оставить на 15 минут.",
+        "Яйца взбить с 50 г сахара и солью, половину масла растопить; влить яйца и половину муки в молоко с дрожжами.",
+        "Добавить остальную муку и масло, вымесить гладкое тесто и оставить в тепле на час.",
+        "Обмять тесто и дать подняться ещё 40 минут.",
+        "Тем временем яблоки нарезать кубиками, потушить 10 минут с маслом и сахаром, добавить корицу и остудить.",
+        "Разделить тесто на шарики, раскатать, положить начинку и защипнуть края.",
+        "Выложить швом вниз на бумагу и печь 15–20 минут при 190°."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Сладкое: Диме один пирожок, не чаще 2–3 раз в неделю вместе с другими сладостями"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/31763/pirozhki-s-jablokami-v-duhovke",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "ds-gusinye-lapki",
+      "name": "Творожное печенье «Гусиные лапки»",
+      "about": "Творожное печенье с сахарной корочкой — лепить можно с детьми",
+      "category": "dessert",
+      "meals": [
+        "snack"
+      ],
+      "time": {
+        "active": 25,
+        "total": 40
+      },
+      "servings": 8,
+      "keepsDays": 5,
+      "protein": "cottage",
+      "sides": [],
+      "tags": [
+        "будни",
+        "духовка",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "творог",
+          "qty": 180,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "мука пшеничная",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "разрыхлитель",
+          "qty": 10,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 60,
+          "note": "для обсыпки",
+          "optional": false
+        },
+        {
+          "item": "сахар ванильный",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Мягкое масло растереть с творогом.",
+        "Добавить ванильный сахар, разрыхлитель и половину муки и замесить.",
+        "Вымесить на столе с остальной мукой до эластичности.",
+        "Тонко раскатать и вырезать стаканом кружки.",
+        "Посыпать кружок сахаром, сложить пополам, снова посыпать и сложить треугольником.",
+        "Выложить на противень с бумагой и печь 15–20 минут при 180°."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Сладкое: Диме небольшую порцию и не чаще 2–3 раз в неделю вместе с другими сладостями"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/62169/tvorozhnoe-pechene-gusinye-lapki",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "sn-risovaya-zapekanka",
+      "name": "Рисовая запеканка с яблоками",
+      "about": "Рис, яблоки и яйцо — простая запеканка на полдник",
+      "category": "snack",
+      "meals": [
+        "snack",
+        "breakfast"
+      ],
+      "time": {
+        "active": 15,
+        "total": 40
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "будни",
+        "духовка",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "рис круглозёрный",
+          "qty": 180,
+          "note": "1 стакан",
+          "optional": false
+        },
+        {
+          "item": "яблоки",
+          "qty": 540,
+          "note": "3 шт.",
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 50,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "корица",
+          "qty": null,
+          "toTaste": true,
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Рис отварить в подсоленной воде до полуготовности и откинуть на дуршлаг.",
+        "Яблоки без сердцевины нарезать брусочками.",
+        "Смешать рис, яблоки и мягкое масло.",
+        "Яйца взбить с сахаром.",
+        "Выложить рис в смазанную форму и залить яйцами.",
+        "Запекать 20–25 минут при 180°, по желанию посыпать корицей."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Запеканка из садиковского меню, малышу как есть"
+      },
+      "source": {
+        "url": "https://menunedeli.ru/recipe/risovaya-zapekanka-s-yablokami/",
+        "site": "menunedeli.ru"
+      }
+    },
+    {
+      "id": "ds-zhele-yagodnoe",
+      "name": "Ягодное желе",
+      "about": "Желе из замороженных ягод: 20 минут работы, остальное — холодильник",
+      "category": "dessert",
+      "meals": [
+        "snack"
+      ],
+      "time": {
+        "active": 20,
+        "total": 200
+      },
+      "servings": 4,
+      "keepsDays": 3,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "ягоды замороженные",
+          "qty": 150,
+          "note": "1 стакан",
+          "optional": false
+        },
+        {
+          "item": "вода",
+          "qty": 560,
+          "optional": false
+        },
+        {
+          "item": "желатин",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 50,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Желатин замочить в половине стакана холодной воды по инструкции на упаковке, затем растворить на водяной бане, не кипятя.",
+        "Ягоды раздавить, залить остальной водой с сахаром, довести до кипения и процедить; часть ягод можно оставить целыми.",
+        "Смешать горячий морс с желатином.",
+        "Разлить по креманкам, остудить и убрать в холодильник на 3 часа."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Сладкое: Диме небольшую порцию и не чаще 2–3 раз в неделю вместе с другими сладостями"
+      },
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/5188",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "ds-keks-morkovny",
+      "name": "Морковный кекс",
+      "about": "Кекс с тёртой морковью: сочный, яркий и недорогой",
+      "category": "dessert",
+      "meals": [
+        "snack",
+        "breakfast"
+      ],
+      "time": {
+        "active": 20,
+        "total": 70
+      },
+      "servings": 8,
+      "keepsDays": 4,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "выходные",
+        "детское",
+        "бюджетное"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "мука пшеничная",
+          "qty": 200,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 120,
+          "optional": false
+        },
+        {
+          "item": "морковь",
+          "qty": 160,
+          "optional": false
+        },
+        {
+          "item": "масло растительное",
+          "qty": 80,
+          "optional": false
+        },
+        {
+          "item": "разрыхлитель",
+          "qty": 5,
+          "optional": false
+        },
+        {
+          "item": "сахар ванильный",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 10,
+          "note": "смазать форму",
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Духовку разогреть до 180°. Морковь натереть на мелкой тёрке.",
+        "Яйца взбить с сахаром и солью до пены.",
+        "Добавить морковь, ванильный сахар и масло и перемешать лопаткой.",
+        "Просеять муку с разрыхлителем и аккуратно вмешать.",
+        "Выложить в смазанную форму и печь 40–50 минут до сухой зубочистки.",
+        "Остудить в форме, накрыв полотенцем."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Сладкое: Диме небольшую порцию и не чаще 2–3 раз в неделю вместе с другими сладостями"
+      },
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/32805",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "ds-sochniki",
+      "name": "Сочники с творогом",
+      "about": "Сочники из песочного теста, как в советской булочной",
+      "category": "dessert",
+      "meals": [
+        "snack"
+      ],
+      "time": {
+        "active": 35,
+        "total": 75
+      },
+      "servings": 7,
+      "keepsDays": 3,
+      "protein": "cottage",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "выходные",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "мука пшеничная",
+          "qty": 340,
+          "note": "250 г в тесто, 50 г подпылить, остальное в начинку",
+          "optional": false
+        },
+        {
+          "item": "сода",
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 70,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 115,
+          "note": "65 г в тесто, 50 г в начинку",
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 2,
+          "note": "в тесто, белок в начинку, желток для смазки",
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 100,
+          "note": "80 г в тесто, 20 г в начинку",
+          "optional": false
+        },
+        {
+          "item": "творог",
+          "qty": 250,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Для начинки смешать творог, сахар, ложку сметаны, половину белка и немного муки до густоты.",
+        "Муку просеять и перемешать с солью и содой.",
+        "Мягкое масло взбить с сахаром, добавить яйцо и сметану.",
+        "Всыпать мучную смесь и быстро замесить тесто.",
+        "Раскатать пласт толщиной 5 мм и вырезать кружки 8–10 см.",
+        "Положить на каждый кружок ложку начинки ближе к краю и прикрыть второй половиной, не защипывая.",
+        "Смазать желтком и печь 20–25 минут при 180°."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Сладкое: Диме один сочник, не чаще 2–3 раз в неделю вместе с другими сладостями"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/31204/sochniki-s-tvorogom",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "ds-zebra",
+      "name": "Пирог «Зебра»",
+      "about": "Полосатый пирог на сметане, который любят дети",
+      "category": "dessert",
+      "meals": [
+        "snack"
+      ],
+      "time": {
+        "active": 25,
+        "total": 75
+      },
+      "servings": 10,
+      "keepsDays": 3,
+      "protein": "egg",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "выходные",
+        "праздничное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "мука пшеничная",
+          "qty": 210,
+          "optional": false
+        },
+        {
+          "item": "сметана",
+          "qty": 250,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 250,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 4,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "какао-порошок",
+          "qty": 20,
+          "optional": false
+        },
+        {
+          "item": "разрыхлитель",
+          "qty": 8,
+          "optional": false
+        },
+        {
+          "item": "сахар ванильный",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Духовку разогреть до 180°. Мягкое масло растереть с половиной сахара.",
+        "По одному вбить яйца, понемногу досыпая остальной сахар, и взбить до пышности.",
+        "Добавить сметану, соль, разрыхлитель и ванильный сахар, затем вмешать просеянную муку.",
+        "Разделить тесто пополам и в одну часть добавить какао.",
+        "Выкладывать в форму 20–22 см по две ложки, чередуя светлое и тёмное тесто, и провести узор зубочисткой.",
+        "Печь 40–50 минут до сухой зубочистки и остудить в форме."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Сладкое, в тесте какао: Диме небольшой кусок не чаще раза в неделю, в счёт сладкого"
+      },
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/7309",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "sn-tykva-yabloki",
+      "name": "Тыква, запечённая с яблоком",
+      "about": "Тыква с яблоком и мёдом из духовки — тёплый осенний полдник",
+      "category": "snack",
+      "meals": [
+        "snack"
+      ],
+      "time": {
+        "active": 15,
+        "total": 60
+      },
+      "servings": 4,
+      "keepsDays": 2,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "детское",
+        "постное",
+        "бюджетное"
+      ],
+      "season": [
+        "autumn",
+        "winter"
+      ],
+      "ingredients": [
+        {
+          "item": "тыква",
+          "qty": 230,
+          "note": "без кожуры",
+          "optional": false
+        },
+        {
+          "item": "яблоки",
+          "qty": 230,
+          "optional": false
+        },
+        {
+          "item": "изюм",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "мёд",
+          "qty": 40,
+          "optional": false
+        },
+        {
+          "item": "корица",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Духовку разогреть до 180°. Очень сухой изюм замочить на 10–15 минут.",
+        "Тыкву очистить от кожуры и семечек, яблоки — от сердцевины и нарезать мелким кубиком.",
+        "Перемешать с изюмом и разложить по формочкам или в одну форму.",
+        "Посыпать корицей, полить мёдом, по желанию добавить ложку воды.",
+        "Запекать до мягкости тыквы, около 40 минут, подавать тёплым."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Тыкву и яблоко размять, изюм порезать; мёд — если нет аллергии"
+      },
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/33996",
+        "site": "iamcook.ru"
+      }
+    },
+    {
+      "id": "sn-pechenye-syrnoe",
+      "name": "Сырное печенье",
+      "about": "Несладкое печенье на полдник — сыр вместо сахара",
+      "category": "snack",
+      "meals": [
+        "snack"
+      ],
+      "time": {
+        "active": 25,
+        "total": 60
+      },
+      "servings": 6,
+      "keepsDays": 5,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "духовка",
+        "выходные",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "мука пшеничная",
+          "qty": 120,
+          "optional": false
+        },
+        {
+          "item": "сыр твёрдый",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "масло сливочное",
+          "qty": 100,
+          "optional": false
+        },
+        {
+          "item": "яйца",
+          "qty": 1,
+          "note": "только желток",
+          "optional": false
+        },
+        {
+          "item": "соль",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Масло заранее размягчить, сыр натереть на средней тёрке.",
+        "Смешать сыр, масло, желток и соль.",
+        "Понемногу добавить муку, замесить мягкое тесто и убрать в холодильник на 30 минут.",
+        "Раскатать тесто между листами бумаги в 2–3 мм и нарезать фигурками.",
+        "Выпекать 15 минут при 180° до румяности и дать полностью остыть."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Сыр брать неострый, соль — по минимуму"
+      },
+      "source": {
+        "url": "https://1000.menu/cooking/7781-francuzskoe-syrnoe-pechene",
+        "site": "1000.menu"
+      }
+    },
+    {
+      "id": "dr-kompot-suhofrukty",
+      "name": "Компот из сухофруктов",
+      "about": "Компот как в садике, кастрюля на два-три дня",
+      "category": "drink",
+      "meals": [
+        "lunch",
+        "snack",
+        "dinner"
+      ],
+      "time": {
+        "active": 10,
+        "total": 45
+      },
+      "servings": 10,
+      "keepsDays": 3,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "будни",
+        "бюджетное",
+        "постное",
+        "детское",
+        "на 2–3 дня"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "вода",
+          "qty": 2000,
+          "optional": false
+        },
+        {
+          "item": "сухофрукты для компота",
+          "qty": 250,
+          "note": "груши, яблоки, чернослив, курага, изюм поровну",
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 160,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Сухофрукты промыть в нескольких водах.",
+        "Сахар засыпать в воду и довести до кипения.",
+        "Закладывать по очереди: груши на 5 минут, затем яблоки, чернослив и курагу ещё на 10 минут.",
+        "Добавить изюм, довести до кипения и выключить огонь.",
+        "Накрыть крышкой и дать остыть, можно настоять на ночь."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Компот из садиковского меню; сахар можно уменьшить"
+      },
+      "source": {
+        "url": "https://menunedeli.ru/recipe/kompot-iz-smesi-suxofruktov-kak-v-detskom-sadu/",
+        "site": "menunedeli.ru"
+      }
+    },
+    {
+      "id": "dr-kompot-yagody",
+      "name": "Компот из замороженных ягод",
+      "about": "Ягоды прямо из морозилки, без разморозки",
+      "category": "drink",
+      "meals": [
+        "lunch",
+        "snack",
+        "dinner"
+      ],
+      "time": {
+        "active": 5,
+        "total": 45
+      },
+      "servings": 8,
+      "keepsDays": 2,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "будни",
+        "бюджетное",
+        "постное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "вода",
+          "qty": 2000,
+          "optional": false
+        },
+        {
+          "item": "ягоды замороженные",
+          "qty": 225,
+          "note": "малина, смородина или ассорти",
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": null,
+          "toTaste": true,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Воду довести до кипения.",
+        "Опустить ягоды, не размораживая.",
+        "Когда снова закипит, убавить огонь до среднего и добавить сахар по вкусу.",
+        "Варить 3–5 минут.",
+        "Накрыть крышкой и настоять около 30 минут."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Диме — тёплый или комнатной температуры"
+      },
+      "source": {
+        "url": "https://menunedeli.ru/2012/07/zamorozhennye-yagody-dlya-kompota-recept-s-foto/",
+        "site": "menunedeli.ru"
+      }
+    },
+    {
+      "id": "dr-kisel-yagodny",
+      "name": "Кисель ягодный",
+      "about": "Ягодный кисель на крахмале за 20 минут",
+      "category": "drink",
+      "meals": [
+        "snack",
+        "lunch"
+      ],
+      "time": {
+        "active": 15,
+        "total": 20
+      },
+      "servings": 6,
+      "keepsDays": 2,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "бюджетное",
+        "постное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "ягоды замороженные",
+          "qty": 450,
+          "note": "клюква, вишня, смородина",
+          "optional": false
+        },
+        {
+          "item": "вода",
+          "qty": 1950,
+          "note": "250 мл для ягод, 1,5 л кипятка, 200 мл для крахмала",
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 90,
+          "optional": false
+        },
+        {
+          "item": "крахмал",
+          "qty": 60,
+          "note": "картофельный, 3 ст. л.",
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Ягоды залить 250 мл воды, накрыть и довести до кипения на сильном огне.",
+        "Пробить блендером и протереть через сито.",
+        "Влить 1,5 л кипятка, добавить сахар и снова довести до кипения.",
+        "Крахмал развести в 200 мл холодной кипячёной воды и тонкой струйкой влить в кастрюлю, помешивая.",
+        "Прогреть 1–2 минуты до загустения и разлить по чашкам."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Диме — тёплый, не горячий"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/56128/yagodnyj-kisel-iz-zamorozhennyh-yagod",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "dr-mors-klyukvenny",
+      "name": "Морс клюквенный",
+      "about": "Клюквенный морс: сок не кипятим, витамины остаются",
+      "category": "drink",
+      "meals": [
+        "lunch",
+        "snack",
+        "dinner"
+      ],
+      "time": {
+        "active": 15,
+        "total": 55
+      },
+      "servings": 6,
+      "keepsDays": 3,
+      "protein": "none",
+      "sides": [],
+      "tags": [
+        "постное",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "клюква",
+          "qty": 600,
+          "note": "замороженная",
+          "optional": false
+        },
+        {
+          "item": "вода",
+          "qty": 1000,
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 120,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Клюкву достать из морозилки за полчаса до начала.",
+        "Протереть ягоды через сито ложкой, пюре отложить.",
+        "Жмых из сита сложить в кастрюлю, добавить сахар и воду.",
+        "Нагреть до 60–70°, чтобы сахар растворился, не кипятить, и остудить.",
+        "Процедить остывший отвар на пюре и перемешать.",
+        "Подавать комнатной температуры или охлаждённым."
+      ],
+      "dima": {
+        "level": "ok",
+        "note": "Морс кислый: Диме можно разбавить водой"
+      },
+      "source": {
+        "url": "https://menunedeli.ru/recipe/klyukvennyj-mors-iz-zamorozhennoj-klyukvy/",
+        "site": "menunedeli.ru"
+      }
+    },
+    {
+      "id": "dr-kakao",
+      "name": "Какао на молоке",
+      "about": "Какао с пенкой, как в детстве",
+      "category": "drink",
+      "meals": [
+        "breakfast",
+        "snack"
+      ],
+      "time": {
+        "active": 15,
+        "total": 15
+      },
+      "servings": 4,
+      "keepsDays": 0,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "быстро",
+        "детское"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "молоко",
+          "qty": 800,
+          "optional": false
+        },
+        {
+          "item": "вода",
+          "qty": 60,
+          "optional": false
+        },
+        {
+          "item": "какао-порошок",
+          "qty": 40,
+          "note": "несладкий, не растворимый",
+          "optional": false
+        },
+        {
+          "item": "сахар",
+          "qty": 55,
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Какао смешать с сахаром, развести тёплой водой и прогреть почти до кипения, помешивая.",
+        "Молоко подогреть и влить в какао-пасту.",
+        "Довести до первых пузырьков и снять с огня.",
+        "Взбить венчиком 20–30 секунд до пенки и разлить по чашкам."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Какао близко к шоколаду: Диме некрепкое, пополам с молоком, раз-два в неделю в счёт сладкого"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/recipe/27560/klassicheskoe-kakao",
+        "site": "gastronom.ru"
+      }
+    },
+    {
+      "id": "dr-moloko-myod",
+      "name": "Тёплое молоко с мёдом",
+      "about": "Тёплое молоко с ложкой мёда перед сном",
+      "category": "drink",
+      "meals": [
+        "snack",
+        "dinner"
+      ],
+      "time": {
+        "active": 5,
+        "total": 15
+      },
+      "servings": 4,
+      "keepsDays": 0,
+      "protein": "dairy",
+      "sides": [],
+      "tags": [
+        "быстро"
+      ],
+      "season": "any",
+      "ingredients": [
+        {
+          "item": "молоко",
+          "qty": 1000,
+          "optional": false
+        },
+        {
+          "item": "мёд",
+          "qty": 120,
+          "note": "по столовой ложке на стакан",
+          "optional": false
+        }
+      ],
+      "steps": [
+        "Молоко довести до кипения.",
+        "Дать остыть минут 10, чтобы стало тёплым, а не горячим.",
+        "Разлить по стаканам и в каждом размешать ложку мёда."
+      ],
+      "dima": {
+        "level": "adapt",
+        "note": "Диме полстакана и чайную ложку мёда, если нет аллергии"
+      },
+      "source": {
+        "url": "https://www.gastronom.ru/text/moloko-s-medom-polza-i-vred-neozhidannie-fakti-i-soveti-po-primeneniu-1018017",
+        "site": "gastronom.ru"
+      }
+    }
+  ],
+  "newIngredients": [
+    {
+      "item": "сок яблочный",
+      "unit": "мл",
+      "dept": "Бакалея",
+      "group": "fruit",
+      "pieceWeight": null,
+      "pantry": false
+    },
+    {
+      "item": "вода",
+      "unit": "мл",
+      "dept": "Бакалея",
+      "group": "other",
+      "pieceWeight": null,
+      "pantry": true
+    }
+  ]
+}

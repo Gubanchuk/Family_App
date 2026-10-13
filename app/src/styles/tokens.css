@@ -1,0 +1,55 @@
+/* Berry design tokens from DESIGN.md. Light values on :root, dark values in both dark blocks. */
+:root {
+
+  --k-base: #F4F4F6;
+  --k-card: #FFFFFF;
+  --k-ink: #15161A;
+  --k-ink-2: #5C606B;
+  --k-rule: #E7E8EC;
+  --k-tint: 14%;
+  --k-tint-focal: 14%;
+  --k-shadow: rgba(21, 22, 26, 0.07);
+
+  /* «Ягода» hues. */
+  --k-primary: #C92A62;
+  --k-primary-ink: #FFFFFF;
+  --k-bgtint: #C92A62;
+  --k-meal: #EE6A3B;
+  --k-shop: #1E9E64;
+  --k-goal: #4F5BD5;
+  --k-money: #C92A62;
+  --k-urgent: #E5384C;
+  --k-scrim: rgba(21, 22, 26, 0.42);
+  --k-knob: #FFFFFF;
+
+  /* Theme previews in Settings keep their own colours in both themes. */
+  --tp-day-bg: #F7F0F2;
+  --tp-day-card: #FFFFFF;
+  --tp-night-bg: #121317;
+  --tp-night-card: #262830;
+  --tp-hero: #C92A62;
+
+  --papa: #2F6FDB;
+  --mama: #E0457B;
+  --son: #1FA463;
+  --dima: #F2A900;
+
+  --font: "Onest", "Segoe UI", Roboto, Arial, sans-serif;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --k-base: #0F1014; --k-card: #1A1C22; --k-ink: #F2F3F6; --k-ink-2: #A5ABB8; --k-rule: #2A2D36; --k-tint: 24%; --k-tint-focal: 10%;
+    --k-shadow: rgba(0, 0, 0, 0.4); --k-scrim: rgba(0, 0, 0, 0.6);
+    --papa: #5B8FF0; --mama: #F06A98; --son: #3CC383; --dima: #F5BE2E;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --k-base: #0F1014; --k-card: #1A1C22; --k-ink: #F2F3F6; --k-ink-2: #A5ABB8; --k-rule: #2A2D36; --k-tint: 24%; --k-tint-focal: 10%;
+  --k-shadow: rgba(0, 0, 0, 0.4); --k-scrim: rgba(0, 0, 0, 0.6);
+  --papa: #5B8FF0; --mama: #F06A98; --son: #3CC383; --dima: #F5BE2E;
+  color-scheme: dark;
+}
+
+:root { --k-bg: color-mix(in oklab, var(--k-bgtint) 7%, var(--k-base)); --k-hero: var(--k-primary); --k-hero-ink: var(--k-primary-ink); }

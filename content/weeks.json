@@ -1,0 +1,944 @@
+[
+  {
+    "id": "autumn",
+    "name": "Осенняя",
+    "season": [
+      "autumn"
+    ],
+    "note": "Тыква от каши до запеканки с индейкой, кабачки и перцы, пока они с грядки и дешёвые.",
+    "days": [
+      {
+        "breakfast": "br-ovsyanka-yabloko",
+        "lunch": {
+          "soup": "sp-shchi-svezhie",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Кефир и яблоко",
+          "items": [
+            {
+              "item": "кефир",
+              "qty": 200
+            },
+            {
+              "item": "яблоки",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-kurinaya-grudka-s-pomidorami-v-folge",
+          "side": "side-grechka",
+          "salad": "sl-kvashenaya-kapusta-s-lukom"
+        }
+      },
+      {
+        "breakfast": "br-oladi-kabachki",
+        "lunch": {
+          "soup": "sp-shchi-svezhie",
+          "salad": null
+        },
+        "snack": "sn-smuzi-banan-kefir",
+        "dinner": {
+          "main": "mn-hek-s-pomidorami-i-syrom",
+          "side": "side-pyure",
+          "salad": "sl-morkov-s-yablokom"
+        }
+      },
+      {
+        "breakfast": "br-tvorog-smetana-yagody",
+        "lunch": {
+          "soup": "sp-shchi-svezhie",
+          "salad": null
+        },
+        "snack": "sn-tykva-yabloki",
+        "dinner": {
+          "main": "mn-zapekanka-kabachki",
+          "side": "side-ris",
+          "salad": null
+        }
+      },
+      {
+        "breakfast": "br-buterbrody-goryachie",
+        "lunch": {
+          "soup": "sp-tykva-pyure",
+          "salad": "sl-ogurtsy-pomidory"
+        },
+        "snack": {
+          "simple": "Творог с яблоком",
+          "items": [
+            {
+              "item": "творог",
+              "qty": 100
+            },
+            {
+              "item": "яблоки",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-svinina-kabachok",
+          "side": "side-bulgur",
+          "salad": null
+        }
+      },
+      {
+        "breakfast": "br-omlet",
+        "lunch": {
+          "soup": "sp-tykva-pyure",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Ряженка и груша",
+          "items": [
+            {
+              "item": "ряженка",
+              "qty": 200
+            },
+            {
+              "item": "груши",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-kuritsa-v-smetane",
+          "side": "side-makarony",
+          "salad": "sl-vitaminnyi"
+        }
+      },
+      {
+        "breakfast": "br-pshennaya-tykva",
+        "lunch": {
+          "soup": "sp-uha",
+          "salad": null
+        },
+        "snack": "ds-sochniki",
+        "dinner": {
+          "main": "mn-zapekanka-tykva-indeyka",
+          "side": null,
+          "salad": null
+        }
+      },
+      {
+        "breakfast": "br-syrniki",
+        "lunch": {
+          "soup": "sp-uha",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Кефир и виноград",
+          "items": [
+            {
+              "item": "кефир",
+              "qty": 200
+            },
+            {
+              "item": "виноград",
+              "qty": 150
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-skumbriya-s-morkovyu-i-lukom",
+          "side": "side-pyure",
+          "salad": "sl-ogurtsy-pomidory"
+        }
+      }
+    ]
+  },
+  {
+    "id": "winter",
+    "name": "Зимняя",
+    "season": [
+      "winter"
+    ],
+    "note": "Куриная лапша, суп из минтая и борщ к выходным, а на полдник мандарины, пока они самые сладкие.",
+    "days": [
+      {
+        "breakfast": "br-mannaya",
+        "lunch": {
+          "soup": "sp-kurinyi-s-lapshoi",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Ряженка и мандарины",
+          "items": [
+            {
+              "item": "ряженка",
+              "qty": 200
+            },
+            {
+              "item": "мандарины",
+              "qty": 160
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-kotlety-iz-indeyki-na-paru",
+          "side": "side-grechka",
+          "salad": "sl-morkov-s-yablokom"
+        }
+      },
+      {
+        "breakfast": "br-skrembl-syr",
+        "lunch": {
+          "soup": "sp-kurinyi-s-lapshoi",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Кефир и яблоко",
+          "items": [
+            {
+              "item": "кефир",
+              "qty": 200
+            },
+            {
+              "item": "яблоки",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-ryba-po-polski",
+          "side": "side-kartofel-otvarnoy",
+          "salad": "sl-kvashenaya-kapusta-s-lukom"
+        }
+      },
+      {
+        "breakfast": "br-tvorog-banan",
+        "lunch": {
+          "soup": "sp-mintai",
+          "salad": "sl-vinegret"
+        },
+        "snack": "sn-tykva-yabloki",
+        "dinner": {
+          "main": "mn-lenivye-golubcy",
+          "side": "side-pyure",
+          "salad": null
+        }
+      },
+      {
+        "breakfast": "br-kukuruznaya",
+        "lunch": {
+          "soup": "sp-mintai",
+          "salad": "sl-vinegret"
+        },
+        "snack": {
+          "simple": "Йогурт и мандарины",
+          "items": [
+            {
+              "item": "йогурт натуральный",
+              "qty": 150
+            },
+            {
+              "item": "мандарины",
+              "qty": 160
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-lenivaya-achma",
+          "side": null,
+          "salad": "sl-vitaminnyi"
+        }
+      },
+      {
+        "breakfast": "br-buterbrody-tvorozhnaya-pasta",
+        "lunch": {
+          "soup": "sp-mintai",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Творог с грушей",
+          "items": [
+            {
+              "item": "творог",
+              "qty": 100
+            },
+            {
+              "item": "груши",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-kuritsa-tushenaya-s-kapustoy",
+          "side": "side-kartofel-otvarnoy",
+          "salad": null
+        }
+      },
+      {
+        "breakfast": "br-bliny",
+        "lunch": {
+          "soup": "sp-borshch",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Кефир и апельсин",
+          "items": [
+            {
+              "item": "кефир",
+              "qty": 200
+            },
+            {
+              "item": "апельсины",
+              "qty": 200
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-svinina-so-svekloy-i-morkovyu",
+          "side": "side-pyure",
+          "salad": "sl-pekinskaya-s-kukuruzoi"
+        }
+      },
+      {
+        "breakfast": "br-zapekanka-tvorozhnaya",
+        "lunch": {
+          "soup": "sp-borshch",
+          "salad": null
+        },
+        "snack": "ds-mannik",
+        "dinner": {
+          "main": "ex-chakhokhbili",
+          "side": "side-ris",
+          "salad": "sl-vitaminnyi"
+        }
+      }
+    ]
+  },
+  {
+    "id": "spring",
+    "name": "Весенняя",
+    "season": [
+      "spring"
+    ],
+    "note": "Щавель, редиска и молодая капуста, а на выходных шашлык и окрошка на квасе.",
+    "days": [
+      {
+        "breakfast": "br-buterbrody-tvorozhnaya-pasta",
+        "lunch": {
+          "soup": "sp-kurinyi-so-shpinatom",
+          "salad": "sl-redis-ogurets-yaitso"
+        },
+        "snack": {
+          "simple": "Кефир и банан",
+          "items": [
+            {
+              "item": "кефир",
+              "qty": 200
+            },
+            {
+              "item": "бананы",
+              "qty": 150
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-gorbusha-v-slivkah",
+          "side": "side-ris",
+          "salad": "sl-vitaminnyi"
+        }
+      },
+      {
+        "breakfast": "br-ovsyanoblin",
+        "lunch": {
+          "soup": "sp-kurinyi-so-shpinatom",
+          "salad": null
+        },
+        "snack": "sn-fruktovy-salat",
+        "dinner": {
+          "main": "mn-tvorozhnaya-zapekanka-s-syrom",
+          "side": "side-brokkoli",
+          "salad": "sl-pekinskaya-s-kukuruzoi"
+        }
+      },
+      {
+        "breakfast": "br-kuskus",
+        "lunch": {
+          "soup": "sp-shchavelevyi",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Творог с яблоком",
+          "items": [
+            {
+              "item": "творог",
+              "qty": 100
+            },
+            {
+              "item": "яблоки",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-tefteli",
+          "side": "side-makarony",
+          "salad": "sl-redis-ogurets-yaitso"
+        }
+      },
+      {
+        "breakfast": "br-omlet-ovoshchi",
+        "lunch": {
+          "soup": "sp-shchavelevyi",
+          "salad": "sl-molodaya-kapusta-s-ogurcom"
+        },
+        "snack": {
+          "simple": "Ряженка и груша",
+          "items": [
+            {
+              "item": "ряженка",
+              "qty": 200
+            },
+            {
+              "item": "груши",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-molodaya-kartoshka-s-tuncom",
+          "side": null,
+          "salad": null
+        }
+      },
+      {
+        "breakfast": "br-yaytsa-vsmyatku-grenki",
+        "lunch": {
+          "soup": "sp-shchavelevyi",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Йогурт и яблоко",
+          "items": [
+            {
+              "item": "йогурт натуральный",
+              "qty": 150
+            },
+            {
+              "item": "яблоки",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-kurinye-kotlety",
+          "side": "side-pyure",
+          "salad": "sl-vitaminnyi"
+        }
+      },
+      {
+        "breakfast": "ex-pankeyki",
+        "lunch": {
+          "soup": "sp-okroshka-na-kvase",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Ряженка и банан",
+          "items": [
+            {
+              "item": "ряженка",
+              "qty": 200
+            },
+            {
+              "item": "бананы",
+              "qty": 150
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-shashlyk-kurica-kefir",
+          "side": "side-ovoshchi-zapechenye",
+          "salad": "sl-molodaya-kapusta-s-ogurcom"
+        }
+      },
+      {
+        "breakfast": "br-syrniki",
+        "lunch": {
+          "soup": "sp-okroshka-na-kvase",
+          "salad": null
+        },
+        "snack": "ds-keks-tvorozhny",
+        "dinner": {
+          "main": "mn-semga-s-ovoshchami-v-folge",
+          "side": "side-ris",
+          "salad": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "summer",
+    "name": "Летняя",
+    "season": [
+      "summer"
+    ],
+    "note": "В жару окрошка, щавелевый суп и гаспачо, а в субботу шашлык.",
+    "days": [
+      {
+        "breakfast": "br-tvorog-smetana-yagody",
+        "lunch": {
+          "soup": "sp-okroshka",
+          "salad": null
+        },
+        "snack": "sn-fruktovy-salat",
+        "dinner": {
+          "main": "ex-ratatuy",
+          "side": "side-bulgur",
+          "salad": null
+        }
+      },
+      {
+        "breakfast": "br-oladi-kabachki",
+        "lunch": {
+          "soup": "sp-okroshka",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Ряженка и банан",
+          "items": [
+            {
+              "item": "ряженка",
+              "qty": 200
+            },
+            {
+              "item": "бананы",
+              "qty": 150
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-treska-na-paru-s-ovoshchami",
+          "side": "side-kartofel-otvarnoy",
+          "salad": "sl-ogurtsy-pomidory"
+        }
+      },
+      {
+        "breakfast": "br-yaichnica-pomidory",
+        "lunch": {
+          "soup": "sp-shchavelevyi",
+          "salad": "sl-tunets-s-yaitsom"
+        },
+        "snack": {
+          "simple": "Творог с ягодами",
+          "items": [
+            {
+              "item": "творог",
+              "qty": 100
+            },
+            {
+              "item": "ягоды замороженные",
+              "qty": 100
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-svinina-kabachok",
+          "side": "side-ris",
+          "salad": "sl-redis-ogurets-yaitso"
+        }
+      },
+      {
+        "breakfast": "br-ovsyanka-yabloko",
+        "lunch": {
+          "soup": "sp-shchavelevyi",
+          "salad": null
+        },
+        "snack": "sn-smuzi-banan-kefir",
+        "dinner": {
+          "main": "mn-skumbriya-v-tomate-s-ovoshchami",
+          "side": "side-kartofel-otvarnoy",
+          "salad": "sl-ogurtsy-pomidory"
+        }
+      },
+      {
+        "breakfast": "br-buterbrody-tvorozhnaya-pasta",
+        "lunch": {
+          "soup": "sp-shchavelevyi",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Кефир и банан",
+          "items": [
+            {
+              "item": "кефир",
+              "qty": 200
+            },
+            {
+              "item": "бананы",
+              "qty": 150
+            }
+          ]
+        },
+        "dinner": {
+          "main": "ex-boul",
+          "side": null,
+          "salad": null
+        }
+      },
+      {
+        "breakfast": "br-oladi-kefir",
+        "lunch": {
+          "soup": "sp-gaspacho",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Йогурт и банан",
+          "items": [
+            {
+              "item": "йогурт натуральный",
+              "qty": 150
+            },
+            {
+              "item": "бананы",
+              "qty": 150
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-shashlyk-svinina",
+          "side": "side-kartofel-zapechenny",
+          "salad": "sl-molodaya-kapusta-s-ogurcom"
+        }
+      },
+      {
+        "breakfast": "br-granola-yogurt",
+        "lunch": {
+          "soup": "sp-gaspacho",
+          "salad": null
+        },
+        "snack": "ds-maffiny-banan",
+        "dinner": {
+          "main": "ex-paelya",
+          "side": null,
+          "salad": "sl-grecheskii"
+        }
+      }
+    ]
+  },
+  {
+    "id": "budget",
+    "name": "Экономная",
+    "season": [
+      "any"
+    ],
+    "note": "Целая курица, минтай, горох и капуста: недорого, а рыба целых три раза.",
+    "days": [
+      {
+        "breakfast": "br-ovsyanka-yabloko",
+        "lunch": {
+          "soup": "sp-gorohovyi",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Кефир и яблоко",
+          "items": [
+            {
+              "item": "кефир",
+              "qty": 200
+            },
+            {
+              "item": "яблоки",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-kuritsa-kusochkami-s-limonom",
+          "side": "side-ris",
+          "salad": "sl-kapusta-s-morkovyu"
+        }
+      },
+      {
+        "breakfast": "br-kukuruznaya",
+        "lunch": {
+          "soup": "sp-gorohovyi",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Ряженка и банан",
+          "items": [
+            {
+              "item": "ряженка",
+              "qty": 200
+            },
+            {
+              "item": "бананы",
+              "qty": 150
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-mintay-s-risom-i-ovoshchami",
+          "side": null,
+          "salad": "sl-vitaminnyi"
+        }
+      },
+      {
+        "breakfast": "br-mannaya",
+        "lunch": {
+          "soup": "sp-gorohovyi",
+          "salad": "sl-svyokla-s-chesnokom"
+        },
+        "snack": "sn-risovaya-zapekanka",
+        "dinner": {
+          "main": "mn-kapustnye-kotlety-s-syrom",
+          "side": "side-pyure",
+          "salad": null
+        }
+      },
+      {
+        "breakfast": "br-omlet",
+        "lunch": {
+          "soup": "sp-mintai",
+          "salad": "sl-vinegret"
+        },
+        "snack": {
+          "simple": "Творог с яблоком",
+          "items": [
+            {
+              "item": "творог",
+              "qty": 120
+            },
+            {
+              "item": "яблоки",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-makarony-flotski",
+          "side": null,
+          "salad": null
+        }
+      },
+      {
+        "breakfast": "br-lenivye-vareniki",
+        "lunch": {
+          "soup": "sp-mintai",
+          "salad": "sl-vinegret"
+        },
+        "snack": {
+          "simple": "Кефир и банан",
+          "items": [
+            {
+              "item": "кефир",
+              "qty": 200
+            },
+            {
+              "item": "бананы",
+              "qty": 150
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-grechka-kupecheski",
+          "side": null,
+          "salad": "sl-morkov-s-yablokom"
+        }
+      },
+      {
+        "breakfast": "br-bliny",
+        "lunch": {
+          "soup": "sp-klyotski",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Кефир и яблоко",
+          "items": [
+            {
+              "item": "кефир",
+              "qty": 200
+            },
+            {
+              "item": "яблоки",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-golubcy",
+          "side": null,
+          "salad": null
+        }
+      },
+      {
+        "breakfast": "br-draniki",
+        "lunch": {
+          "soup": "sp-klyotski",
+          "salad": null
+        },
+        "snack": "ds-sharlotka",
+        "dinner": {
+          "main": "mn-rybnye-kotlety-iz-mintaya",
+          "side": "side-pyure",
+          "salad": "sl-pekinskaya-s-kukuruzoi"
+        }
+      }
+    ]
+  },
+  {
+    "id": "quick",
+    "name": "Быстрая",
+    "season": [
+      "any"
+    ],
+    "note": "Ужин в будни за полчаса: треска на пару, свинина со стручковой фасолью, шаурма, хек в кляре.",
+    "days": [
+      {
+        "breakfast": "br-skrembl-syr",
+        "lunch": {
+          "soup": "sp-kurinyi-s-lapshoi",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Кефир и банан",
+          "items": [
+            {
+              "item": "кефир",
+              "qty": 200
+            },
+            {
+              "item": "бананы",
+              "qty": 150
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-treska-na-paru-s-ovoshchami",
+          "side": "side-ris",
+          "salad": "sl-vitaminnyi"
+        }
+      },
+      {
+        "breakfast": "br-tvorog-banan",
+        "lunch": {
+          "soup": "sp-kurinyi-s-lapshoi",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Ряженка и яблоко",
+          "items": [
+            {
+              "item": "ряженка",
+              "qty": 200
+            },
+            {
+              "item": "яблоки",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-svinina-so-struchkovoy-fasolyu",
+          "side": "side-grechka",
+          "salad": "sl-morkov-s-yablokom"
+        }
+      },
+      {
+        "breakfast": "br-buterbrody-goryachie",
+        "lunch": {
+          "soup": "sp-kurinyi-s-lapshoi",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Йогурт и груша",
+          "items": [
+            {
+              "item": "йогурт натуральный",
+              "qty": 150
+            },
+            {
+              "item": "груши",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-makarony-s-brokkoli-i-syrom",
+          "side": null,
+          "salad": "sl-pekinskaya-s-kukuruzoi"
+        }
+      },
+      {
+        "breakfast": "br-ovsyanka-yabloko",
+        "lunch": {
+          "soup": "sp-iz-konservov",
+          "salad": null
+        },
+        "snack": "sn-smuzi-banan-kefir",
+        "dinner": {
+          "main": "ex-shaurma",
+          "side": null,
+          "salad": null
+        }
+      },
+      {
+        "breakfast": "br-kukuruznaya",
+        "lunch": {
+          "soup": "sp-iz-konservov",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Творог с грушей",
+          "items": [
+            {
+              "item": "творог",
+              "qty": 100
+            },
+            {
+              "item": "груши",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "mn-hek-v-klyare",
+          "side": "side-ris",
+          "salad": "sl-vitaminnyi"
+        }
+      },
+      {
+        "breakfast": "br-oladi-banan",
+        "lunch": {
+          "soup": "sp-frikadelki",
+          "salad": null
+        },
+        "snack": {
+          "simple": "Йогурт и яблоко",
+          "items": [
+            {
+              "item": "йогурт натуральный",
+              "qty": 150
+            },
+            {
+              "item": "яблоки",
+              "qty": 180
+            }
+          ]
+        },
+        "dinner": {
+          "main": "ex-burgery",
+          "side": null,
+          "salad": "sl-grecheskii"
+        }
+      },
+      {
+        "breakfast": "ex-krok-mesye",
+        "lunch": {
+          "soup": "sp-frikadelki",
+          "salad": null
+        },
+        "snack": "ds-pechenye-ovsyanoe",
+        "dinner": {
+          "main": "ex-karri-slivochnoe",
+          "side": "side-ris",
+          "salad": "sl-struchkovaya-fasol"
+        }
+      }
+    ]
+  }
+]
