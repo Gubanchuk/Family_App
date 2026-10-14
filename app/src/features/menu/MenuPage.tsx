@@ -7,6 +7,8 @@ import MealRow from './MealRow';
 import SlotSheet from './SlotSheet';
 import DaySheet from './DaySheet';
 import { canEditWeek } from './actions';
+import NextWeekHero from './NextWeekHero';
+import WeekSheet from './WeekSheet';
 import { dayOfWeek, MEAL_LABEL, MEAL_TIME, MEALS, soupBatches, soupOn, weekLabel, addDaysIso, type Meal } from './week';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
@@ -41,6 +43,7 @@ export default function MenuPage({ me, members, db = localDb, today = new Date()
             <button type="button" className="btn" onClick={() => setSheet({ kind: 'week', mode: parent ? 'current' : 'next' })}>{parent ? 'Выбрать неделю' : 'Предложить неделю'}</button>
           </div>
         </section>
+        {data.next.week ? <NextWeekHero me={me} members={members} db={db} data={data} openWeek={() => setSheet({ kind: 'week', mode: 'next' })} /> : null}
         {sheet ? <SheetHost sheet={sheet} close={() => setSheet(null)} me={me} members={members} db={db} data={data} /> : null}
       </>
     );
@@ -90,13 +93,13 @@ export default function MenuPage({ me, members, db = localDb, today = new Date()
   );
 }
 
-function NextWeekHero(_p: { me: Member; members: Member[]; db: LocalDb; data: NonNullable<ReturnType<typeof useMenu>>; openWeek: () => void }) { return null; }
 function SheetHost({ sheet, close, me, db, data }: { sheet: MenuSheet; close: () => void; me: Member; members: Member[]; db: LocalDb; data: NonNullable<ReturnType<typeof useMenu>> }) {
   const week = data.current.week;
   if (sheet.kind === 'slot' && week) {
     return <SlotSheet db={db} week={week} day={sheet.day} meal={sheet.meal} currentSlot={data.current.slots.find((s) => s.day === sheet.day && s.meal === sheet.meal)}
       recipes={data.recipes} templates={data.templates} editable={canEditWeek(me, week)} onClose={close} />;
   }
+  if (sheet.kind === 'week') return <WeekSheet db={db} mode={sheet.mode} me={me} data={data} onClose={close} />;
   if (sheet.kind === 'day' && week) return <DaySheet db={db} week={week} day={sheet.day} recipes={data.recipes} templates={data.templates} editable={canEditWeek(me, week)} onClose={close} />;
   return null;
 }
