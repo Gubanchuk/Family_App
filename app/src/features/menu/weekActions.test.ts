@@ -15,7 +15,9 @@ describe('week actions', () => {
     const w = await setWeekFromTemplate(db, { household: 'h1', startsOn: '2026-10-12', template: 'autumn', status: 'approved', by: 'm-papa' });
     expect(w.status).toBe('approved');
     expect(await db.week_slots.where('week_id').equals(w.id).count()).toBe(28);
-    expect(await db.outbox.count()).toBe(29);
+    const queued = await db.outbox.toArray();
+    expect(queued.map((o) => o.rpc)).toEqual(['save_week']);
+    expect((queued[0].row.p_slots as unknown[]).length).toBe(28);
   });
 
   it('switches an existing week to another template keeping its id', async () => {
@@ -36,5 +38,22 @@ describe('week actions', () => {
     expect((await db.votes.get([w.id, 'm-son']))?.value).toBe('yes');
     expect((await db.weeks.get(w.id))?.status).toBe('approved');
     expect((await db.weeks.get(w.id))?.approved_by).toBe('m-papa');
+  });
+
+  it('starts the vote over when the proposal changes', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db);
+    const w = await setWeekFromTemplate(db, { household: 'h1', startsOn: '2026-10-19', template: 'quick', status: 'proposed', by: 'm-son' });
+    await voteWeek(db, w, son, 'yes');
+    await setWeekFromTemplate(db, { household: 'h1', startsOn: '2026-10-19', template: 'autumn', status: 'proposed', by: 'm-papa', existing: (await db.weeks.get(w.id))! });
+    expect(await db.votes.where('week_id').equals(w.id).count()).toBe(0);
+  });
+
+  it('does not build a week from a template whose days have not loaded', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db);
+    await db.template_slots.where('template_id').equals('quick').delete();
+    await expect(setWeekFromTemplate(db, { household: 'h1', startsOn: '2026-10-19', template: 'quick', status: 'proposed', by: 'm-son' })).rejects.toThrow('template_not_loaded');
+    expect(await db.weeks.count()).toBe(0);
   });
 });

@@ -18,7 +18,7 @@ export type Week = { id: string; household_id: string; starts_on: string; templa
 export type WeekSlot = { week_id: string; household_id: string; day: number; meal: Meal; dish_id: string | null; side_id: string | null; salad_id: string | null; simple: SimpleSnack | null; updated_at: string };
 export type Vote = { week_id: string; member_id: string; household_id: string; value: 'yes' | 'changes'; comment: string; updated_at: string };
 export type SyncTable = 'weeks' | 'week_slots' | 'votes' | 'week_templates' | 'template_slots';
-export type OutboxOp = { seq?: number; table: SyncTable; row: Record<string, unknown>; created_at: string; tries: number };
+export type OutboxOp = { seq?: number; table: SyncTable; rpc?: 'save_week'; row: Record<string, unknown>; created_at: string; tries: number };
 export type Meta = { key: string; value: unknown };
 
 export const KEY_FIELDS: Record<SyncTable, string[]> = {

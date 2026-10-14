@@ -1,4 +1,4 @@
-import { writeLocal } from '../../data/sync';
+import { writeLocal, writeWeekLocal } from '../../data/sync';
 import type { LocalDb, Week } from '../../data/db';
 import type { Member } from '../family/useFamily';
 
@@ -15,8 +15,9 @@ export async function setWeekFromTemplate(db: LocalDb, a: { household: string; s
     deleted_at: null,
   };
   const src = await db.template_slots.where('template_id').equals(a.template).toArray();
-  await writeLocal(db, 'weeks', [week]);
-  await writeLocal(db, 'week_slots', src.map((s) => ({
+  // A half-downloaded template would make a week with empty days; the server refuses to approve those.
+  if (src.length < 28) throw new Error('template_not_loaded');
+  await writeWeekLocal(db, week, src.map((s) => ({
     week_id: week.id, household_id: a.household, day: s.day, meal: s.meal,
     dish_id: s.dish_id, side_id: s.side_id, salad_id: s.salad_id, simple: s.simple,
   })));

@@ -25,21 +25,28 @@ describe('menu schema', { timeout: 60_000 }, () => {
     sonId = (await rows<{ id: string }>(SON, "select public.accept_invite($1, 'Сын', '#1FA463') as id", [code]))[0].id;
   });
 
+  // An approved week must hold all 28 meals, so the helpers fill the whole week.
+  const fill = (u: string, w: string) => asUser(db, u, `insert into public.week_slots (week_id, household_id, day, meal, dish_id)
+    select $1, $2, d, m, case when d = 0 and m = 'dinner' then 'mn-kotlety' else 'mn-plov' end
+    from generate_series(0, 6) d, unnest(array['breakfast', 'lunch', 'snack', 'dinner']) m`, [w, hh]);
+
   async function approvedWeek() {
-    const w = (await rows<{ id: string }>(PAPA, "insert into public.weeks (household_id, starts_on, template_id, status, approved_by) values ($1, $2, 'autumn', 'approved', $3) returning id", [hh, MON, papaId]))[0].id;
-    await asUser(db, PAPA, "insert into public.week_slots (week_id, household_id, day, meal, dish_id) values ($1, $2, 0, 'dinner', 'mn-kotlety')", [w, hh]);
+    const w = (await rows<{ id: string }>(PAPA, "insert into public.weeks (household_id, starts_on, template_id, status) values ($1, $2, 'autumn', 'proposed') returning id", [hh, MON]))[0].id;
+    await fill(PAPA, w);
+    await asUser(db, PAPA, "update public.weeks set status = 'approved', approved_by = $2 where id = $1", [w, papaId]);
     return w;
   }
 
   it('lets the family read a week a parent set', async () => {
     await approvedWeek();
-    const seen = await rows<{ dish_id: string }>(SON, 'select dish_id from public.week_slots');
+    const seen = await rows<{ dish_id: string }>(SON, "select dish_id from public.week_slots where day = 0 and meal = 'dinner'");
     expect(seen).toEqual([{ dish_id: 'mn-kotlety' }]);
+    expect((await rows<{ n: number }>(SON, 'select count(*)::int as n from public.week_slots'))[0].n).toBe(28);
   });
 
   it('lets a child propose next week but not approve it', async () => {
     const w = (await rows<{ id: string }>(SON, "insert into public.weeks (household_id, starts_on, template_id, status, proposed_by) values ($1, $2, 'quick', 'proposed', $3) returning id", [hh, NEXT_MON, sonId]))[0].id;
-    await asUser(db, SON, "insert into public.week_slots (week_id, household_id, day, meal, dish_id) values ($1, $2, 1, 'breakfast', 'br-syrniki')", [w, hh]);
+    await fill(SON, w);
     await expect(asUser(db, SON, "update public.weeks set status = 'approved' where id = $1", [w])).rejects.toThrow(/not_a_parent/);
     await asUser(db, PAPA, "update public.weeks set status = 'approved', approved_by = $2 where id = $1", [w, papaId]);
     expect((await rows<{ status: string }>(SON, 'select status from public.weeks where id = $1', [w]))[0].status).toBe('approved');
@@ -81,10 +88,11 @@ describe('menu schema', { timeout: 60_000 }, () => {
 
   it('moves updated_at forward on every change', async () => {
     const w = await approvedWeek();
-    const before = (await rows<{ t: string }>(PAPA, 'select updated_at::text as t from public.week_slots where week_id = $1', [w]))[0].t;
+    const pick = "select updated_at::text as t from public.week_slots where week_id = $1 and day = 0 and meal = 'dinner'";
+    const before = (await rows<{ t: string }>(PAPA, pick, [w]))[0].t;
     await new Promise((r) => setTimeout(r, 20));
-    await asUser(db, PAPA, "update public.week_slots set dish_id = 'mn-plov' where week_id = $1", [w]);
-    const after = (await rows<{ t: string }>(PAPA, 'select updated_at::text as t from public.week_slots where week_id = $1', [w]))[0].t;
+    await asUser(db, PAPA, "update public.week_slots set dish_id = 'mn-plov' where week_id = $1 and day = 0 and meal = 'dinner'", [w]);
+    const after = (await rows<{ t: string }>(PAPA, pick, [w]))[0].t;
     expect(after > before).toBe(true);
   });
 });

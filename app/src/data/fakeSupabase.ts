@@ -3,7 +3,8 @@ type Row = Record<string, unknown>;
 type Store = Record<string, Row[]>;
 
 export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) {
-  const state = { offline: false, rejects: new Map<string, string>(), clock: 1, requests: new Map<string, number>() };
+  type Err = { message: string; code: string };
+  const state = { offline: false, rejects: new Map<string, Err>(), writeFails: new Map<string, Err>(), readFails: new Set<string>(), clock: 1, requests: new Map<string, number>() };
   const key = (t: string, r: Row) => keyFields[t].map((k) => String(r[k])).join('|');
   const stamp = () => new Date(Date.UTC(2026, 9, 14, 0, 0, state.clock++)).toISOString();
   const failNet = { data: null, error: { message: 'TypeError: Failed to fetch', code: '' } };
@@ -15,6 +16,7 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
     let range: [number, number] | null = null;
     const exec = () => {
       if (state.offline) return failNet;
+      if (state.readFails.delete(table)) return { data: null, error: { message: 'upstream connect error', code: '' } };
       let rows = store[table].filter((r) => filters.every((f) => f(r)));
       // Like Postgres, rows that tie on the order keys come back in no fixed order: flip ties on every other request.
       const n = state.requests.get(table) ?? 0;
@@ -38,25 +40,51 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
       maybeSingle: () => Promise.resolve(((r) => (r.error ? r : { data: r.data?.[0] ?? null, error: null }))(exec())),
       then: (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => Promise.resolve(exec()).then(res, rej),
       upsert: (rows: Row | Row[]) => {
-        if (state.offline) return Promise.resolve(failNet);
-        const reject = state.rejects.get(table);
-        if (reject) return Promise.resolve({ data: null, error: { message: reject, code: 'P0001' } });
-        for (const r of Array.isArray(rows) ? rows : [rows]) {
-          const k = key(table, r);
-          const i = store[table].findIndex((x) => key(table, x) === k);
-          const next = { ...(i >= 0 ? store[table][i] : {}), ...r, updated_at: stamp() };
-          if (i >= 0) store[table][i] = next; else store[table].push(next);
-        }
+        const fail = writeFail(table);
+        if (fail) return Promise.resolve(fail);
+        put(table, Array.isArray(rows) ? rows : [rows]);
         return Promise.resolve({ data: null, error: null });
       },
     };
     return q;
   }
 
+  function writeFail(name: string) {
+    if (state.offline) return failNet;
+    const once = state.writeFails.get(name);
+    if (once) { state.writeFails.delete(name); return { data: null, error: once }; }
+    const reject = state.rejects.get(name);
+    return reject ? { data: null, error: reject } : null;
+  }
+
+  function put(table: string, rows: Row[]) {
+    store[table] ??= [];
+    for (const r of rows) {
+      const k = key(table, r);
+      const i = store[table].findIndex((x) => key(table, x) === k);
+      const next = { ...(i >= 0 ? store[table][i] : {}), ...r, updated_at: stamp() };
+      if (i >= 0) store[table][i] = next; else store[table].push(next);
+    }
+  }
+
+  // save_week: the week and its meals in one transaction, with the one-week-per-Monday rule.
+  function rpc(name: string, args: { p_week: Row; p_slots: Row[] }) {
+    const fail = writeFail(`rpc:${name}`);
+    if (fail) return Promise.resolve(fail);
+    const w = args.p_week;
+    const clash = (store.weeks ?? []).find((x) => x.id !== w.id && x.household_id === w.household_id && x.starts_on === w.starts_on);
+    if (clash) return Promise.resolve({ data: null, error: { message: 'duplicate key value violates unique constraint "weeks_household_id_starts_on_key"', code: '23505' } });
+    put('weeks', [w]);
+    put('week_slots', args.p_slots.map((sl) => ({ ...sl, week_id: w.id, household_id: w.household_id })));
+    return Promise.resolve({ data: null, error: null });
+  }
+
   return {
-    client: { from } as unknown,
+    client: { from, rpc } as unknown,
     setOffline(v: boolean) { state.offline = v; },
-    reject(table: string, message: string) { state.rejects.set(table, message); },
+    reject(table: string, message: string, code = 'P0001') { state.rejects.set(table, { message, code }); },
+    failWrite(table: string, error: Err) { state.writeFails.set(table, error); },
+    failRead(table: string) { state.readFails.add(table); },
     serverRow(table: string, r: Row) { store[table] ??= []; store[table].push({ ...r, updated_at: stamp() }); },
   };
 }
