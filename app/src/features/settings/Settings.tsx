@@ -5,6 +5,7 @@ import ThemePicker from './ThemePicker';
 import SyncStatus from './SyncStatus';
 import FoodCard from './FoodCard';
 import NotifyCard from './NotifyCard';
+import { pushIsOn, pushSupport, subscribePush, unsubscribePush } from '../../lib/push';
 import { loadThemeChoice, saveThemeChoice } from './syncTheme';
 import { setThemeChoice } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
@@ -77,13 +78,38 @@ export default function Settings({ me, members, reload }: { me: Member; members:
         </section>
       ) : null}
       <FoodCard me={me} />
-      <NotifyCard me={me} />
+      <NotifyCard me={me} push={<PushRow me={me} />} />
       <SyncStatus />
       <section className="card">
         <div className="card-h"><h2>Вход</h2></div>
         <button type="button" className="btn danger" onClick={() => supabase.auth.signOut()}><Icon name="logout" />Выйти</button>
       </section>
       {msg ? <p className="note" role="status" style={{ margin: '0 16px 16px' }}>{msg}</p> : null}
+    </>
+  );
+}
+
+function PushRow({ me }: { me: Member }) {
+  const support = pushSupport();
+  const [on, setOn] = useState(false);
+  const [msg, setMsg] = useState('');
+  useEffect(() => { pushIsOn().then(setOn).catch(() => setOn(false)); }, []);
+  if (support !== 'ok') {
+    return <div className="row"><span className="row-main"><b>Пуши на этом телефоне</b><small>{support === 'install-first' ? 'Сначала установите приложение на экран «Домой»' : 'Этот браузер не умеет пуши'}</small></span></div>;
+  }
+  const flip = async () => {
+    try {
+      if (on) { await unsubscribePush(); setOn(false); return; }
+      const r = await subscribePush(me);
+      setOn(r === 'on');
+      setMsg(r === 'denied' ? 'Уведомления запрещены в настройках телефона.' : '');
+    } catch { setMsg('Не получилось включить. Проверьте интернет.'); }
+  };
+  return (
+    <>
+      <div className="row"><span className="row-main"><b>Пуши на этом телефоне</b><small>важное дублируется в приложении</small></span>
+        <button type="button" className="switch" role="switch" aria-checked={on} aria-label="Пуши на этом телефоне" onClick={flip}><i /></button></div>
+      {msg ? <p className="note" role="status">{msg}</p> : null}
     </>
   );
 }
