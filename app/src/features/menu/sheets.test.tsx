@@ -55,6 +55,20 @@ describe('replace sheets', () => {
     expect(screen.getByText('Утверждённую неделю меняют родители. Предложите блюдо — им придёт просьба.')).toBeInTheDocument();
   });
 
+  it('picks the first template once templates arrive after the week sheet opened', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db);
+    const templates = await db.week_templates.toArray();
+    const slots = await db.template_slots.toArray();
+    await db.week_templates.clear();
+    await db.template_slots.clear();
+    render(<MemoryRouter><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Выбрать неделю' }));
+    await db.week_templates.bulkPut(templates);
+    await db.template_slots.bulkPut(slots);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Поставить «Быстрая»' })).toBeEnabled());
+  });
+
   it('saves the week with replacements as a family template', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db, { currentWeek: true });

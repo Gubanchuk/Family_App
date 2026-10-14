@@ -12,7 +12,9 @@ const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 export default function WeekSheet({ db, mode, me, data, onClose }: { db: LocalDb; mode: 'current' | 'next'; me: Member; data: NonNullable<ReturnType<typeof useMenu>>; onClose: () => void }) {
   const target = mode === 'current' ? data.current : data.next;
-  const [pick, setPick] = useState(target.week?.template_id ?? data.templates[0]?.id);
+  // Until someone taps a template the default follows the data: templates may still be downloading when the sheet opens.
+  const [picked, setPick] = useState<string>();
+  const pick = picked ?? target.week?.template_id ?? data.templates[0]?.id;
   const slots = useLiveQuery(() => (pick ? db.template_slots.where('template_id').equals(pick).toArray() : []), [db, pick]) ?? [];
   const [confirm, setConfirm] = useState(false);
   const t = data.templates.find((x) => x.id === pick);
