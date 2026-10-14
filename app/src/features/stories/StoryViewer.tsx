@@ -97,13 +97,19 @@ export default function StoryViewer({ groups, start, me, members, views, urls, n
     const t = setTimeout(() => { if (press.current) { press.current.held = true; setPaused(true); } }, HOLD_MS);
     press.current = { x: e.clientX, y: e.clientY, t, held: false };
   };
+  // A finger that moves is a swipe, not a hold: the pause timer stops once it travels 10 px.
+  const move = (e: PointerEvent) => {
+    const p = press.current;
+    if (p && !p.held && Math.hypot(e.clientX - p.x, e.clientY - p.y) > 10) clearTimeout(p.t);
+  };
   const up = (e: PointerEvent) => {
     const p = press.current;
     press.current = null;
     if (!p) return;
     clearTimeout(p.t);
-    if (p.held) { setPaused(false); return; }
+    setPaused(false);
     if (e.clientY - p.y > 80) { onClose(); return; }
+    if (p.held) return;
     const box = (e.currentTarget as HTMLElement).getBoundingClientRect();
     go(e.clientX - box.left < box.width / 3 ? -1 : 1);
   };
@@ -111,7 +117,7 @@ export default function StoryViewer({ groups, start, me, members, views, urls, n
   return (
     <div className="story-layer" role="dialog" aria-modal="true" aria-label={`Сторис: ${author.name}`}>
       <StoryFrame key={story.id} kind={story.kind} src={urls.get(story.path) ?? null} overlays={story.overlays} videoRef={video} onReady={() => setReadyId(story.id)} onFail={() => go(1)}>
-        <div className="sv-tap" onPointerDown={down} onPointerUp={up} onPointerCancel={() => { press.current = null; setPaused(false); }} />
+        <div className="sv-tap" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={() => { press.current = null; setPaused(false); }} />
         <div className="sv-top">
           <div className="sv-bars">
             {group.stories.map((s, i) => <i key={s.id}><b style={{ width: `${i < pos.i ? 100 : i === pos.i ? progress * 100 : 0}%` }} /></i>)}

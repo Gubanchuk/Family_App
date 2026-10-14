@@ -71,5 +71,17 @@ describe('StoryViewer', () => {
     expect(screen.queryByText('Битое')).toBeNull();
     expect(screen.getByText('Целое')).toBeInTheDocument();
   });
+
+  it('closes on a slow swipe down too, not only a quick one', () => {
+    vi.useFakeTimers();
+    const p = show();
+    const tap = document.querySelector('.sv-tap')!;
+    fireEvent.pointerDown(tap, { clientX: 200, clientY: 300 });
+    fireEvent.pointerMove(tap, { clientX: 200, clientY: 340 });
+    act(() => { vi.advanceTimersByTime(400); });
+    fireEvent.pointerUp(tap, { clientX: 200, clientY: 420 });
+    expect(p.onClose).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
 });
 

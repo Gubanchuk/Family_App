@@ -337,7 +337,8 @@ a.more, a.av { text-decoration: none; }
 .sv-sound { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: rgba(0, 0, 0, 0.55); color: #FFFFFF; font: 600 14px var(--font); }
 .sv-bottom { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; padding: 12px 10px calc(12px + env(safe-area-inset-bottom, 0px)); }
 .sv-react { flex-wrap: nowrap; gap: 4px; }
-.sv-react button { flex: none; width: 42px; height: 42px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.12); font-size: 22px; cursor: pointer; }
+/* Eight reactions fit one row down to 320 px phones: the buttons shrink with the screen. */
+.sv-react button { --s: clamp(32px, calc((100vw - 52px) / 8), 44px); flex: none; width: var(--s); height: var(--s); padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.12); font-size: calc(var(--s) * 0.52); cursor: pointer; }
 .sv-react button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.85); transform: scale(1.12); }
 .sv-pill { min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: rgba(255, 255, 255, 0.14); color: #FFFFFF; font: 600 14px var(--font); cursor: pointer; }
 .fam { position: relative; }
