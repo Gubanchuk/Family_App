@@ -263,3 +263,4 @@
 a.hero-chip, a.tile, a.meal-now { text-decoration: none; color: inherit; }
 a.more, a.av { text-decoration: none; }
 .btns.fill .btn { white-space: nowrap; padding-inline: 12px; }
+.sheet:focus { outline: none; }
