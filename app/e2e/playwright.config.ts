@@ -14,6 +14,6 @@ export default defineConfig({
   reporter: 'list',
   outputDir: '../test-results',
   // The installed Google Chrome: Playwright's own browser download is unreliable from this network.
-  use: { ...devices['Pixel 7'], channel: 'chrome', baseURL: BASE_URL, locale: 'ru-RU', timezoneId: 'Europe/Moscow', trace: 'retain-on-failure' },
+  use: { ...devices['Pixel 7'], channel: 'chrome', actionTimeout: 30_000, baseURL: BASE_URL, locale: 'ru-RU', timezoneId: 'Europe/Moscow', trace: 'retain-on-failure' },
   webServer: { command: 'npm run dev -- --port 5174 --strictPort', url: BASE_URL, reuseExistingServer: true, timeout: 120_000 },
 });
