@@ -13,6 +13,21 @@ describe('timedFetch', () => {
     await vi.advanceTimersByTimeAsync(15_001);
     await check;
   });
+  it('gives an upload more than the usual silence before the answer', async () => {
+    vi.useFakeTimers();
+    const aborted: string[] = [];
+    const base = vi.fn((input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_r, reject) => {
+      init?.signal?.addEventListener('abort', () => { aborted.push(String(input)); reject(new Error('aborted')); });
+    }));
+    const f = timedFetch(15_000, base as unknown as typeof fetch);
+    const body = new FormData();
+    body.append('', new Blob(['x']));
+    f('https://x/storage/v1/object/family/a.jpg', { method: 'POST', body }).catch(() => {});
+    f('https://x/rest/v1/weeks', { method: 'POST', body: '{}' }).catch(() => {});
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(aborted).toEqual(['https://x/rest/v1/weeks']);
+  });
+
   it('passes a quick answer through', async () => {
     const ok = vi.fn(() => Promise.resolve(new Response('[]')));
     expect(await (await timedFetch(15_000, ok as typeof fetch)('https://x')).text()).toBe('[]');
