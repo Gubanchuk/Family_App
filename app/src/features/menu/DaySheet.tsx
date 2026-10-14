@@ -3,7 +3,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import Sheet from './Sheet';
 import Icon from '../shell/Icon';
 import type { LocalDb, Recipe, Week, WeekTemplate } from '../../data/db';
-import { MEAL_LABEL, MEAL_TIME, MEALS } from './week';
+import { MEAL_LABEL, MEALS } from './week';
+import { getMealTimes } from '../../lib/mealTimes';
 import { replaceDay } from './actions';
 import { lineOf } from './SlotSheet';
 
@@ -31,7 +32,7 @@ export default function DaySheet({ db, week, day, recipes, templates, editable, 
       </div>
       <div className="day-preview">
         {MEALS.map((m) => (
-          <div className="row" key={m}><span className="tl-t">{MEAL_TIME[m]}</span><span className="row-main"><b>{lineOf(slots.find((s) => s.meal === m), recipes)}</b><small>{MEAL_LABEL[m]}</small></span></div>
+          <div className="row" key={m}><span className="tl-t">{getMealTimes()[m]}</span><span className="row-main"><b>{lineOf(slots.find((s) => s.meal === m), recipes)}</b><small>{MEAL_LABEL[m]}</small></span></div>
         ))}
       </div>
     </Sheet>

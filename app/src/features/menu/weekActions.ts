@@ -34,3 +34,9 @@ export async function approveWeek(db: LocalDb, week: Week, parent: Member) {
   await writeLocal(db, 'weeks', [{ ...week, status: 'approved', approved_by: parent.id }]);
   await regenerateWeekList(db, week.id);
 }
+
+// What a week's shopping list holds right after it was built: lines from the menu and their rough cost.
+export async function weekListStats(db: LocalDb, weekId: string): Promise<{ count: number; cost: number }> {
+  const items = (await db.shopping_items.where('week_id').equals(weekId).toArray()).filter((i) => i.source === 'menu' && !i.deleted_at);
+  return { count: items.length, cost: items.reduce((sum, i) => sum + (i.est_price ?? 0), 0) };
+}

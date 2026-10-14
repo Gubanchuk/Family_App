@@ -6,7 +6,7 @@ test('a week the son proposes and mom approves builds the same shopping list on 
 
   await tab(son.page, 'Меню');
   await son.page.getByRole('button', { name: 'Предложить неделю' }).click();
-  const propose = son.page.getByRole('dialog').getByRole('button', { name: /^Предложить «/ });
+  const propose = son.page.getByRole('dialog').getByRole('button', { name: /^Предложить неделю «/ });
   await expect(propose).toBeEnabled();
   await propose.click();
   await expect(son.page.getByRole('heading', { name: /^Сын \(вы\) предлагает неделю/ })).toBeVisible();

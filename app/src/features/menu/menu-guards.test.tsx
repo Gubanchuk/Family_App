@@ -34,7 +34,7 @@ describe('menu guards', () => {
     show(db, son);
     await userEvent.click(await screen.findByRole('button', { name: 'Посмотреть' }));
     expect(screen.getByText('Неделя утверждена. Поменять её могут родители.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Предложить «/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Предложить неделю «/ })).toBeNull();
   });
 
   it('asks a parent to confirm replacing an approved week', async () => {
@@ -56,7 +56,7 @@ describe('menu guards', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Выбрать неделю' }));
     await userEvent.click(screen.getByRole('radio', { name: /Быстрая/ }));
     expect(await screen.findByText('Шаблон ещё не загрузился — нужен интернет.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Поставить «Быстрая»' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Поставить неделю «Быстрая»' })).toBeDisabled();
   });
 
   it('says the recipes have not loaded yet', async () => {

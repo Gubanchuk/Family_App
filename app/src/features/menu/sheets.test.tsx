@@ -55,7 +55,7 @@ describe('replace sheets', () => {
     expect(screen.getByText('Утверждённую неделю меняют родители. Предложите блюдо — им придёт просьба.')).toBeInTheDocument();
   });
 
-  it('picks the first template once templates arrive after the week sheet opened', async () => {
+  it('picks the template of the season once templates arrive after the week sheet opened', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db);
     const templates = await db.week_templates.toArray();
@@ -66,7 +66,7 @@ describe('replace sheets', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Выбрать неделю' }));
     await db.week_templates.bulkPut(templates);
     await db.template_slots.bulkPut(slots);
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Поставить «Быстрая»' })).toBeEnabled());
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Поставить неделю «Осенняя»' })).toBeEnabled());
   });
 
   it('shows each template with the rough cost of its shopping list', async () => {

@@ -56,3 +56,5 @@ export function fitsMeal(r: { category: string; meals: string[] }, meal: Meal): 
   if (meal === 'snack') return ['snack', 'dessert', 'drink'].includes(r.category) || r.meals.includes('snack');
   return r.category === 'breakfast' || r.meals.includes('breakfast');
 }
+
+export const products = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 'продукт' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'продукта' : 'продуктов');

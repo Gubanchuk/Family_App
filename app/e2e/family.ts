@@ -17,7 +17,10 @@ export async function phone(browser: Browser): Promise<Phone> {
 export async function signUp(page: Page, path = '/') {
   count += 1;
   await page.goto(path);
-  await page.getByRole('button', { name: 'Первый раз? Создать вход по почте' }).click();
+  await expect(page.getByRole('button', { name: 'Войти через Google' })).toBeVisible();
+  // An invite link opens the screen already in «new login» mode.
+  const toNew = page.getByRole('button', { name: 'Первый раз? Создать вход по почте' });
+  if (await toNew.isVisible()) await toNew.click();
   await page.getByLabel('Почта').fill(`e2e-${run}-${count}@example.com`);
   await page.getByLabel('Пароль').fill(PASSWORD);
   await page.getByRole('button', { name: 'Создать вход' }).click();
@@ -65,7 +68,7 @@ export async function setCurrentWeek(page: Page) {
   await tab(page, 'Меню');
   await page.getByRole('button', { name: 'Выбрать неделю' }).click();
   // The button stays disabled until the template's 28 meals have downloaded.
-  const apply = page.getByRole('dialog').getByRole('button', { name: /^Поставить «/ });
+  const apply = page.getByRole('dialog').getByRole('button', { name: /^Поставить неделю «/ });
   await expect(apply).toBeEnabled();
   await apply.click();
   await expect(page.getByText(/· утверждена$/)).toBeVisible();

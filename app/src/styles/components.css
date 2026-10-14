@@ -239,6 +239,7 @@
 .sheet-days .day[aria-pressed="true"] { background: var(--k-ink); color: var(--k-card); }
 .nw { white-space: nowrap; }
 .day-preview { margin: 0 16px; }
+.tpl-item .day-preview { margin: 4px 4px 8px; }
 .day-preview .row:first-child { border-top: 0; }
 .tpl-list { display: grid; gap: 8px; margin: 0 16px; }
 .tpl { position: relative; display: grid; gap: 4px; padding: 12px 14px; border: 0; border-radius: 18px; background: color-mix(in oklab, var(--k-ink) 4%, var(--k-card)); text-align: left; font: inherit; color: var(--k-ink); cursor: pointer; box-shadow: inset 0 0 0 2px transparent; transition: box-shadow 200ms var(--ease); }

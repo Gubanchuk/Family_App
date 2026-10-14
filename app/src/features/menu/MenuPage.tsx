@@ -15,9 +15,11 @@ import MealRow from './MealRow';
 import SlotSheet from './SlotSheet';
 import DaySheet from './DaySheet';
 import { canEditWeek } from './actions';
-import NextWeekHero from './NextWeekHero';
+import NextWeekHero, { CurrentWeekHero } from './NextWeekHero';
+import { getMealTimes } from '../../lib/mealTimes';
+import { useToast } from '../shell/toastContext';
 import WeekSheet from './WeekSheet';
-import { dayOfWeek, MEAL_LABEL, MEAL_TIME, MEALS, mondayOf, soupBatches, soupOn, weekLabel, addDaysIso, type Meal } from './week';
+import { dayOfWeek, MEAL_LABEL, MEALS, mondayOf, soupBatches, soupOn, weekLabel, addDaysIso, type Meal } from './week';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const DAY_NAME = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
@@ -39,7 +41,8 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
   const weekStart = mondayOf(today);
   useEffect(() => { setDay(dayOfWeek(today)); }, [weekStart]); // eslint-disable-line react-hooks/exhaustive-deps
   const [sheet, setSheet] = useState<MenuSheet | null>(null);
-  const [saved, setSaved] = useState('');
+  const toast = useToast();
+  const times = getMealTimes();
   const [params, setParams] = useSearchParams();
   const panel = params.get('panel') === 'ideas' ? 'ideas' : 'week';
   if (!data) return <><Header title="Меню" /><p className="note" style={{ margin: 16 }}>Загружаем меню…</p></>;
@@ -102,7 +105,7 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
     // A dish someone took «instead» replaces the menu dish on screen; the week itself stays as it was.
     const swap = dayOffers.find((o) => o.meal === meal && o.how === 'instead' && o.status === 'taken');
     if (swap) { extra.unshift(`вместо: ${lower(main)}`); main = name(swap.dish_id); }
-    return <MealRow key={meal} name={main || 'Не выбрано'} label={MEAL_LABEL[meal]} time={MEAL_TIME[meal]} extra={extra} note={parent ? note : undefined} onOpen={() => setSheet({ kind: 'slot', day, meal })} />;
+    return <MealRow key={meal} name={main || 'Не выбрано'} label={MEAL_LABEL[meal]} time={times[meal]} extra={extra} note={parent ? note : undefined} onOpen={() => setSheet({ kind: 'slot', day, meal })} />;
   };
   const date = (d: number) => Number(addDaysIso(current.start, d).slice(8));
 
@@ -112,7 +115,9 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
       {noRecipes}
       {refused}
       {segs}
-      <NextWeekHero me={me} members={members} db={db} data={data} openWeek={() => setSheet({ kind: 'week', mode: 'next' })} />
+      {!data.next.week && current.week.status === 'approved' && dayOfWeek(today) < 3
+        ? <CurrentWeekHero db={db} data={data} openNext={() => setSheet({ kind: 'week', mode: 'next' })} />
+        : <NextWeekHero me={me} members={members} db={db} data={data} openWeek={() => setSheet({ kind: 'week', mode: 'next' })} />}
       <section className="week-bar">
         <span className="row-main"><b>Сейчас: «{template?.name ?? 'своя неделя'}», {weekLabel(current.start)}</b><small>{template?.note ?? ''}</small></span>
         <button type="button" className="btn soft sm" onClick={() => setSheet({ kind: 'week', mode: parent ? 'current' : 'next' })}>{parent ? 'Сменить' : 'Предложить'}</button>
@@ -133,8 +138,7 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
         <p className="note">Нажмите на блюдо, чтобы заменить его блюдом из другой недели или из всех рецептов.</p>
         {parent ? <div className="card-foot"><button type="button" className="more" onClick={() => setSheet({ kind: 'save' })}>Сохранить неделю как шаблон</button></div> : null}
       </section>
-      {saved ? <p className="note" role="status" style={{ margin: '0 16px 16px' }}>{saved}</p> : null}
-      {sheet ? <SheetHost sheet={sheet} close={() => setSheet(null)} me={me} members={members} db={db} data={data} onSaved={(name) => setSaved(`Шаблон «${name}» сохранён — он появится в выборе недели.`)} /> : null}
+      {sheet ? <SheetHost sheet={sheet} close={() => setSheet(null)} me={me} members={members} db={db} data={data} onSaved={(name) => toast({ text: `Шаблон «${name}» сохранён — он появится в выборе недели.` })} /> : null}
     </>
   );
 }
