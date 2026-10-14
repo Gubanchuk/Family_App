@@ -11,6 +11,7 @@ import { MEAL_FOR, takeOffer } from '../ideas/offerActions';
 import { listTotals, rub } from '../shop/build';
 import { useHome } from './useHome';
 import { dateLine, greeting, mainThing } from './main';
+import { memberColor } from '../family/colors';
 
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 const mins = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
@@ -19,7 +20,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const today = useToday(fixedToday);
   const data = useHome(db, me.household_id, today);
   const times = getMealTimes();
-  const avatar = <NavLink to="/settings" className="av" style={{ ['--c' as string]: me.color }} aria-label="Настройки и профиль">{me.name.slice(0, 1)}</NavLink>;
+  const avatar = <NavLink to="/settings" className="av" style={{ ['--c' as string]: memberColor(me.color) }} aria-label="Настройки и профиль">{me.name.slice(0, 1)}</NavLink>;
   const head = <Header title={`${greeting(today)}, ${me.name}`} subtitle={dateLine(today)} action={avatar} />;
   if (!data) return head;
 
@@ -47,7 +48,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
       {head}
       <div className="family" role="group" aria-label="Семья">
         {members.map((m) => (
-          <div className="fam" key={m.id} style={{ ['--c' as string]: m.color }}>
+          <div className="fam" key={m.id} style={{ ['--c' as string]: memberColor(m.color) }}>
             <span className="av" aria-hidden="true">{m.name.slice(0, 1)}</span><b>{m.name}</b><small>{m.user_id ? (m.role === 'parent' ? 'родитель' : 'ребёнок') : 'без входа'}</small>
           </div>
         ))}

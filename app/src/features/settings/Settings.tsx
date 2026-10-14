@@ -14,7 +14,7 @@ import { supabase } from '../../lib/supabase';
 import type { Member } from '../family/useFamily';
 import { addProfileWithoutSignIn, createInvite, householdName, setRole, updateMyProfile } from '../family/api';
 import ColorPicker from '../family/ColorPicker';
-import { firstFreeColor } from '../family/colors';
+import { firstFreeColor, memberColor } from '../family/colors';
 import Sheet from '../menu/Sheet';
 import { useToast } from '../shell/toastContext';
 import { familyErrorText, inviteUrl } from '../family/invite';
@@ -76,7 +76,7 @@ export default function Settings({ me, members, reload }: { me: Member; members:
     <>
       <Header title="Настройки" back />
       <section className="card profile">
-        <span className="av lg" style={{ ['--c' as string]: me.color }} aria-hidden="true">{me.name.slice(0, 1)}</span>
+        <span className="av lg" style={{ ['--c' as string]: memberColor(me.color) }} aria-hidden="true">{me.name.slice(0, 1)}</span>
         <span className="row-main"><b>{me.name}</b><small>{roleText(me)}</small></span>
         <button type="button" className="btn soft sm" onClick={() => setSheet('profile')}>Изменить</button>
       </section>
@@ -86,7 +86,7 @@ export default function Settings({ me, members, reload }: { me: Member; members:
           <div className="card-h"><h2>{family ? `Семья «${family}»` : 'Семья'}</h2></div>
           {members.map((m) => (
             <div className="row" key={m.id}>
-              <span className="av sm" style={{ ['--c' as string]: m.color }} aria-hidden="true">{m.name.slice(0, 1)}</span>
+              <span className="av sm" style={{ ['--c' as string]: memberColor(m.color) }} aria-hidden="true">{m.name.slice(0, 1)}</span>
               <span className="row-main"><b>{m.name}</b><small>{roleText(m)}</small></span>
               {me.is_owner && !m.is_owner && m.user_id ? (
                 <button type="button" className="more" aria-label={`${m.name}: сделать ${m.role === 'parent' ? 'ребёнком' : 'родителем'}`} onClick={() => switchRole(m)}>
