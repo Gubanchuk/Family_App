@@ -131,3 +131,18 @@ describe('sync: weeks and server trouble', () => {
     expect((await db.week_slots.get(['w1', 1, 'lunch']))?.dish_id).toBe('mn-plov');
   });
 });
+
+describe('sync without a session', () => {
+  it('keeps everything on the phone instead of writing as an anonymous visitor', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const store: Record<string, Record<string, unknown>[]> = {};
+    const fake = fakeSupabase(store, KEY_FIELDS);
+    const client = Object.assign(fake.client as object, { auth: { getSession: () => Promise.resolve({ data: { session: null } }) } });
+    await writeLocal(db, 'week_slots', [slot('mn-plov')]);
+    const r = await syncNow(db, client as never);
+    expect(r.offline).toBe(true);
+    expect(await pendingCount(db)).toBe(1);
+    expect(store.week_slots ?? []).toHaveLength(0);
+    expect((await db.week_slots.get(['w1', 1, 'dinner']))?.dish_id).toBe('mn-plov');
+  });
+});

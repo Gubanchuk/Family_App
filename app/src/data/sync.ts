@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { KEY_FIELDS, slotKey, type LocalDb, type OutboxOp, type SyncTable } from './db';
 
 type Row = Record<string, unknown>;
-type Client = Pick<SupabaseClient, 'from' | 'rpc'>;
+type Client = Pick<SupabaseClient, 'from' | 'rpc'> & { auth?: Pick<SupabaseClient['auth'], 'getSession'> };
 type ServerError = { message: string; code?: string };
 const PAGE = 1000;
 const TABLES: SyncTable[] = ['week_templates', 'template_slots', 'weeks', 'week_slots', 'votes', 'dish_offers', 'shopping_items', 'shopping_marks', 'shop_trips', 'not_eat'];
@@ -159,6 +159,8 @@ export async function pullTable(db: LocalDb, client: Client, table: SyncTable): 
 }
 
 export async function syncNow(db: LocalDb, client: Client) {
+  // Without a live session requests go out as an anonymous visitor and every change would look refused.
+  if (client.auth && !(await client.auth.getSession()).data.session) return { pushed: 0, pulled: 0, offline: true, rejected: [] as string[] };
   const push = await pushOutbox(db, client);
   if (push.stopped === 'network') return { pushed: push.pushed, pulled: 0, offline: true, rejected: push.rejected };
   let pulled = 0;

@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { localDb, type LocalDb } from './db';
 import { loadContent } from './content';
 import { rejectionText, syncNow } from './sync';
+import { withTimeout } from '../features/probe/checks';
 
 type SyncState = { syncing: boolean; offline: boolean; syncedAt: string | null; message: string };
 type Ctx = SyncState & { pending: number; syncNow: () => Promise<void>; dismiss: () => void };
@@ -27,11 +28,14 @@ export function SyncProvider({ householdId, portions = 3.5, children, client = s
     try {
       do {
         again.current = false;
-        // Changes go out first: the weekly recipe download must not hold them back.
-        const r = await syncNow(db, client);
-        if (!r.offline) await loadContent(db, client);
-        const syncedAt = ((await db.meta.get('synced_at'))?.value as string | undefined) ?? null;
-        setState((s) => ({ syncing: false, offline: r.offline, syncedAt, message: r.rejected.length ? rejectionText(r.rejected[0]) : s.message }));
+        // A watchdog frees the next run even if something below never settles.
+        await withTimeout((async () => {
+          // Changes go out first: the weekly recipe download must not hold them back.
+          const r = await syncNow(db, client);
+          if (!r.offline) await loadContent(db, client);
+          const syncedAt = ((await db.meta.get('synced_at'))?.value as string | undefined) ?? null;
+          setState((s) => ({ syncing: false, offline: r.offline, syncedAt, message: r.rejected.length ? rejectionText(r.rejected[0]) : s.message }));
+        })(), 120_000);
       } while (again.current);
     } catch {
       setState((s) => ({ ...s, syncing: false }));

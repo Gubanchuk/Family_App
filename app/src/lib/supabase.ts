@@ -8,16 +8,39 @@ export const SUPABASE_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as st
 export const AUTH_STORAGE_KEY = `sb-${new URL(SUPABASE_URL).hostname.split('.')[0]}-auth-token`;
 
 // supabase-js sets no timeout; a mobile network that goes silent mid-answer would hold sync forever.
+// The limit is on silence, not on the whole answer: every arriving chunk restarts it, so a slow but
+// moving download of the recipe base still completes.
 export function timedFetch(ms = 15_000, base: typeof fetch = (...a) => fetch(...a)): typeof fetch {
-  return (input, init = {}) => {
+  return async (input, init = {}) => {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(new DOMException(`Сервер не ответил за ${Math.round(ms / 1000)} секунд`, 'TimeoutError')), ms);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const arm = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => ctrl.abort(new DOMException(`Сервер не ответил за ${Math.round(ms / 1000)} секунд`, 'TimeoutError')), ms);
+    };
     const outer = init.signal;
     if (outer) {
       if (outer.aborted) ctrl.abort(outer.reason);
       else outer.addEventListener('abort', () => ctrl.abort(outer.reason), { once: true });
     }
-    return base(input, { ...init, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+    arm();
+    let res: Response;
+    try { res = await base(input, { ...init, signal: ctrl.signal }); } catch (e) { clearTimeout(timer); throw e; }
+    if (!res.body) { clearTimeout(timer); return res; }
+    arm();
+    const reader = res.body.getReader();
+    const body = new ReadableStream<Uint8Array>({
+      async pull(c) {
+        try {
+          const { done, value } = await reader.read();
+          if (done) { clearTimeout(timer); c.close(); return; }
+          arm();
+          c.enqueue(value);
+        } catch (e) { clearTimeout(timer); c.error(e); }
+      },
+      cancel(reason) { clearTimeout(timer); return reader.cancel(reason); },
+    });
+    return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
   };
 }
 
