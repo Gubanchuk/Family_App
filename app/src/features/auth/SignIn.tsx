@@ -11,16 +11,20 @@ export default function SignIn({ client = supabase }: { client?: AuthClient }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState('');
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setError('');
+    setNote('');
     const r = mode === 'in'
       ? await client.auth.signInWithPassword({ email, password })
-      : await client.auth.signUp({ email, password });
+      : await client.auth.signUp({ email, password, options: { emailRedirectTo: `${location.origin}/` } });
     setBusy(false);
     if (r.error) setError(authErrorText(r.error));
+    // With email confirmation on, sign-up returns no session until the link in the letter is opened.
+    else if (mode === 'up' && !r.data?.session) setNote(`Мы отправили письмо на ${email}. Откройте ссылку из письма — после неё вход откроется сам.`);
   };
   const google = async () => {
     const r = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${location.origin}/` } });
@@ -39,6 +43,7 @@ export default function SignIn({ client = supabase }: { client?: AuthClient }) {
         <label className="field">Почта<input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
         <label className="field">Пароль<input type="password" autoComplete={mode === 'in' ? 'current-password' : 'new-password'} minLength={8} required value={password} onChange={(e) => setPassword(e.target.value)} /></label>
         {error ? <p className="form-error" role="alert">{error}</p> : null}
+        {note ? <p className="note" role="status">{note}</p> : null}
         <div className="btns fill">
           <button type="submit" className="btn soft" disabled={busy}>{mode === 'in' ? 'Войти' : 'Создать вход'}</button>
         </div>

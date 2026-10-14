@@ -17,4 +17,12 @@ describe('authErrorText', () => {
   it('falls back to a plain message', () => {
     expect(authErrorText({ message: 'something odd' })).toBe('Не получилось войти. Попробуйте ещё раз.');
   });
+
+  it('explains an unconfirmed email', () => {
+    expect(authErrorText({ code: 'email_not_confirmed', message: 'Email not confirmed' })).toBe('Почта ещё не подтверждена. Откройте письмо со ссылкой и нажмите её, потом войдите.');
+  });
+  it('treats Safari «Load failed» and retryable errors as no network', () => {
+    expect(authErrorText({ message: 'Load failed' })).toBe('Нет связи с сервером. Проверьте интернет или войдите позже.');
+    expect(authErrorText({ name: 'AuthRetryableFetchError', message: '{}' } as never)).toBe('Нет связи с сервером. Проверьте интернет или войдите позже.');
+  });
 });
