@@ -26,7 +26,11 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const [sheet, setSheet] = useState<'add' | ShoppingItem | null>(null);
   const [note, setNote] = useState('');
   const weekId = weekPick ?? data?.weeks[0]?.id ?? null;
-  const shown = useMemo(() => (data ? visibleItems(data.items, weekId) : []), [data, weekId]);
+  const shown = useMemo(() => {
+    if (!data) return [];
+    const weekStart = data.weeks.find((w) => w.id === weekId)?.starts_on ?? data.start;
+    return visibleItems(data.items, weekId, { weekStart, marks: data.marks, offers: data.offers });
+  }, [data, weekId]);
   if (!data) return <><Header title="Покупки" /><p className="note" style={{ margin: 16 }}>Загружаем список…</p></>;
 
   const { marks, lastTrip } = data;

@@ -12,8 +12,10 @@ export function useHome(db: LocalDb, householdId: string, today: Date) {
     const ids = [...new Set(slots.flatMap((s) => [s.dish_id, s.side_id, s.salad_id]).filter((x): x is string => !!x))];
     const offers = (await db.dish_offers.where('household_id').equals(householdId).toArray()).filter((o) => !o.deleted_at && o.status !== 'declined' && o.on_date === todayIso);
     const recipes = new Map((await db.recipes.bulkGet([...ids, ...offers.map((o) => o.dish_id)])).filter((r): r is Recipe => !!r).map((r) => [r.id, r]));
-    const items = visibleItems((await db.shopping_items.where('household_id').equals(householdId).toArray()).filter((i) => !i.deleted_at), week?.status === 'approved' ? week.id : null);
-    const marks = new Map((await db.shopping_marks.bulkGet(items.map((i) => i.id))).filter((m): m is ShoppingMark => !!m).map((m) => [m.item_id, m]));
+    const all = (await db.shopping_items.where('household_id').equals(householdId).toArray()).filter((i) => !i.deleted_at);
+    const marks = new Map((await db.shopping_marks.bulkGet(all.map((i) => i.id))).filter((m): m is ShoppingMark => !!m).map((m) => [m.item_id, m]));
+    const offerMap = new Map((await db.dish_offers.where('household_id').equals(householdId).toArray()).map((o) => [o.id, o]));
+    const items = visibleItems(all, week?.status === 'approved' ? week.id : null, { weekStart: start, marks, offers: offerMap });
     return { week, slots, recipes, offers, items, marks, todayIso };
   }, [db, householdId, start, todayIso]);
 }

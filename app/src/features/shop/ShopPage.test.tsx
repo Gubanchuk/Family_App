@@ -79,4 +79,28 @@ describe('ShopPage', () => {
     show(db);
     expect(await screen.findByText(/Список соберётся сам, когда родитель утвердит неделю/)).toBeInTheDocument();
   });
+
+  it('keeps old purchases and offers for other weeks out of the list', async () => {
+    const db = await ready();
+    const line = (id: string, title: string, extra: Record<string, unknown> = {}) => ({ id, household_id: 'h1', week_id: null, offer_id: null, source: 'manual' as const, item: null, title, qty: null, unit: null, qty_text: '', dept: 'Другое', urgent: false, est_price: null, added_by: 'm-mama', updated_at: 'x', deleted_at: null, ...extra });
+    await db.shopping_items.bulkPut([line('u:old', 'Батарейки'), line('u:open', 'Лампочка'), line('o:past:рис', 'Рис к плову', { source: 'offer', offer_id: 'past' }), line('o:no:рис', 'Рис к отказу', { source: 'offer', offer_id: 'no' })]);
+    await db.shopping_marks.put({ item_id: 'u:old', household_id: 'h1', bought: true, by_member: 'm-mama', price_real: null, updated_at: '2026-09-28T10:00:00Z' });
+    const offer = (id: string, on_date: string, status: 'open' | 'declined') => ({ id, household_id: 'h1', from_member: 'm-mama', to_member: null, dish_id: 'mn-plov', on_date, meal: 'dinner' as const, how: 'over' as const, status, taken_by: null, updated_at: 'x', deleted_at: null });
+    await db.dish_offers.bulkPut([offer('past', '2026-10-01', 'open'), offer('no', '2026-10-14', 'declined')]);
+    show(db);
+    expect(await screen.findByRole('button', { name: 'Лампочка' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Батарейки/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Рис к плову/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Рис к отказу/ })).toBeNull();
+  });
+
+  it('lets you remove a line added for an offered dish', async () => {
+    const db = await ready();
+    await db.dish_offers.put({ id: 'now', household_id: 'h1', from_member: 'm-mama', to_member: null, dish_id: 'mn-plov', on_date: '2026-10-14', meal: 'dinner', how: 'over', status: 'taken', taken_by: 'm-papa', updated_at: 'x', deleted_at: null });
+    await db.shopping_items.put({ id: 'o:now:рис', household_id: 'h1', week_id: null, offer_id: 'now', source: 'offer', item: 'рис', title: 'Рис', qty: 300, unit: 'г', qty_text: '300 г', dept: 'Бакалея', urgent: false, est_price: 36, added_by: null, updated_at: 'x', deleted_at: null });
+    show(db);
+    await userEvent.click(await screen.findByRole('button', { name: /Рис: цена/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Убрать из списка' }));
+    await waitFor(async () => expect((await db.shopping_items.get('o:now:рис'))?.deleted_at).toBeTruthy());
+  });
 });

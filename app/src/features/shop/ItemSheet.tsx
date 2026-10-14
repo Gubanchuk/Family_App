@@ -13,7 +13,7 @@ export default function ItemSheet({ item, mark, onPrice, onRemove, onClose }: {
       actions={<button type="button" className="btn" onClick={save}>Сохранить</button>}>
       <div style={{ display: 'grid', gap: 12, margin: '0 16px' }}>
         <label className="field">Сколько заплатили, ₽<input inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Например, 189" /></label>
-        {item.source === 'manual' ? <button type="button" className="btn soft" onClick={async () => { await onRemove(); onClose(); }}>Убрать из списка</button> : null}
+        {item.source !== 'menu' ? <button type="button" className="btn soft" onClick={async () => { await onRemove(); onClose(); }}>Убрать из списка</button> : null}
       </div>
     </Sheet>
   );
