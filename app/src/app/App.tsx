@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import TabBar from '../features/shell/TabBar';
 import Header from '../features/shell/Header';
@@ -24,7 +25,16 @@ function storedInvite(search: string): string | null {
   } catch { return fromUrl; }
 }
 
+// Development-only screen preview at /dev, loaded lazily so it never reaches the production bundle.
+const DevPreview = import.meta.env.DEV ? lazy(() => import('../dev/Preview')) : null;
+
 function Shell() {
+  const loc = useLocation();
+  if (DevPreview && loc.pathname.startsWith('/dev')) return <Suspense fallback={null}><DevPreview /></Suspense>;
+  return <MemberShell />;
+}
+
+function MemberShell() {
   const loc = useLocation();
   const { session, loading } = useSession();
   const fam = useFamily(session);

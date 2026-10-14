@@ -6,7 +6,7 @@ import type { Member } from '../family/useFamily';
 import { getMealTimes } from '../../lib/mealTimes';
 import { dayOfWeek, MEAL_LABEL, MEALS, soupOn, type Meal } from '../menu/week';
 import OfferRow from '../ideas/OfferRow';
-import { takeOffer } from '../ideas/offerActions';
+import { MEAL_FOR, takeOffer } from '../ideas/offerActions';
 import { listTotals, rub } from '../shop/build';
 import { useHome } from './useHome';
 import { dateLine, greeting, mainThing } from './main';
@@ -52,7 +52,7 @@ export default function HomePage({ me, members, db = localDb, today = new Date()
         {main.kind === 'offer' ? (
           <>
             <h2>{who(main.offer.from_member)} просит: {name(main.offer.dish_id)}</h2>
-            <p>Сегодня {MEAL_LABEL[main.offer.meal].toLowerCase()}, {main.offer.how === 'over' ? 'поверх меню' : 'вместо блюда по меню'}.</p>
+            <p>Сегодня {MEAL_FOR[main.offer.meal]}, {main.offer.how === 'over' ? 'поверх меню' : 'вместо блюда по меню'}.</p>
             <div className="hero-chips">
               <button type="button" className="hero-chip primary" onClick={() => takeOffer(db, main.offer, me)}><Icon name="check" />Сделаю</button>
               <Link className="hero-chip" to="/menu?panel=ideas">Рецепт</Link>
