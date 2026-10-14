@@ -24,19 +24,51 @@ async function timed(id: string, title: string, run: () => Promise<{ ok: boolean
   }
 }
 
-export function checkRest(url: string, key: string, f: FetchImpl = fetch) {
+// Reads the body chunk by chunk: mobile networks that cut traffic usually stall or reset the
+// connection after ~16 KB instead of closing it, and the family needs to see how much arrived.
+export function checkRest(url: string, key: string, f: FetchImpl = fetch, deadlineMs = 14_000) {
   return timed('rest', 'База Supabase, ответ 64 КБ', async () => {
-    const res = await f(`${url}/rest/v1/probe_payload?select=body&id=eq.1`, { headers: { apikey: key, Authorization: `Bearer ${key}` }, cache: 'no-store' });
-    const text = await res.text();
-    if (res.status === 404) return { ok: false, detail: 'таблицы проверки ещё нет: нужно выложить миграции базы' };
-    if (!res.ok) return { ok: false, detail: `ошибка ${res.status}` };
+    const ctrl = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const deadline = new Promise<never>((_, reject) => { timer = setTimeout(() => { ctrl.abort(); reject(new Error('timeout')); }, deadlineMs); });
+    let received = 0;
     try {
-      const body = (JSON.parse(text) as Array<{ body: string }>)[0]?.body ?? '';
-      return body.length >= 65536 ? { ok: true, detail: bytes(text.length) } : { ok: false, detail: `ответ обрезан: пришло ${bytes(text.length)}` };
-    } catch {
-      return { ok: false, detail: `ответ обрезан: пришло ${bytes(text.length)}` };
+      const res = await Promise.race([f(`${url}/rest/v1/probe_payload?select=body&id=eq.1`, { headers: { apikey: key, Authorization: `Bearer ${key}` }, cache: 'no-store', signal: ctrl.signal }), deadline]);
+      if (res.status === 404) return { ok: false, detail: 'таблицы проверки ещё нет: нужно выложить миграции базы' };
+      if (!res.ok) return { ok: false, detail: `ошибка ${res.status}` };
+      const chunks: Uint8Array[] = [];
+      const reader = res.body!.getReader();
+      try {
+        for (;;) {
+          const { done, value } = await Promise.race([reader.read(), deadline]);
+          if (done) break;
+          chunks.push(value);
+          received += value.byteLength;
+        }
+      } catch (e) {
+        reader.cancel().catch(() => {});
+        if (received === 0) throw e;
+        const how = e instanceof Error && e.message === 'timeout' ? 'дальше тишина' : 'потом обрыв';
+        return { ok: false, detail: `ответ обрезан: пришло ${bytes(received)}, ${how}` };
+      }
+      const text = new TextDecoder().decode(concat(chunks, received));
+      try {
+        const body = (JSON.parse(text) as Array<{ body: string }>)[0]?.body ?? '';
+        return body.length >= 65536 ? { ok: true, detail: bytes(received) } : { ok: false, detail: `ответ обрезан: пришло ${bytes(received)}` };
+      } catch {
+        return { ok: false, detail: `ответ обрезан: пришло ${bytes(received)}` };
+      }
+    } finally {
+      clearTimeout(timer);
     }
   });
+}
+
+function concat(chunks: Uint8Array[], size: number) {
+  const out = new Uint8Array(size);
+  let at = 0;
+  for (const c of chunks) { out.set(c, at); at += c.byteLength; }
+  return out;
 }
 
 export function checkAuth(url: string, key: string, f: FetchImpl = fetch) {

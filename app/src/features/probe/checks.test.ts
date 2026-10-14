@@ -20,6 +20,26 @@ describe('probe checks', () => {
     expect(r.detail).toMatch(/16\s0\d\d байт/);
   });
 
+  it('reports a cut when the network stalls after 16 KB', async () => {
+    vi.useFakeTimers();
+    const stalled = new ReadableStream<Uint8Array>({ start(c) { c.enqueue(new TextEncoder().encode('[{"body":"' + 'a'.repeat(15990))); } });
+    const p = checkRest(URL, 'k', vi.fn(() => Promise.resolve(new Response(stalled, { status: 200 }))));
+    await vi.advanceTimersByTimeAsync(15_000);
+    const r = await p;
+    vi.useRealTimers();
+    expect(r.ok).toBe(false);
+    expect(r.detail.replace(/\s/g, ' ')).toBe('ответ обрезан: пришло 16 000 байт, дальше тишина');
+  });
+
+  it('reports a cut when the network resets after 16 KB', async () => {
+    const reset = new ReadableStream<Uint8Array>({
+      start(c) { c.enqueue(new TextEncoder().encode('[{"body":"' + 'a'.repeat(15990))); setTimeout(() => c.error(new TypeError('network error')), 0); },
+    });
+    const r = await checkRest(URL, 'k', vi.fn(() => Promise.resolve(new Response(reset, { status: 200 }))));
+    expect(r.ok).toBe(false);
+    expect(r.detail.replace(/\s/g, ' ')).toBe('ответ обрезан: пришло 16 000 байт, потом обрыв');
+  });
+
   it('says the probe table is missing when migrations are not pushed', async () => {
     const r = await checkRest(URL, 'k', vi.fn(() => Promise.resolve(new Response('{"code":"PGRST205"}', { status: 404 }))));
     expect(r.ok).toBe(false);
