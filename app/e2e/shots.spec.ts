@@ -70,7 +70,8 @@ test('screens of the create flows', async ({ browser }) => {
   await son.page.getByLabel('Почта').fill(`son-shots-${Date.now()}@example.com`);
   await son.page.getByLabel('Пароль').fill('e2e-pass-12345');
   await son.page.getByRole('button', { name: 'Создать вход' }).click();
-  await expect(son.page.getByRole('heading', { name: /^Вас (пригласили|зовут) в семью/ })).toBeVisible();
+  // The sign-in screen already names the family, so wait for the form that comes after it.
+  await expect(son.page.getByLabel('Как вас называть')).toBeVisible();
   await shot(son.page, '09-accept-invite');
   await son.page.getByLabel('Как вас называть').fill('Сын');
   await son.page.getByRole('button', { name: 'Сын', exact: true }).click();
@@ -101,7 +102,9 @@ test('screens of the create flows', async ({ browser }) => {
   await p.getByRole('button', { name: 'Закрыть' }).click();
 
   await tab(son.page, 'Меню');
-  await son.page.getByRole('button', { name: 'Следующая неделя' }).click();
+  // Monday to Wednesday the next week waits behind a button; from Thursday it takes the hero.
+  const nextWeek = son.page.getByRole('button', { name: 'Следующая неделя' });
+  await (await nextWeek.isVisible() ? nextWeek : son.page.getByRole('button', { name: 'Предложить неделю' })).click();
   await son.page.waitForTimeout(800);
   await shot(son.page, '17-son-propose-next-week');
   await son.page.getByRole('button', { name: 'Закрыть' }).click();

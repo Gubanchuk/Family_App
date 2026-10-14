@@ -36,4 +36,16 @@ describe('MenuPage', () => {
     render(<MemoryRouter><MenuPage me={son} members={[papa, son]} db={db} today={TUESDAY} /></MemoryRouter>);
     expect(await screen.findByRole('button', { name: 'Предложить неделю' })).toBeInTheDocument();
   });
+
+  it('from Thursday asks a child to propose next week and a parent to choose it', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    const THURSDAY = new Date(2026, 9, 15, 18, 0);
+    const { unmount } = render(<MemoryRouter><MenuPage me={son} members={[papa, son]} db={db} today={THURSDAY} /></MemoryRouter>);
+    expect(await screen.findByRole('button', { name: 'Предложить неделю' })).toBeInTheDocument();
+    expect(screen.getByText('Предложите шаблон — семья проголосует, родители утвердят.')).toBeInTheDocument();
+    unmount();
+    render(<MemoryRouter><MenuPage me={papa} members={[papa, son]} db={db} today={THURSDAY} /></MemoryRouter>);
+    expect(await screen.findByRole('button', { name: 'Выбрать неделю' })).toBeInTheDocument();
+  });
 });

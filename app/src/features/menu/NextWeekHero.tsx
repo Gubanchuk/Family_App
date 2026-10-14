@@ -35,8 +35,8 @@ export default function NextWeekHero({ me, members, db, data, openWeek }: { me: 
     return (
       <section className="hero" aria-label={`Неделя на ${label}`}>
         <h2>Неделя на {label} ещё не выбрана</h2>
-        <p>Предложите шаблон — семья проголосует, родители утвердят.</p>
-        <div className="hero-chips"><button type="button" className="hero-chip primary" onClick={openWeek}>Выбрать неделю</button></div>
+        <p>{me.role === 'parent' ? 'Выберите шаблон — семья проголосует, вы утвердите.' : 'Предложите шаблон — семья проголосует, родители утвердят.'}</p>
+        <div className="hero-chips"><button type="button" className="hero-chip primary" onClick={openWeek}>{me.role === 'parent' ? 'Выбрать неделю' : 'Предложить неделю'}</button></div>
       </section>
     );
   }
