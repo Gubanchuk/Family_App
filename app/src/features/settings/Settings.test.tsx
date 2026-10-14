@@ -37,6 +37,7 @@ describe('Settings', () => {
     expect(screen.queryByRole('heading', { name: 'Семья' })).toBeNull();
     expect(screen.getByRole('heading', { name: 'Тема' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Выйти/ })).toBeInTheDocument();
+    expect(screen.getByText('Работает без интернета')).toBeInTheDocument();
   });
 
   it('lets the owner invite a parent or a child', async () => {

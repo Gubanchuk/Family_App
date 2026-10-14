@@ -238,3 +238,4 @@
 .tpl-top b { font: 700 17px var(--font); }
 .tpl small { font-size: 13px; color: var(--k-ink-2); }
 .tpl-now { margin-left: 8px; font: 600 12px var(--font); color: color-mix(in oklab, var(--k-primary) 80%, var(--k-ink)); }
+.card-foot { display: flex; justify-content: flex-end; padding-top: 6px; }

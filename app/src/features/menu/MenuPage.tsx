@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import Header from '../shell/Header';
-import { localDb, type LocalDb, type WeekSlot } from '../../data/db';
+import { localDb, type LocalDb, type Week, type WeekSlot } from '../../data/db';
+import Sheet from './Sheet';
+import { saveWeekAsTemplate } from './saveTemplate';
 import type { Member } from '../family/useFamily';
 import { useMenu } from './useMenu';
 import MealRow from './MealRow';
@@ -19,12 +21,14 @@ const daysWord = (n: number) => (n === 1 ? 'день' : n < 5 ? 'дня' : 'дн
 export type MenuSheet =
   | { kind: 'slot'; day: number; meal: Meal }
   | { kind: 'day'; day: number }
-  | { kind: 'week'; mode: 'current' | 'next' };
+  | { kind: 'week'; mode: 'current' | 'next' }
+  | { kind: 'save' };
 
 export default function MenuPage({ me, members, db = localDb, today = new Date() }: { me: Member; members: Member[]; db?: LocalDb; today?: Date }) {
   const data = useMenu(db, me.household_id, today);
   const [day, setDay] = useState(dayOfWeek(today));
   const [sheet, setSheet] = useState<MenuSheet | null>(null);
+  const [saved, setSaved] = useState('');
   if (!data) return <><Header title="Меню" /><p className="note" style={{ margin: 16 }}>Загружаем меню…</p></>;
   const { current, recipes, templates } = data;
   const parent = me.role === 'parent';
@@ -87,14 +91,17 @@ export default function MenuPage({ me, members, db = localDb, today = new Date()
         <div className="card-h"><h2>{DAY_NAME[day]}, {date(day)}</h2><button type="button" className="more" onClick={() => setSheet({ kind: 'day', day })}>Заменить день</button></div>
         {MEALS.map(row)}
         <p className="note">Нажмите на блюдо, чтобы заменить его блюдом из другой недели или из всех рецептов.</p>
+        {parent ? <div className="card-foot"><button type="button" className="more" onClick={() => setSheet({ kind: 'save' })}>Сохранить неделю как шаблон</button></div> : null}
       </section>
-      {sheet ? <SheetHost sheet={sheet} close={() => setSheet(null)} me={me} members={members} db={db} data={data} /> : null}
+      {saved ? <p className="note" role="status" style={{ margin: '0 16px 16px' }}>{saved}</p> : null}
+      {sheet ? <SheetHost sheet={sheet} close={() => setSheet(null)} me={me} members={members} db={db} data={data} onSaved={(name) => setSaved(`Шаблон «${name}» сохранён — он появится в выборе недели.`)} /> : null}
     </>
   );
 }
 
-function SheetHost({ sheet, close, me, db, data }: { sheet: MenuSheet; close: () => void; me: Member; members: Member[]; db: LocalDb; data: NonNullable<ReturnType<typeof useMenu>> }) {
+function SheetHost({ sheet, close, me, db, data, onSaved }: { sheet: MenuSheet; close: () => void; me: Member; members: Member[]; db: LocalDb; data: NonNullable<ReturnType<typeof useMenu>>; onSaved?: (name: string) => void }) {
   const week = data.current.week;
+  if (sheet.kind === 'save' && week) return <SaveTemplateSheet db={db} week={week} slots={data.current.slots} onClose={close} onSaved={onSaved} />;
   if (sheet.kind === 'slot' && week) {
     return <SlotSheet db={db} week={week} day={sheet.day} meal={sheet.meal} currentSlot={data.current.slots.find((s) => s.day === sheet.day && s.meal === sheet.meal)}
       recipes={data.recipes} templates={data.templates} editable={canEditWeek(me, week)} onClose={close} />;
@@ -102,4 +109,15 @@ function SheetHost({ sheet, close, me, db, data }: { sheet: MenuSheet; close: ()
   if (sheet.kind === 'week') return <WeekSheet db={db} mode={sheet.mode} me={me} data={data} onClose={close} />;
   if (sheet.kind === 'day' && week) return <DaySheet db={db} week={week} day={sheet.day} recipes={data.recipes} templates={data.templates} editable={canEditWeek(me, week)} onClose={close} />;
   return null;
+}
+
+function SaveTemplateSheet({ db, week, slots, onClose, onSaved }: { db: LocalDb; week: Week; slots: WeekSlot[]; onClose: () => void; onSaved?: (name: string) => void }) {
+  const [name, setName] = useState('');
+  const save = async () => { await saveWeekAsTemplate(db, week, slots, name); onSaved?.(name.trim()); onClose(); };
+  return (
+    <Sheet title="Сохранить неделю как шаблон" sub="Со всеми заменами. Потом её можно выбрать на любую неделю." onClose={onClose}
+      actions={<button type="button" className="btn" disabled={!name.trim()} onClick={save}>Сохранить</button>}>
+      <label className="field" style={{ margin: '0 16px' }}>Название<input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder="Например, Наша осень" /></label>
+    </Sheet>
+  );
 }

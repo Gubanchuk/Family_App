@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Header from '../shell/Header';
 import Icon from '../shell/Icon';
 import ThemePicker from './ThemePicker';
+import SyncStatus from './SyncStatus';
 import { loadThemeChoice, saveThemeChoice } from './syncTheme';
 import { setThemeChoice } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
@@ -73,6 +74,7 @@ export default function Settings({ me, members, reload }: { me: Member; members:
           )}
         </section>
       ) : null}
+      <SyncStatus />
       <section className="card">
         <div className="card-h"><h2>Вход</h2></div>
         <button type="button" className="btn danger" onClick={() => supabase.auth.signOut()}><Icon name="logout" />Выйти</button>

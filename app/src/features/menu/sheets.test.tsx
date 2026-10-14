@@ -54,4 +54,14 @@ describe('replace sheets', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Ужин: Котлеты/ }));
     expect(screen.getByText('Утверждённую неделю меняют родители. Предложите блюдо — им придёт просьба.')).toBeInTheDocument();
   });
+
+  it('saves the week with replacements as a family template', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    render(<MemoryRouter><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Сохранить неделю как шаблон' }));
+    await userEvent.type(screen.getByLabelText('Название'), 'Наша осень');
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    await waitFor(async () => expect((await db.week_templates.where('household_id').equals('h1').toArray()).map((t) => t.name)).toEqual(['Наша осень']));
+  });
 });
