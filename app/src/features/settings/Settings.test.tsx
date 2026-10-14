@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import Settings from './Settings';
-import { addProfileWithoutSignIn, createInvite, setRole, updateMember, updateMyProfile } from '../family/api';
+import { addProfileWithoutSignIn, createInvite, setAvatar, setRole, updateMember, updateMyProfile } from '../family/api';
 import type { Member } from '../family/useFamily';
 
 vi.mock('./FoodCard', () => ({ default: () => null }));
@@ -14,10 +14,11 @@ vi.mock('../family/api', () => ({
   MEMBER_COLORS: ['#2F6FDB', '#E0457B', '#1FA463', '#F2A900'],
   createInvite: vi.fn(() => Promise.resolve('ABCD234XYZ')),
   setRole: vi.fn(() => Promise.resolve()),
-  addProfileWithoutSignIn: vi.fn(() => Promise.resolve()),
+  addProfileWithoutSignIn: vi.fn(() => Promise.resolve('d2')),
   householdName: vi.fn(() => Promise.resolve('Губанчуки')),
   updateMyProfile: vi.fn(() => Promise.resolve()),
   updateMember: vi.fn(() => Promise.resolve()),
+  setAvatar: vi.fn(() => Promise.resolve()),
 }));
 
 const m = (o: Partial<Member>): Member => ({ id: 'x', household_id: 'h', user_id: null, name: 'X', color: '#2F6FDB', role: 'parent', is_owner: false, portion: 1, ...o });
@@ -27,7 +28,11 @@ const mama = m({ id: 'mm', user_id: 'u3', name: 'Мама', color: '#E0457B' });
 const dima = m({ id: 'd', name: 'Дима', role: 'child', color: '#F2A900', portion: 0.5 });
 
 describe('Settings', () => {
-  beforeEach(() => vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }))));
+  beforeEach(() => {
+    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() })));
+    URL.createObjectURL = vi.fn(() => 'blob:x');
+    URL.revokeObjectURL = vi.fn();
+  });
   afterEach(() => vi.unstubAllGlobals());
 
   it('shows the family with its name and who is who to a parent', async () => {
@@ -127,6 +132,18 @@ describe('Settings', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Сын' }));
     await userEvent.click(add);
     expect(addProfileWithoutSignIn).toHaveBeenCalledWith('h', 'Дима', '#E0457B', 0.5, 'son');
+    expect(setAvatar).toHaveBeenCalledWith({ id: 'd2', household_id: 'h' }, { kind: 'keep' });
+  });
+
+  it('saves a new circle photo with the profile', async () => {
+    render(<MemoryRouter><Settings me={son} members={[papa, son]} reload={vi.fn()} /></MemoryRouter>);
+    await userEvent.click(screen.getByRole('button', { name: 'Изменить' }));
+    const file = new File(['x'], 'me.jpg', { type: 'image/jpeg' });
+    await userEvent.upload(screen.getByLabelText('Выбрать фото'), file);
+    expect(screen.getByLabelText('Приблизить')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Сын' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    expect(setAvatar).toHaveBeenCalledWith(son, { kind: 'new', file, crop: { x: 0.5, y: 0.5, zoom: 1 } });
   });
 });
 

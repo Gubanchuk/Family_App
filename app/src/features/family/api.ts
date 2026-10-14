@@ -1,6 +1,9 @@
 import { supabase } from '../../lib/supabase';
 import type { Member } from './useFamily';
 import type { Kin } from './kin';
+import { removeFiles, uploadFile } from '../../lib/media';
+import { cropAvatar } from '../../lib/image';
+import type { PhotoChoice } from './AvatarPicker';
 
 export const MEMBER_COLORS = ['#2F6FDB', '#E0457B', '#1FA463', '#F2A900'];
 
@@ -30,9 +33,27 @@ export async function acceptInvite(code: string, myName: string, color: string, 
   return data as string;
 }
 
-export async function addProfileWithoutSignIn(household: string, name: string, color: string, portion: number, kin: Kin | null = null) {
-  const { error } = await withKin((k) => supabase.from('members').insert({ household_id: household, name, color, role: 'child', portion, ...(k && kin ? { kin } : {}) }));
+export async function addProfileWithoutSignIn(household: string, name: string, color: string, portion: number, kin: Kin | null = null): Promise<string> {
+  const { data, error } = await withKin((k) => supabase.from('members').insert({ household_id: household, name, color, role: 'child', portion, ...(k && kin ? { kin } : {}) }).select('id').single());
   if (error) throw new Error(error.message);
+  return (data as { id: string }).id;
+}
+
+// The photo goes up first under a new name; the row then points at it and the old file is removed.
+export async function setAvatar(m: Pick<Member, 'id' | 'household_id'>, photo: PhotoChoice) {
+  if (photo.kind === 'keep') return;
+  let path: string | null = null;
+  if (photo.kind === 'new') {
+    path = `${m.household_id}/avatars/${m.id}/${Date.now()}.jpg`;
+    await uploadFile(path, await cropAvatar(photo.file, photo.crop), 'image/jpeg');
+  }
+  const { data, error } = await supabase.rpc('set_avatar', { p_member: m.id, p_path: path });
+  if (error) {
+    if (path) await removeFiles([path]).catch(() => {});
+    throw new Error(error.message);
+  }
+  const old = data as string | null;
+  if (old && old !== path) await removeFiles([old]).catch(() => {});
 }
 
 export async function setRole(member: Member, role: 'parent' | 'child') {

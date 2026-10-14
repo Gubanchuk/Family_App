@@ -12,7 +12,8 @@ import { loadThemeChoice, saveThemeChoice } from './syncTheme';
 import { setThemeChoice } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import type { Member } from '../family/useFamily';
-import { addProfileWithoutSignIn, createInvite, householdName, setRole, updateMember, updateMyProfile } from '../family/api';
+import { addProfileWithoutSignIn, createInvite, householdName, setAvatar, setRole, updateMember, updateMyProfile } from '../family/api';
+import AvatarPicker, { type PhotoChoice } from '../family/AvatarPicker';
 import ColorPicker from '../family/ColorPicker';
 import AvatarFace from '../family/AvatarFace';
 import KinPicker from '../family/KinPicker';
@@ -134,40 +135,47 @@ export default function Settings({ me, members, reload }: { me: Member; members:
         {msg ? <p className="note" role="status">{msg}</p> : null}
       </section>
       {sheet === 'profile' ? (
-        <PersonSheet title="Ваш профиль" name={me.name} color={me.color} kin={me.kin ?? null} role={me.role} taken={others} save="Сохранить" onClose={() => setSheet(null)}
-          onSave={async (name, color, kin) => { await updateMyProfile(name, color, kin); reload(); toast({ text: 'Профиль сохранён' }); }} />
+        <PersonSheet title="Ваш профиль" name={me.name} color={me.color} kin={me.kin ?? null} role={me.role} avatarPath={me.avatar_path} taken={others} save="Сохранить" onClose={() => setSheet(null)}
+          onSave={async (name, color, kin, photo) => { await updateMyProfile(name, color, kin); await setAvatar(me, photo); reload(); toast({ text: 'Профиль сохранён' }); }} />
       ) : null}
       {sheet === 'toddler' ? (
         <PersonSheet title="Малыш без входа" sub="Ест то же, что все, порция — половина взрослой. Его рацион ведут родители." name="" color={firstFreeColor(members)} kin={null} role="child" kinLegend="Кто в семье" taken={members}
           placeholder="Например, Дима" save="Добавить в семью" onClose={() => setSheet(null)}
-          onSave={async (name, color, kin) => { await addProfileWithoutSignIn(me.household_id, name.trim(), color, 0.5, kin); reload(); toast({ text: `${name.trim()} теперь в семье` }); }} />
+          onSave={async (name, color, kin, photo) => {
+            const id = await addProfileWithoutSignIn(me.household_id, name.trim(), color, 0.5, kin);
+            await setAvatar({ id, household_id: me.household_id }, photo);
+            reload();
+            toast({ text: `${name.trim()} теперь в семье` });
+          }} />
       ) : null}
       {sheet && typeof sheet === 'object' ? (
-        <PersonSheet title={sheet.name} name={sheet.name} color={sheet.color} kin={sheet.kin ?? null} role={sheet.role} kinLegend="Кто в семье" taken={members.filter((m) => m.id !== sheet.id)}
+        <PersonSheet title={sheet.name} name={sheet.name} color={sheet.color} kin={sheet.kin ?? null} role={sheet.role} avatarPath={sheet.avatar_path} kinLegend="Кто в семье" taken={members.filter((m) => m.id !== sheet.id)}
           save="Сохранить" onClose={() => setSheet(null)}
-          onSave={async (name, color, kin) => { await updateMember(sheet, name, color, kin); reload(); toast({ text: `${name.trim()}: сохранено` }); }} />
+          onSave={async (name, color, kin, photo) => { await updateMember(sheet, name, color, kin); await setAvatar(sheet, photo); reload(); toast({ text: `${name.trim()}: сохранено` }); }} />
       ) : null}
     </>
   );
 }
 
-// Name, place in the family and colour of a person: one's own profile, another member, or a toddler without a login.
-function PersonSheet({ title, sub, name: start, color: startColor, kin: startKin, role, kinLegend, taken, placeholder, save, onSave, onClose }: {
-  title: string; sub?: string; name: string; color: string; kin: Kin | null; role: Member['role']; kinLegend?: string; taken: Member[]; placeholder?: string; save: string;
-  onSave: (name: string, color: string, kin: Kin | null) => Promise<void>; onClose: () => void;
+// Photo, name, place in the family and colour of a person: one's own profile, another member, or a toddler without a login.
+function PersonSheet({ title, sub, name: start, color: startColor, kin: startKin, role, avatarPath, kinLegend, taken, placeholder, save, onSave, onClose }: {
+  title: string; sub?: string; name: string; color: string; kin: Kin | null; role: Member['role']; avatarPath?: string | null; kinLegend?: string; taken: Member[]; placeholder?: string; save: string;
+  onSave: (name: string, color: string, kin: Kin | null, photo: PhotoChoice) => Promise<void>; onClose: () => void;
 }) {
   const [name, setName] = useState(start);
   const [color, setColor] = useState(startColor);
   const [kin, setKin] = useState(startKin);
+  const [photo, setPhoto] = useState<PhotoChoice>({ kind: 'keep' });
   const [error, setError] = useState('');
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    try { await onSave(name, color, kin); onClose(); } catch (err) { setError(familyErrorText((err as Error).message)); }
+    try { await onSave(name, color, kin, photo); onClose(); } catch (err) { setError(familyErrorText((err as Error).message)); }
   };
   return (
-    <Sheet title={title} sub={sub} onClose={onClose} keepOnBackdrop={name.trim() !== start.trim() || color !== startColor || kin !== startKin}
+    <Sheet title={title} sub={sub} onClose={onClose} keepOnBackdrop={name.trim() !== start.trim() || color !== startColor || kin !== startKin || photo.kind !== 'keep'}
       actions={<button type="submit" form="person-form" className="btn" disabled={!name.trim() || !kin}>{save}</button>}>
       <form id="person-form" style={{ margin: '0 16px' }} onSubmit={submit}>
+        <AvatarPicker name={name.trim() || ' '} color={color} avatarPath={avatarPath} value={photo} onChange={setPhoto} />
         <label className="field">Имя<input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder={placeholder} autoFocus={!start} enterKeyHint="done" /></label>
         <KinPicker value={kin} onChange={setKin} role={role} legend={kinLegend} />
         <ColorPicker value={color} onChange={setColor} letter={name.trim().slice(0, 1).toUpperCase()} taken={taken} />
