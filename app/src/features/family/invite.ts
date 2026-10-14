@@ -11,6 +11,8 @@ const TEXT: Record<string, string> = {
   invite_not_found: 'Такого приглашения нет. Проверьте ссылку.',
   already_in_family: 'Вы уже в семье. Второй раз вступать не нужно.',
   not_a_parent: 'Это могут сделать только родители.',
+  not_owner: 'Это может сделать только владелец семьи.',
+  member_not_found: 'Этот профиль уже занят или удалён. Попросите новое приглашение.',
 };
 
 export function familyErrorText(message: string): string {

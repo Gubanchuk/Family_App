@@ -16,6 +16,8 @@ describe('invite links', () => {
     expect(familyErrorText('invite_not_found')).toBe('Такого приглашения нет. Проверьте ссылку.');
     expect(familyErrorText('already_in_family')).toBe('Вы уже в семье. Второй раз вступать не нужно.');
     expect(familyErrorText('not_a_parent')).toBe('Это могут сделать только родители.');
+    expect(familyErrorText('not_owner')).toBe('Это может сделать только владелец семьи.');
+    expect(familyErrorText('member_not_found')).toBe('Этот профиль уже занят или удалён. Попросите новое приглашение.');
     expect(familyErrorText('boom')).toBe('Не получилось. Попробуйте ещё раз.');
   });
 });

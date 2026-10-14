@@ -27,6 +27,6 @@ export async function addProfileWithoutSignIn(household: string, name: string, c
 }
 
 export async function setRole(member: Member, role: 'parent' | 'child') {
-  const { error } = await supabase.from('members').update({ role, updated_at: new Date().toISOString() }).eq('id', member.id);
+  const { error } = await supabase.rpc('set_member_role', { p_member: member.id, p_role: role });
   if (error) throw new Error(error.message);
 }
