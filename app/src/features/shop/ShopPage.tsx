@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useToday } from '../../lib/useToday';
 import { useLiveQuery } from 'dexie-react-hooks';
 import Header from '../shell/Header';
+import { useSync } from '../../data/SyncProvider';
 import Icon from '../shell/Icon';
 import { localDb, type LocalDb, type ShoppingItem } from '../../data/db';
 import type { Member } from '../family/useFamily';
@@ -21,6 +22,7 @@ type Clip = { writeText: (t: string) => Promise<void> };
 export default function ShopPage({ me, members, db = localDb, today: fixedToday, clipboard }: { me: Member; members: Member[]; db?: LocalDb; today?: Date; clipboard?: Clip }) {
   const today = useToday(fixedToday);
   const data = useShop(db, me.household_id, today);
+  const sync = useSync();
   const vocab = useLiveQuery(async () => new Map((await db.ingredients.toArray()).map((v) => [v.item, v])), [db]);
   const [weekPick, setWeekPick] = useState<string | null>(null);
   const [sheet, setSheet] = useState<'add' | ShoppingItem | null>(null);
@@ -59,6 +61,15 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
           {data.weeks.map((w) => <button key={w.id} type="button" role="tab" aria-selected={w.id === weekId} onClick={() => setWeekPick(w.id)}>{weekLabel(w.starts_on)}</button>)}
         </div>
       ) : null}
+      {sync.message ? (
+        <section className="notice" role="alert"><span className="row-main"><b>{sync.message}</b></span>
+          <button type="button" className="btn soft sm" onClick={sync.dismiss}>Понятно</button></section>
+      ) : null}
+      <div className="btns fill" style={{ margin: '0 16px 14px' }}>
+        <button type="button" className="btn" disabled={!!meShopping} onClick={() => goShopping(db, me, today)}><Icon name="bag" />{meShopping ? 'Вы в магазине' : 'Иду в магазин'}</button>
+        <button type="button" className="btn soft" onClick={copy}><Icon name="copy" />Скопировать</button>
+      </div>
+      {note ? <p className="note" role="status" style={{ margin: '0 16px 12px' }}>{note}</p> : null}
       {shown.length === 0 ? (
         <section className="card"><p className="note" style={{ margin: 0 }}>Список соберётся сам, когда родитель утвердит неделю в Меню. Срочное можно добавить вручную.</p></section>
       ) : (
@@ -68,11 +79,6 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
             <span className="t-v">Осталось ≈&nbsp;{rub(totals.left)}{totals.unpriced ? ` без ${totals.unpriced} ${products(totals.unpriced)}` : ''}</span>
             <span className="bar" aria-hidden="true"><i style={{ width: `${totals.bought + totals.left ? (totals.bought / (totals.bought + totals.left)) * 100 : 0}%` }} /></span>
           </div></div>
-          <div className="btns fill" style={{ margin: '0 16px 14px' }}>
-            <button type="button" className="btn" disabled={!!meShopping} onClick={() => goShopping(db, me, today)}><Icon name="bag" />{meShopping ? 'Вы в магазине' : 'Иду в магазин'}</button>
-            <button type="button" className="btn soft" onClick={copy}><Icon name="copy" />Скопировать</button>
-          </div>
-          {note ? <p className="note" role="status" style={{ margin: '0 16px 12px' }}>{note}</p> : null}
           {groupByDept(shown, marks).map((g) => (
             <section className="card" key={g.dept} aria-labelledby={`dept-${g.dept}`}>
               <div className="card-h"><h2 id={`dept-${g.dept}`}>{g.dept}</h2><span className="note" style={{ margin: 0 }}>{g.items.filter((i) => marks.get(i.id)?.bought).length} из {g.items.length}</span></div>
@@ -87,7 +93,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
                       <span className="row-main"><b>{i.title}</b><small>{[i.qty_text, origin(i)].filter(Boolean).join(' · ')}</small></span>
                       {i.urgent ? <span className="pill">срочно</span> : null}
                     </button>
-                    <button type="button" className="amount amount-btn" aria-label={`${i.title}: цена`} onClick={() => setSheet(i)}>{price !== null ? rub(price) : '—'}</button>
+                    <button type="button" className="amount amount-btn" aria-label={`${i.title}: ${price !== null ? `цена ${rub(price)}` : 'цена не указана'}`} onClick={() => setSheet(i)}>{price !== null ? rub(price) : '—'}</button>
                   </div>
                 );
               })}

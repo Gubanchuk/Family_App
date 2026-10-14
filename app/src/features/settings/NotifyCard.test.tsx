@@ -18,4 +18,14 @@ describe('NotifyCard', () => {
     expect(shop).toHaveAttribute('aria-checked', 'true');
     expect(save).toHaveBeenCalledWith('m-papa', { offers: true, votes: true, shop: true, quiet: true });
   });
+
+  it('puts the switch back and says so when the change could not be saved', async () => {
+    save.mockImplementationOnce(() => Promise.reject(new Error('offline')));
+    render(<NotifyCard me={papa} />);
+    const offers = await screen.findByRole('switch', { name: 'Предложения блюд' });
+    await waitFor(() => expect(offers).toHaveAttribute('aria-checked', 'true'));
+    await userEvent.click(offers);
+    await waitFor(() => expect(offers).toHaveAttribute('aria-checked', 'true'));
+    expect(screen.getByRole('status')).toHaveTextContent('Нет связи — настройка не сохранилась. Попробуйте ещё раз.');
+  });
 });

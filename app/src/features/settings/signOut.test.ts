@@ -25,4 +25,11 @@ describe('signing out on this phone', () => {
     expect(await reopened.outbox.count()).toBe(0);
     expect(localStorage.getItem('fa.members.u1')).toBeNull();
   });
+
+  it('stops pushes to this phone', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const unsubscribe = vi.fn(() => Promise.resolve());
+    await signOutHere({ db, signOut: () => Promise.resolve(), force: false, unsubscribe });
+    expect(unsubscribe).toHaveBeenCalled();
+  });
 });

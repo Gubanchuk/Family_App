@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { subscribePush } from './push';
+import { refreshPush, subscribePush } from './push';
 import type { Member } from '../features/family/useFamily';
 
 const me: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: 'Папа', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1 };
@@ -20,5 +20,15 @@ describe('subscribePush', () => {
   it('reports a refusal without subscribing', async () => {
     vi.stubGlobal('Notification', { requestPermission: () => Promise.resolve('denied') });
     expect(await subscribePush(me, { from: vi.fn() } as never)).toBe('denied');
+  });
+
+  it('re-registers an existing subscription when the app opens, so a rotated address keeps working', async () => {
+    const sub = { endpoint: 'https://push.example/2', toJSON: () => ({ keys: { p256dh: 'P2', auth: 'A2' } }) };
+    vi.stubGlobal('Notification', { permission: 'granted' });
+    vi.stubGlobal('PushManager', function PushManager() {});
+    Object.defineProperty(navigator, 'serviceWorker', { value: { ready: Promise.resolve({ pushManager: { getSubscription: () => Promise.resolve(sub) } }) }, configurable: true });
+    const upsert = vi.fn(() => Promise.resolve({ error: null }));
+    await refreshPush(me, { from: () => ({ upsert }) } as never);
+    expect(upsert).toHaveBeenCalledWith({ endpoint: 'https://push.example/2', household_id: 'h1', member_id: 'm-papa', p256dh: 'P2', auth: 'A2' });
   });
 });

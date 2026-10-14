@@ -70,4 +70,11 @@ describe('formatQty and money', () => {
       { est: 300, real: null, bought: false }, { est: null, real: null, bought: false },
     ])).toEqual({ count: 4, doneCount: 2, bought: 170, left: 300, unpriced: 1 });
   });
+
+  it('counts an offered soup as one pot whatever the meal, and other lunches per portion', () => {
+    const isSoup = (id: string) => id === 'borsch';
+    const l = buildMenuList({ slots: [slot(0, 'dinner', 'borsch'), slot(1, 'lunch', 'syr')], servings, ingredientsOf, vocab, prices, portions: 3.5, isSoup });
+    expect(line(l, 'свёкла')?.qty).toBe(400);
+    expect(line(l, 'творог')?.qty).toBeCloseTo(500 * 0.875);
+  });
 });

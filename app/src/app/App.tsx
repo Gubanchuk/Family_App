@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
+import { refreshPush } from '../lib/push';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import TabBar from '../features/shell/TabBar';
 import Header from '../features/shell/Header';
@@ -38,6 +39,9 @@ function MemberShell() {
   const loc = useLocation();
   const { session, loading } = useSession();
   const fam = useFamily(session);
+  const meId = fam.me?.id;
+  // Re-register this phone's push address on start in case the push service rotated it.
+  useEffect(() => { if (fam.me) refreshPush(fam.me).catch(() => {}); }, [meId]); // eslint-disable-line react-hooks/exhaustive-deps
   const invite = storedInvite(loc.search);
   const g = gate({ path: loc.pathname, loadingSession: loading, session: !!session, loadingFamily: fam.loading, hasMember: !!fam.me, inviteCode: invite, familyError: fam.error });
   if (g === 'probe') return <ProbePage />;

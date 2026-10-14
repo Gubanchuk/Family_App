@@ -45,7 +45,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   return (
     <>
       {head}
-      <div className="family" aria-label="Семья">
+      <div className="family" role="group" aria-label="Семья">
         {members.map((m) => (
           <div className="fam" key={m.id} style={{ ['--c' as string]: m.color }}>
             <span className="av" aria-hidden="true">{m.name.slice(0, 1)}</span><b>{m.name}</b><small>{m.user_id ? (m.role === 'parent' ? 'родитель' : 'ребёнок') : 'без входа'}</small>

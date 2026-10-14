@@ -38,3 +38,13 @@ export async function pushIsOn(): Promise<boolean> {
   const reg = await navigator.serviceWorker.ready;
   return !!(await reg.pushManager.getSubscription());
 }
+
+// Push services may rotate a subscription's address; re-registering it on start keeps pushes coming.
+export async function refreshPush(me: Member, client: Db = supabase) {
+  if (pushSupport() !== 'ok' || Notification.permission !== 'granted') return;
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription();
+  if (!sub) return;
+  const keys = sub.toJSON().keys ?? {};
+  await client.from('push_subscriptions').upsert({ endpoint: sub.endpoint, household_id: me.household_id, member_id: me.id, p256dh: keys.p256dh, auth: keys.auth });
+}

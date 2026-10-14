@@ -14,9 +14,10 @@ export default function NotifyCard({ me, push }: { me: Member; push?: ReactNode 
   const [msg, setMsg] = useState('');
   useEffect(() => { loadMemberSettings(me.id).then((s) => setN(s?.notify ?? {})).catch(() => setN({})); }, [me.id]);
   const flip = async (k: string) => {
-    const next = { ...(n ?? {}), [k]: !(n ?? {})[k] };
+    const prev = n ?? {};
+    const next = { ...prev, [k]: !prev[k] };
     setN(next);
-    try { await saveNotify(me.id, next); setMsg(''); } catch { setMsg('Нет связи: настройка сохранится, когда появится интернет.'); }
+    try { await saveNotify(me.id, next); setMsg(''); } catch { setN(prev); setMsg('Нет связи — настройка не сохранилась. Попробуйте ещё раз.'); }
   };
   return (
     <section className="card">

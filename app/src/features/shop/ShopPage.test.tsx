@@ -8,6 +8,7 @@ import type { Member } from '../family/useFamily';
 import { seedMenu } from '../menu/testData';
 import { regenerateWeekList, menuItemId } from './menuList';
 import ShopPage from './ShopPage';
+import { SyncContext } from '../../data/SyncProvider';
 
 const papa: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: 'Папа', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1 };
 const mama: Member = { ...papa, id: 'm-mama', user_id: 'u2', name: 'Мама', is_owner: false };
@@ -102,5 +103,21 @@ describe('ShopPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Рис: цена/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Убрать из списка' }));
     await waitFor(async () => expect((await db.shopping_items.get('o:now:рис'))?.deleted_at).toBeTruthy());
+  });
+
+  it('keeps «Иду в магазин» and refusal notes on an empty list', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db);
+    render(<SyncContext.Provider value={{ syncing: false, offline: false, pending: 0, syncedAt: null, message: 'Сервер не принял изменение. Вернули как было.', syncNow: async () => {}, dismiss: () => {} }}>
+      <MemoryRouter><ShopPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></MemoryRouter>
+    </SyncContext.Provider>);
+    expect(await screen.findByRole('button', { name: 'Иду в магазин' })).toBeInTheDocument();
+    expect(screen.getByText('Сервер не принял изменение. Вернули как было.')).toBeInTheDocument();
+  });
+
+  it('reads out the price with the line', async () => {
+    const db = await ready();
+    show(db);
+    expect(await screen.findByRole('button', { name: /^Творог: цена 1\s?050\s₽$/ })).toBeInTheDocument();
   });
 });

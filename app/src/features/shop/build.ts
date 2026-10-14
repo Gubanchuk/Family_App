@@ -10,6 +10,8 @@ export type BuildInput = {
   vocab: Map<string, Ingredient>;
   prices: Map<string, number>;
   portions: number;
+  // Soups are cooked as a whole pot; without this every lunch counts as a soup (true for menu weeks).
+  isSoup?: (id: string) => boolean;
 };
 
 export const DEPT_ORDER = ['Овощи и фрукты', 'Хлеб', 'Молочное и яйца', 'Мясо и птица', 'Рыба', 'Заморозка', 'Бакалея', 'Консервы и соусы', 'Специи', 'Другое'];
@@ -25,6 +27,7 @@ export function buildMenuList(inp: BuildInput): ListLine[] {
       qty.set(r.item, (qty.get(r.item) ?? 0) + Number(r.qty) * factor);
     }
   };
+  const soup = (id: string, meal: Meal) => (inp.isSoup ? inp.isSoup(id) : meal === 'lunch');
   const dish = (id: string | null) => {
     const serv = id ? inp.servings.get(id) : undefined;
     if (id && serv) add(inp.ingredientsOf.get(id) ?? [], inp.portions / serv);
@@ -33,12 +36,12 @@ export function buildMenuList(inp: BuildInput): ListLine[] {
   // A pot of soup is cooked once for consecutive days: the whole recipe, not per portion.
   let prevSoup: string | null = null;
   for (let day = 0; day < 7; day += 1) {
-    const soup = slots.find((s) => s.day === day && s.meal === 'lunch')?.dish_id ?? null;
-    if (soup && soup !== prevSoup) add(inp.ingredientsOf.get(soup) ?? [], 1);
-    prevSoup = soup;
+    const pot = slots.find((s) => s.day === day && s.dish_id && soup(s.dish_id, s.meal))?.dish_id ?? null;
+    if (pot && pot !== prevSoup) add(inp.ingredientsOf.get(pot) ?? [], 1);
+    prevSoup = pot;
   }
   for (const s of slots) {
-    if (s.meal !== 'lunch') dish(s.dish_id);
+    if (!(s.dish_id && soup(s.dish_id, s.meal))) dish(s.dish_id);
     dish(s.side_id);
     dish(s.salad_id);
     if (s.simple) add(s.simple.items, inp.portions);

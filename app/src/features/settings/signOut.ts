@@ -1,9 +1,12 @@
 import type { LocalDb } from '../../data/db';
+import { unsubscribePush } from '../../lib/push';
 
 // Signing out wipes this phone's copy of the family, so the next account never sends someone else's changes.
-export async function signOutHere(a: { db: LocalDb; signOut: () => Promise<unknown>; force: boolean }): Promise<{ done: boolean; pending: number }> {
+export async function signOutHere(a: { db: LocalDb; signOut: () => Promise<unknown>; force: boolean; unsubscribe?: () => Promise<void> }): Promise<{ done: boolean; pending: number }> {
   const pending = await a.db.outbox.count();
   if (pending && !a.force) return { done: false, pending };
+  // The phone stops getting the family's pushes; the next account subscribes it again if it wants.
+  try { await (a.unsubscribe ?? (() => unsubscribePush()))(); } catch { /* no push on this phone */ }
   await a.signOut();
   await Promise.all(a.db.tables.map((t) => t.clear()));
   try {

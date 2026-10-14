@@ -58,6 +58,7 @@ export async function addOfferItems(db: LocalDb, offer: DishOffer) {
     vocab: new Map((await db.ingredients.toArray()).map((v) => [v.item, v])),
     prices: new Map((await db.prices.toArray()).map((p) => [p.item, Number(p.price_per_unit)])),
     portions: Number((await db.meta.get('family_portions'))?.value ?? 3.5),
+    isSoup: () => recipe.category === 'soup',
   });
   const items: ShoppingItem[] = lines.map((l) => ({
     id: `o:${offer.id}:${l.item}`, household_id: offer.household_id, week_id: null, offer_id: offer.id, source: 'offer', item: l.item,
