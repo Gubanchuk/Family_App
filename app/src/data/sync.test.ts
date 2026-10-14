@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
 import { createLocalDb, KEY_FIELDS } from './db';
 import { fakeSupabase } from './fakeSupabase';
-import { pendingCount, pullTable, pushOutbox, rejectionText, syncNow, writeLocal, writeWeekLocal } from './sync';
+import { missingTables, pendingCount, pullTable, pushOutbox, rejectionText, syncNow, writeLocal, writeWeekLocal } from './sync';
 
 const slot = (dish: string) => ({ week_id: 'w1', household_id: 'h1', day: 1, meal: 'dinner', dish_id: dish, side_id: null, salad_id: null, simple: null });
 
@@ -23,6 +23,17 @@ describe('sync', () => {
     const r = await syncNow(reopened, fake.client as never);
     expect(r.pushed).toBe(1);
     expect(await pendingCount(reopened)).toBe(0);
+  });
+
+  it('skips a table the server does not have yet and remembers it, without calling it offline', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    fake.serverRow('weeks', { id: 'w1', household_id: 'h1', starts_on: '2026-10-12', template_id: 'autumn', status: 'approved', proposed_by: null, approved_by: null, deleted_at: null });
+    fake.missing('shop_trips');
+    const r = await syncNow(db, fake.client as never);
+    expect(r.offline).toBe(false);
+    expect(await db.weeks.get('w1')).toBeTruthy();
+    expect(await missingTables(db)).toEqual(['shop_trips']);
   });
 
   it('pulls rows changed on another phone and moves the cursor', async () => {

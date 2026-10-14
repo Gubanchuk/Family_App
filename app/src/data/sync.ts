@@ -13,6 +13,12 @@ const TABLES: SyncTable[] = ['week_templates', 'template_slots', 'weeks', 'week_
 // queued: an app bug must never turn into deleted family data.
 const isRefusal = (e: ServerError) => /^(P0001|42501|23\w{3})$/.test(e.code ?? '');
 
+// A table the app knows but the server does not have yet (its migration is not applied):
+// PostgREST answers PGRST205, Postgres 42P01. Sync passes it by instead of calling the server lost.
+const isMissingTable = (e: ServerError) => e.code === 'PGRST205' || e.code === '42P01';
+
+export const missingTables = async (db: LocalDb) => ((await db.meta.get('missing_tables'))?.value as string[] | undefined) ?? [];
+
 // The server owns updated_at (a trigger stamps it); the phone's copy never travels.
 const forServer = (row: Row) => { const { updated_at: _u, ...rest } = row; return rest; };
 
@@ -144,14 +150,17 @@ async function pendingKeys(db: LocalDb, table: SyncTable): Promise<Set<string>> 
   return keys;
 }
 
-export async function pullTable(db: LocalDb, client: Client, table: SyncTable): Promise<number> {
+export async function pullTable(db: LocalDb, client: Client, table: SyncTable): Promise<number | 'missing'> {
   const cursorKey = `cursor:${table}`;
   let cursor = ((await db.meta.get(cursorKey))?.value as string | undefined) ?? '1970-01-01T00:00:00Z';
   const pending = await pendingKeys(db, table);
   let total = 0;
   for (;;) {
     const { data, error } = await (client.from(table).select('*').gt('updated_at', cursor).order('updated_at').range(0, PAGE - 1) as unknown as Promise<{ data: Row[] | null; error: ServerError | null }>);
-    if (error) throw new Error(error.message);
+    if (error) {
+      if (isMissingTable(error)) return 'missing';
+      throw new Error(error.message);
+    }
     const rows = data ?? [];
     const fresh = rows.filter((r) => !pending.has(slotKey(table, r)));
     if (fresh.length) await tableOf(db, table).bulkPut(fresh);
@@ -168,12 +177,17 @@ export async function syncNow(db: LocalDb, client: Client) {
   const push = await pushOutbox(db, client);
   if (push.stopped === 'network') return { pushed: push.pushed, pulled: 0, offline: true, rejected: push.rejected };
   let pulled = 0;
+  const missing: string[] = [];
   try {
-    for (const t of TABLES) pulled += await pullTable(db, client, t);
+    for (const t of TABLES) {
+      const n = await pullTable(db, client, t);
+      if (n === 'missing') missing.push(t); else pulled += n;
+    }
   } catch {
     // Reading never refuses a change; any failure here means the server is out of reach for now.
     return { pushed: push.pushed, pulled, offline: true, rejected: push.rejected };
   }
+  await db.meta.put({ key: 'missing_tables', value: missing });
   await db.meta.put({ key: 'synced_at', value: new Date().toISOString() });
   return { pushed: push.pushed, pulled, offline: false, rejected: push.rejected };
 }

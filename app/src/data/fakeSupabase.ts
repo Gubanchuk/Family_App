@@ -4,7 +4,7 @@ type Store = Record<string, Row[]>;
 
 export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) {
   type Err = { message: string; code: string };
-  const state = { offline: false, rejects: new Map<string, Err>(), writeFails: new Map<string, Err>(), readFails: new Set<string>(), hangs: new Set<string>(), clock: 1, requests: new Map<string, number>() };
+  const state = { offline: false, rejects: new Map<string, Err>(), writeFails: new Map<string, Err>(), readFails: new Set<string>(), hangs: new Set<string>(), missing: new Set<string>(), clock: 1, requests: new Map<string, number>() };
   const key = (t: string, r: Row) => keyFields[t].map((k) => String(r[k])).join('|');
   const stamp = () => new Date(Date.UTC(2026, 9, 14, 0, 0, state.clock++)).toISOString();
   const failNet = { data: null, error: { message: 'TypeError: Failed to fetch', code: '' } };
@@ -16,6 +16,7 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
     let range: [number, number] | null = null;
     const exec = () => {
       if (state.offline) return failNet;
+      if (state.missing.has(table)) return { data: null, error: { message: `Could not find the table 'public.${table}' in the schema cache`, code: 'PGRST205' } };
       if (state.readFails.delete(table)) return { data: null, error: { message: 'upstream connect error', code: '' } };
       let rows = store[table].filter((r) => filters.every((f) => f(r)));
       // Like Postgres, rows that tie on the order keys come back in no fixed order: flip ties on every other request.
@@ -86,6 +87,7 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
     failWrite(table: string, error: Err) { state.writeFails.set(table, error); },
     failRead(table: string) { state.readFails.add(table); },
     hang(table: string) { state.hangs.add(table); },
+    missing(table: string) { state.missing.add(table); },
     serverRow(table: string, r: Row) { store[table] ??= []; store[table].push({ ...r, updated_at: stamp() }); },
   };
 }
