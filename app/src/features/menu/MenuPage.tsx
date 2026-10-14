@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '../shell/Header';
 import IdeasPanel from '../ideas/IdeasPanel';
+import OfferRow from '../ideas/OfferRow';
+import { takeOffer } from '../ideas/offerActions';
 import { useSync } from '../../data/SyncProvider';
 import { localDb, type LocalDb, type Week, type WeekSlot } from '../../data/db';
 import Sheet from './Sheet';
@@ -76,6 +78,8 @@ export default function MenuPage({ me, members, db = localDb, today = new Date()
     );
   }
 
+  const dayIso = addDaysIso(current.start, day);
+  const dayOffers = data.offers.filter((o) => o.on_date === dayIso);
   const row = (meal: Meal) => {
     const s = slotAt(day, meal);
     const extra: string[] = [];
@@ -90,6 +94,9 @@ export default function MenuPage({ me, members, db = localDb, today = new Date()
     if (meal === 'snack' && !s?.dish_id && s?.simple) main = s.simple.simple;
     if (s?.side_id) extra.push(lower(name(s.side_id)));
     if (s?.salad_id) extra.push(lower(name(s.salad_id)));
+    // A dish someone took «instead» replaces the menu dish on screen; the week itself stays as it was.
+    const swap = dayOffers.find((o) => o.meal === meal && o.how === 'instead' && o.status === 'taken');
+    if (swap) { extra.unshift(`вместо: ${lower(main)}`); main = name(swap.dish_id); }
     return <MealRow key={meal} name={main || 'Не выбрано'} label={MEAL_LABEL[meal]} time={MEAL_TIME[meal]} extra={extra} note={parent ? note : undefined} onOpen={() => setSheet({ kind: 'slot', day, meal })} />;
   };
   const date = (d: number) => Number(addDaysIso(current.start, d).slice(8));
@@ -116,6 +123,8 @@ export default function MenuPage({ me, members, db = localDb, today = new Date()
       <section className="card">
         <div className="card-h"><h2>{DAY_NAME[day]}, {date(day)}</h2><button type="button" className="more" onClick={() => setSheet({ kind: 'day', day })}>Заменить день</button></div>
         {MEALS.map(row)}
+        {dayOffers.length ? <p className="tl-group">Предложили на этот день</p> : null}
+        {dayOffers.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} />)}
         <p className="note">Нажмите на блюдо, чтобы заменить его блюдом из другой недели или из всех рецептов.</p>
         {parent ? <div className="card-foot"><button type="button" className="more" onClick={() => setSheet({ kind: 'save' })}>Сохранить неделю как шаблон</button></div> : null}
       </section>
