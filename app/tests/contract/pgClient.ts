@@ -37,7 +37,7 @@ export function pgClient(db: PGlite, userId: string) {
             eq: (c: string, v: unknown) => { conds.push([c, v]); return u; },
             then: (res: (v: Result) => unknown, rej?: (e: unknown) => unknown) => {
               const cols = Object.keys(row);
-              const sql = `update public.${table} set ${cols.map((c, i) => `${quote(c)} = (json_populate_record(null::public.${table}, $${conds.length + 1}::json)).${quote(c)}`).join(', ')}`
+              const sql = `update public.${table} set ${cols.map((c) => `${quote(c)} = (json_populate_record(null::public.${table}, $${conds.length + 1}::json)).${quote(c)}`).join(', ')}`
                 + (conds.length ? ` where ${conds.map(([c], i) => `${quote(c)} = $${i + 1}`).join(' and ')}` : '');
               return run(sql, [...conds.map(([, v]) => v), JSON.stringify(row)]).then(res, rej);
             },

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import Icon from '../shell/Icon';
 import AvatarFace from '../family/AvatarFace';
 import { memberColor } from '../family/colors';
@@ -12,13 +12,16 @@ const HOLD_MS = 220;
 
 type Own = { viewers: (s: Story) => void; edit: (s: Story) => void; remove: (s: Story) => void; more: () => void };
 
-export default function StoryViewer({ groups, start, me, members, views, urls, now, onViewed, onReact, onClose, onOwn }: {
+// children: sheets opened from the viewer («Кто посмотрел», «Удалить?»). They render inside the
+// layer so they sit on top of the story, and the story waits while one is open (held).
+export default function StoryViewer({ groups, start, me, members, views, urls, now, onViewed, onReact, onClose, onOwn, held = false, children }: {
   groups: Group[]; start: { g: number; i: number }; me: Member; members: Member[]; views: StoryView[]; urls: Map<string, string>; now: Date;
-  onViewed: (s: Story) => void; onReact: (s: Story, r: Reaction | null) => void; onClose: () => void; onOwn: Own;
+  onViewed: (s: Story) => void; onReact: (s: Story, r: Reaction | null) => void; onClose: () => void; onOwn: Own; held?: boolean; children?: ReactNode;
 }) {
   const [pos, setPos] = useState(start);
   const [ready, setReady] = useState(false);
-  const [paused, setPaused] = useState(false);
+  const [pressed, setPaused] = useState(false);
+  const paused = pressed || held;
   const [progress, setProgress] = useState(0);
   const [muted, setMuted] = useState(false);
   const video = useRef<HTMLVideoElement>(null);
@@ -116,6 +119,7 @@ export default function StoryViewer({ groups, start, me, members, views, urls, n
           ))}
         </div>
       )}
+      {children}
     </div>
   );
 }

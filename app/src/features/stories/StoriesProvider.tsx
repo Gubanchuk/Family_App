@@ -102,7 +102,7 @@ function ViewerHost({ me, members, startId, stories, views, now, onClose, onChan
           setMine((v) => [...v.filter((x) => x.story_id !== s.id), { story_id: s.id, member_id: me.id, viewed_at: new Date().toISOString(), reaction: r }]);
           setReaction(s, me, r).then(onChanged).catch(() => {});
         }}
-        onOwn={{ viewers: setWatch, edit: onEdit, remove: setDoomed, more: onCompose }} />
+        onOwn={{ viewers: setWatch, edit: onEdit, remove: setDoomed, more: onCompose }} held={!!watch || !!doomed}>
       {watch ? <ViewersSheet story={watch} views={shown} members={members} onClose={() => setWatch(null)} /> : null}
       {doomed ? (
         <Sheet title="Удалить сторис?" sub="Её больше никто не увидит." onClose={() => setDoomed(null)}
@@ -111,6 +111,7 @@ function ViewerHost({ me, members, startId, stories, views, now, onClose, onChan
           <span />
         </Sheet>
       ) : null}
+      </StoryViewer>
     </>
   );
 }
