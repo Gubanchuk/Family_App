@@ -69,6 +69,14 @@ describe('replace sheets', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Поставить «Быстрая»' })).toBeEnabled());
   });
 
+  it('shows each template with the rough cost of its shopping list', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db);
+    render(<MemoryRouter><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Выбрать неделю' }));
+    expect(await screen.findByRole('radio', { name: /Быстрая.*≈\s3\s000\s₽ на неделю/ })).toBeInTheDocument();
+  });
+
   it('saves the week with replacements as a family template', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db, { currentWeek: true });

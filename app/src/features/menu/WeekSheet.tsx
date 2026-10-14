@@ -7,6 +7,8 @@ import type { useMenu } from './useMenu';
 import { setWeekFromTemplate, voteWeek } from './weekActions';
 import { weekLabel } from './week';
 import { lineOf } from './SlotSheet';
+import { templateCosts } from './templateCost';
+import { rub } from '../shop/build';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
@@ -16,6 +18,7 @@ export default function WeekSheet({ db, mode, me, data, onClose }: { db: LocalDb
   const [picked, setPick] = useState<string>();
   const pick = picked ?? target.week?.template_id ?? data.templates[0]?.id;
   const slots = useLiveQuery(() => (pick ? db.template_slots.where('template_id').equals(pick).toArray() : []), [db, pick]) ?? [];
+  const costs = useLiveQuery(() => templateCosts(db), [db]);
   const [confirm, setConfirm] = useState(false);
   const t = data.templates.find((x) => x.id === pick);
   const parent = me.role === 'parent';
@@ -41,7 +44,8 @@ export default function WeekSheet({ db, mode, me, data, onClose }: { db: LocalDb
       <div className="tpl-list" role="radiogroup" aria-label="Шаблоны недель">
         {data.templates.map((x) => (
           <button key={x.id} type="button" className="tpl" role="radio" aria-checked={x.id === pick} onClick={() => { setPick(x.id); setConfirm(false); }}>
-            <span className="tpl-top"><b>{x.name}{x.household_id ? <span className="tpl-now">наш</span> : null}</b></span>
+            <span className="tpl-top"><b>{x.name}{x.household_id ? <span className="tpl-now">наш</span> : null}</b>
+              {costs?.has(x.id) ? <span className="tpl-cost">≈&nbsp;{rub(Math.round(costs.get(x.id)! / 100) * 100)} на неделю</span> : null}</span>
             <small>{x.note}</small>
           </button>
         ))}
