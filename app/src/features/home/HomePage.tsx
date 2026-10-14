@@ -15,6 +15,7 @@ import { listTotals, rub } from '../shop/build';
 import { useHome } from './useHome';
 import { dateLine, greeting, mainThing } from './main';
 import { memberColor } from '../family/colors';
+import AvatarFace from '../family/AvatarFace';
 import { kinLine } from '../family/kin';
 
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -26,7 +27,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const times = getMealTimes();
   const navigate = useNavigate();
   const [open, setOpen] = useState<Meal | null>(null);
-  const avatar = <NavLink to="/settings" className="av" style={{ ['--c' as string]: memberColor(me.color) }} aria-label="Настройки и профиль">{me.name.slice(0, 1)}</NavLink>;
+  const avatar = <NavLink to="/settings" className="av" style={{ ['--c' as string]: memberColor(me.color) }} aria-label="Настройки и профиль"><AvatarFace member={me} /></NavLink>;
   const head = <Header title={`${greeting(today)}, ${me.name}`} subtitle={dateLine(today)} action={avatar} />;
   if (!data) return head;
 
@@ -65,7 +66,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
       <div className="family" role="group" aria-label="Семья">
         {members.map((m) => (
           <div className="fam" key={m.id} style={{ ['--c' as string]: memberColor(m.color) }}>
-            <span className="av" aria-hidden="true">{m.name.slice(0, 1)}</span><b>{m.name}</b><small>{kinLine(m)}</small>
+            <span className="av" aria-hidden="true"><AvatarFace member={m} /></span><b>{m.name}</b><small>{kinLine(m)}</small>
           </div>
         ))}
         {me.role === 'parent' && members.length < 4 ? (

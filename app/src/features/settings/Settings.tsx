@@ -14,6 +14,7 @@ import { supabase } from '../../lib/supabase';
 import type { Member } from '../family/useFamily';
 import { addProfileWithoutSignIn, createInvite, householdName, setRole, updateMember, updateMyProfile } from '../family/api';
 import ColorPicker from '../family/ColorPicker';
+import AvatarFace from '../family/AvatarFace';
 import KinPicker from '../family/KinPicker';
 import { roleLine, type Kin } from '../family/kin';
 import { firstFreeColor, memberColor } from '../family/colors';
@@ -77,7 +78,7 @@ export default function Settings({ me, members, reload }: { me: Member; members:
     <>
       <Header title="Настройки" back />
       <section className="card profile">
-        <span className="av lg" style={{ ['--c' as string]: memberColor(me.color) }} aria-hidden="true">{me.name.slice(0, 1)}</span>
+        <span className="av lg" style={{ ['--c' as string]: memberColor(me.color) }} aria-hidden="true"><AvatarFace member={me} /></span>
         <span className="row-main"><b>{me.name}</b><small>{roleLine(me)}</small></span>
         <button type="button" className="btn soft sm" onClick={() => setSheet('profile')}>Изменить</button>
       </section>
@@ -89,13 +90,13 @@ export default function Settings({ me, members, reload }: { me: Member; members:
             <div className="row member" key={m.id}>
               {editable(m) ? (
                 <button type="button" className="row-btn" aria-label={`${m.name}, ${roleLine(m)}: изменить`} onClick={() => setSheet(m)}>
-                  <span className="av sm" style={{ ['--c' as string]: memberColor(m.color) }} aria-hidden="true">{m.name.slice(0, 1)}</span>
+                  <span className="av sm" style={{ ['--c' as string]: memberColor(m.color) }} aria-hidden="true"><AvatarFace member={m} /></span>
                   <span className="row-main"><b>{m.name}</b><small>{roleLine(m)}</small></span>
                   <Icon name="chev" className="chev" />
                 </button>
               ) : (
                 <>
-                  <span className="av sm" style={{ ['--c' as string]: memberColor(m.color) }} aria-hidden="true">{m.name.slice(0, 1)}</span>
+                  <span className="av sm" style={{ ['--c' as string]: memberColor(m.color) }} aria-hidden="true"><AvatarFace member={m} /></span>
                   <span className="row-main"><b>{m.name}</b><small>{roleLine(m)}</small></span>
                 </>
               )}

@@ -25,6 +25,7 @@
 .k-head-r { display: flex; align-items: center; gap: 8px; }
 .av { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--c); color: #FFFFFF; font: 800 17px var(--font); flex: none; border: 0; }
 .av.sm { width: 30px; height: 30px; font-size: 12px; }
+.av > img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
 .head-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px 0 12px; border: 0; border-radius: 999px; background: var(--k-card); color: var(--k-ink); font: 600 14px var(--font); cursor: pointer; box-shadow: 0 1px 2px var(--k-shadow); white-space: nowrap; }
 .head-pill .ic { width: 18px; height: 18px; }
 .round-btn { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; border: 0; background: var(--k-card); color: var(--k-ink); box-shadow: 0 1px 2px var(--k-shadow); cursor: pointer; }

@@ -1,4 +1,5 @@
 import type { DishOffer } from '../../data/db';
+import AvatarFace from '../family/AvatarFace';
 import type { Member } from '../family/useFamily';
 import { MEAL_FOR } from './offerActions';
 import { memberColor } from '../family/colors';
@@ -17,7 +18,7 @@ export default function OfferRow({ offer, me, members, dishName, onTake }: { off
   const canTake = offer.status === 'open' && offer.from_member !== me.id && (offer.to_member === me.id || offer.to_member === null);
   return (
     <div className="row offer">
-      <span className="av sm" style={{ ['--c' as string]: from ? memberColor(from.color) : 'var(--k-ink-2)' }} aria-hidden="true">{from?.name.slice(0, 1) ?? '?'}</span>
+      <span className="av sm" style={{ ['--c' as string]: from ? memberColor(from.color) : 'var(--k-ink-2)' }} aria-hidden="true">{from ? <AvatarFace member={from} /> : '?'}</span>
       <span className="row-main"><b>{dishName}</b><small>{offerSub(offer, me, members)}</small></span>
       {canTake ? <button type="button" className="btn soft sm" onClick={onTake}>Сделаю</button> : null}
     </div>
