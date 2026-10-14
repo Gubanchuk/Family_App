@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { acceptInvite, MEMBER_COLORS } from './api';
 import { familyErrorText } from './invite';
 
@@ -6,10 +7,12 @@ export default function AcceptInvite({ code, onDone }: { code: string; onDone: (
   const [name, setName] = useState('');
   const [color, setColor] = useState(MEMBER_COLORS[2]);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
   const join = async () => {
     try {
       await acceptInvite(code, name.trim(), color);
       try { sessionStorage.removeItem('fa.invite'); } catch { /* storage unavailable */ }
+      navigate('/', { replace: true });
       onDone();
     } catch (e) { setError(familyErrorText((e as Error).message)); }
   };

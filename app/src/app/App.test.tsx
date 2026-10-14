@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('../features/auth/useSession', () => ({ useSession: () => ({ session: null, loading: false }) }));
-vi.mock('../features/family/useFamily', () => ({ useFamily: () => ({ me: null, members: [], loading: false, reload: vi.fn() }) }));
+vi.mock('../features/family/useFamily', () => ({ useFamily: () => ({ me: null, members: [], loading: false, error: false, reload: vi.fn() }) }));
 
 describe('App', () => {
   it('asks a signed-out person to sign in', async () => {

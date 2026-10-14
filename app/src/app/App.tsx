@@ -26,10 +26,18 @@ function Shell() {
   const { session, loading } = useSession();
   const fam = useFamily(session);
   const invite = storedInvite(loc.search);
-  const g = gate({ path: loc.pathname, loadingSession: loading, session: !!session, loadingFamily: fam.loading, hasMember: !!fam.me, inviteCode: invite });
+  const g = gate({ path: loc.pathname, loadingSession: loading, session: !!session, loadingFamily: fam.loading, hasMember: !!fam.me, inviteCode: invite, familyError: fam.error });
   if (g === 'probe') return <ProbePage />;
   if (g === 'loading') return <main className="screen"><p className="note" style={{ margin: 16 }}>Загружаем…</p></main>;
   if (g === 'sign-in') return <SignIn />;
+  if (g === 'family-error') {
+    return (
+      <main className="screen">
+        <header className="k-head"><div><h1>Нет связи с сервером</h1><p>Не получилось загрузить семью. Проверьте интернет.</p></div></header>
+        <section className="card"><div className="btns fill"><button type="button" className="btn" onClick={() => fam.reload()}>Повторить</button></div></section>
+      </main>
+    );
+  }
   if (g === 'accept-invite') return <AcceptInvite code={invite!} onDone={fam.reload} />;
   if (g === 'onboarding') return <Onboarding onDone={fam.reload} />;
   const me = fam.me!;

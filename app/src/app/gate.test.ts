@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { gate } from './gate';
 
-const base = { path: '/', loadingSession: false, session: true, loadingFamily: false, hasMember: true, inviteCode: null };
+const base = { path: '/', loadingSession: false, session: true, loadingFamily: false, hasMember: true, inviteCode: null, familyError: false };
 
 describe('gate', () => {
   it('lets the probe open without sign-in', () => expect(gate({ ...base, path: '/probe', session: false })).toBe('probe'));
@@ -10,5 +10,6 @@ describe('gate', () => {
   it('accepts an invite before creating a family', () => expect(gate({ ...base, hasMember: false, inviteCode: 'ABCD234XYZ' })).toBe('accept-invite'));
   it('offers to create a family to a new person', () => expect(gate({ ...base, hasMember: false })).toBe('onboarding'));
   it('opens the app for a member', () => expect(gate(base)).toBe('app'));
+  it('does not offer a new family when the family could not be loaded', () => expect(gate({ ...base, hasMember: false, familyError: true })).toBe('family-error'));
   it('keeps the invite for after sign-in', () => expect(gate({ ...base, session: false, inviteCode: 'ABCD234XYZ' })).toBe('sign-in'));
 });
