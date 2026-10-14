@@ -32,17 +32,17 @@ export default function FoodCard({ me, db = localDb }: { me: Member; db?: LocalD
         <span className="row-main"><b>Время еды</b><small>{MEALS.map((m) => times[m]).join(', ')}</small></span><Icon name="chev" className="chev" />
       </button>
       {sheet === 'not-eat' ? (
-        <Sheet title="Не едим" sub="Блюда с этими продуктами не покажутся в «Что покушать» и в поиске." onClose={() => setSheet(null)}>
+        <Sheet title="Не едим" sub="Блюда с этими продуктами не покажутся в «Что покушать», в поиске и в замене блюд." onClose={() => setSheet(null)}>
           <div style={{ margin: '0 16px 16px' }}>
             {list.map((x) => (
               <div className="row" key={x.ref}><span className="row-main"><b>{x.ref}</b></span>
                 {parent ? <button type="button" className="round-btn" aria-label={`Убрать: ${x.ref}`} onClick={() => remove(x.ref)}><Icon name="x" /></button> : null}</div>
             ))}
             {parent ? (
-              <div className="btns" style={{ marginTop: 12 }}>
-                <label className="field" style={{ flex: 1 }}>Продукт или блюдо<input value={ref} onChange={(e) => setRef(e.target.value)} maxLength={80} placeholder="Например, грибы" /></label>
-                <button type="button" className="btn soft" disabled={!ref.trim()} onClick={add}>Добавить</button>
-              </div>
+              <form className="inline-add" onSubmit={(e) => { e.preventDefault(); if (ref.trim()) add(); }}>
+                <label className="field">Продукт или блюдо<input value={ref} onChange={(e) => setRef(e.target.value)} maxLength={80} placeholder="Например, грибы" enterKeyHint="done" /></label>
+                <button type="submit" className="btn soft" disabled={!ref.trim()}>Добавить</button>
+              </form>
             ) : <p className="note">Список ведут родители.</p>}
           </div>
         </Sheet>

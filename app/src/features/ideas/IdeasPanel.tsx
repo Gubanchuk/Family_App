@@ -5,15 +5,22 @@ import Icon from '../shell/Icon';
 import type { LocalDb, Recipe } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { addDaysIso, dayOfWeek, mondayOf } from '../menu/week';
+import { useToast } from '../shell/toastContext';
+import { lineOf } from '../menu/SlotSheet';
 import { blockedBy, recipeMatches } from './search';
 import { COLLECTIONS, MEAL_FOR, createOffer, declineOffer, offerDate, takeOffer, whenText } from './offerActions';
 import RecipeSheet from './RecipeSheet';
 
 const DIMA = { ok: 'Диме можно', adapt: 'Диме с поправкой', skip: 'Диме нельзя' } as const;
+const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
 export default function IdeasPanel({ me, members, db, today }: { me: Member; members: Member[]; db: LocalDb; today: Date }) {
   const todayIso = addDaysIso(mondayOf(today), dayOfWeek(today));
   const data = useLiveQuery(async () => {
+    const weekStart = mondayOf(today);
+    const weeks = (await db.weeks.where('household_id').equals(me.household_id).toArray())
+      .filter((w) => !w.deleted_at && (w.starts_on === weekStart || w.starts_on === addDaysIso(weekStart, 7)));
+    const slots = weeks.length ? await db.week_slots.where('week_id').anyOf(weeks.map((w) => w.id)).toArray() : [];
     const [recipes, rows, offers, notEat, vocab, prices, portions] = await Promise.all([
       db.recipes.filter((r) => !r.deleted_at && r.category !== 'side').toArray(),
       db.recipe_ingredients.toArray(),
@@ -24,12 +31,13 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
     const itemsOf = new Map<string, string[]>();
     for (const r of rows) itemsOf.set(r.recipe_id, [...(itemsOf.get(r.recipe_id) ?? []), r.item]);
     return {
-      recipes, rows, itemsOf, notEat,
+      recipes, rows, itemsOf, notEat, weeks, slots,
       offers: offers.filter((o) => !o.deleted_at && o.status === 'open' && o.from_member !== me.id && (o.to_member === me.id || o.to_member === null) && o.on_date >= todayIso).sort((a, b) => a.on_date.localeCompare(b.on_date)),
       vocab: new Map(vocab.map((v) => [v.item, v])), prices: new Map(prices.map((p) => [p.item, Number(p.price_per_unit)])),
       portions: Number(portions?.value ?? 3.5),
     };
   }, [db, me.household_id, me.id, todayIso]);
+  const toast = useToast();
   const [col, setCol] = useState('all');
   const [q, setQ] = useState('');
   const [params] = useSearchParams();
@@ -88,7 +96,23 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
       {recipe ? (
         <RecipeSheet recipe={recipe} rows={data.rows.filter((r) => r.recipe_id === recipe.id).sort((a, b) => a.pos - b.pos)} vocab={data.vocab} prices={data.prices}
           portions={data.portions} me={me} members={members} onClose={() => setOpen(null)}
-          onOffer={async (d, cook) => { await createOffer(db, { me, to: d.to, dish: recipe.id, date: offerDate(d.when, today), meal: d.meal, how: d.how, cookMyself: cook }); }} />
+          insteadOf={(d) => {
+            const date = offerDate(d.when, today);
+            const [y, m, dd] = date.split('-').map(Number);
+            const day = new Date(y, m - 1, dd);
+            const week = data.weeks.find((w) => w.starts_on === mondayOf(day));
+            const slot = week && data.slots.find((s) => s.week_id === week.id && s.day === dayOfWeek(day) && s.meal === d.meal);
+            if (!slot) return null;
+            const all = new Map(data.recipes.map((r) => [r.id, r]));
+            const line = lineOf(slot, all);
+            return line === 'Не выбрано' ? null : lower(line);
+          }}
+          onOffer={async (d, cook) => {
+            await createOffer(db, { me, to: d.to, dish: recipe.id, date: offerDate(d.when, today), meal: d.meal, how: d.how, cookMyself: cook });
+            const when = `${d.when === 'today' ? 'сегодня' : d.when === 'tomorrow' ? 'завтра' : 'в выходные'} ${MEAL_FOR[d.meal]}`;
+            const who = cook ? 'Готовите вы' : d.to ? `${name(d.to)} получит просьбу` : 'Семья получит просьбу';
+            toast({ text: `${who}: ${lower(recipe.name)}, ${when}.` });
+          }} />
       ) : null}
     </>
   );

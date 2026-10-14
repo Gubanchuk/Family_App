@@ -7,6 +7,7 @@ import { createLocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { seedMenu } from '../menu/testData';
 import MenuPage from '../menu/MenuPage';
+import ToastProvider from '../shell/Toast';
 
 const papa: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: 'Папа', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1 };
 const mama: Member = { ...papa, id: 'm-mama', user_id: 'u2', name: 'Мама', is_owner: false };
@@ -77,4 +78,18 @@ describe('Что покушать', () => {
     render(<MemoryRouter initialEntries={['/menu?panel=ideas']}><MenuPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></MemoryRouter>);
     expect(await screen.findByText(/^Завтра на ужин, поверх меню/)).toBeInTheDocument();
   });
+
+  it('names the menu dish an offer would replace and confirms who got the request', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    render(<MemoryRouter initialEntries={['/menu?panel=ideas']}><ToastProvider><MenuPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></ToastProvider></MemoryRouter>);
+    await userEvent.type(await screen.findByRole('searchbox'), 'сырники');
+    await userEvent.click(await screen.findByRole('button', { name: /^Сырники/ }));
+    const sheet = screen.getByRole('dialog', { name: 'Сырники' });
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Вместо: овсяная каша' }));
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Мама' }));
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Предложить' }));
+    expect(await screen.findByText('Мама получит просьбу: сырники, сегодня на завтрак.')).toBeInTheDocument();
+  });
 });
+

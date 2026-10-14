@@ -5,6 +5,7 @@ import type { LocalDb, Recipe, TemplateSlot, Week, WeekSlot, WeekTemplate } from
 import { useLiveQuery } from 'dexie-react-hooks';
 import { fitsMeal, MEAL_LABEL, type Meal } from './week';
 import { replaceMeal } from './actions';
+import { blockedBy } from '../ideas/search';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const DAY_ACC = ['в понедельник', 'во вторник', 'в среду', 'в четверг', 'в пятницу', 'в субботу', 'в воскресенье'];
@@ -25,7 +26,17 @@ export default function SlotSheet({ db, week, day, meal, currentSlot, recipes, t
   const [q, setQ] = useState('');
   const tplSlots = useLiveQuery(() => (tpl ? db.template_slots.where('template_id').equals(tpl).filter((s) => s.meal === meal).toArray() : []), [db, tpl, meal]) ?? [];
   const sides = useLiveQuery(() => db.recipe_sides.toArray(), [db]) ?? [];
-  const all = useMemo(() => [...recipes.values()].filter((r) => fitsMeal(r, meal)).sort((a, b) => a.name.localeCompare(b.name, 'ru')), [recipes, meal]);
+  // «Не едим» keeps its promise here too: such dishes are not offered as a replacement.
+  const blockers = useLiveQuery(async () => {
+    const notEat = (await db.not_eat.where('household_id').equals(week.household_id).toArray()).filter((x) => !x.deleted_at);
+    if (!notEat.length) return null;
+    const itemsOf = new Map<string, string[]>();
+    for (const r of await db.recipe_ingredients.toArray()) itemsOf.set(r.recipe_id, [...(itemsOf.get(r.recipe_id) ?? []), r.item]);
+    return { notEat, itemsOf };
+  }, [db, week.household_id]);
+  const all = useMemo(() => [...recipes.values()]
+    .filter((r) => fitsMeal(r, meal) && !(blockers && blockedBy(r, blockers.itemsOf.get(r.id) ?? [], blockers.notEat)))
+    .sort((a, b) => a.name.localeCompare(b.name, 'ru')), [recipes, meal, blockers]);
   const title = `${MEAL_LABEL[meal]} ${DAY_ACC[day]}`;
 
   if (!editable) {
@@ -55,7 +66,7 @@ export default function SlotSheet({ db, week, day, meal, currentSlot, recipes, t
         </>
       ) : (
         <>
-          <label className="search sheet-search"><span className="vh">Найти блюдо</span><input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Блюдо" autoComplete="off" /></label>
+          <label className="search sheet-search"><Icon name="search" /><span className="vh">Найти блюдо</span><input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Найти блюдо" autoComplete="off" /></label>
           <div className="opts">
             {shown.map((r) => (
               <button key={r.id} type="button" className="opt" onClick={() => pick({ recipe: r, sides: sides.filter((x) => x.recipe_id === r.id).map((x) => x.side_id) })}>

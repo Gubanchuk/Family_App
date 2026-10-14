@@ -34,6 +34,17 @@ describe('replace sheets', () => {
     expect(screen.queryByRole('button', { name: /^Овсяная каша/ })).toBeNull();
   });
 
+  it('does not offer a dish the family does not eat as a replacement', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    await db.not_eat.put({ household_id: 'h1', kind: 'item', ref: 'рис', updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: /Ужин: Котлеты/ }));
+    await userEvent.click(screen.getByRole('tab', { name: 'Все рецепты' }));
+    expect(await screen.findByRole('button', { name: /^Котлеты/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Плов/ })).toBeNull();
+  });
+
   it('replaces the whole day', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db, { currentWeek: true });

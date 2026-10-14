@@ -287,3 +287,6 @@ a.more, a.av { text-decoration: none; }
 .invite-link { display: grid; gap: 10px; padding: 12px 0 4px; border-top: 1px solid var(--k-rule); }
 .invite-link .row-main { display: grid; gap: 2px; }
 .urgent-card .card-h h2 { color: color-mix(in oklab, var(--k-urgent) 82%, var(--k-ink)); }
+/* A field with its button on one line, the button level with the input. */
+.inline-add { display: flex; gap: 8px; align-items: flex-end; margin-top: 12px; }
+.inline-add .field { flex: 1; margin: 0; }
