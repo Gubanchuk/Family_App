@@ -22,13 +22,27 @@ export function pgClient(db: PGlite, userId: string) {
         return run(`select * from public.${table}${where}`, filters.map(([, v]) => v));
       };
       const q = {
-        upsert: (row: Row, opts: { onConflict: string }) => {
+        upsert: (row: Row, opts: { onConflict: string; ignoreDuplicates?: boolean }) => {
           const cols = Object.keys(row);
           const keys = opts.onConflict.split(',');
           const set = cols.filter((c) => !keys.includes(c)).map((c) => `${quote(c)} = excluded.${quote(c)}`);
-          const action = set.length ? `update set ${set.join(', ')}` : 'nothing';
+          const action = set.length && !opts.ignoreDuplicates ? `update set ${set.join(', ')}` : 'nothing';
           const sql = `insert into public.${table} (${cols.map(quote).join(', ')}) select ${cols.map(quote).join(', ')} from json_populate_record(null::public.${table}, $1::json) on conflict (${keys.join(', ')}) do ${action}`;
           return run(sql, [JSON.stringify(row)]);
+        },
+        // update(row).eq(..).eq(..) runs once awaited, like a PostgREST PATCH with filters.
+        update: (row: Row) => {
+          const conds: Array<[string, unknown]> = [];
+          const u = {
+            eq: (c: string, v: unknown) => { conds.push([c, v]); return u; },
+            then: (res: (v: Result) => unknown, rej?: (e: unknown) => unknown) => {
+              const cols = Object.keys(row);
+              const sql = `update public.${table} set ${cols.map((c, i) => `${quote(c)} = (json_populate_record(null::public.${table}, $${conds.length + 1}::json)).${quote(c)}`).join(', ')}`
+                + (conds.length ? ` where ${conds.map(([c], i) => `${quote(c)} = $${i + 1}`).join(' and ')}` : '');
+              return run(sql, [...conds.map(([, v]) => v), JSON.stringify(row)]).then(res, rej);
+            },
+          };
+          return u;
         },
         select: () => q,
         eq: (c: string, v: unknown) => { filters.push([c, v]); return q; },

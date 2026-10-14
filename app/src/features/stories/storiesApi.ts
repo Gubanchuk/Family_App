@@ -44,11 +44,15 @@ export async function deleteStory(story: Story) {
 }
 
 export async function markViewed(story: Story, me: Member) {
-  await supabase.from('story_views').upsert({ story_id: story.id, member_id: me.id, household_id: story.household_id }, { onConflict: 'story_id,member_id', ignoreDuplicates: true });
+  const { error } = await supabase.from('story_views').upsert({ story_id: story.id, member_id: me.id, household_id: story.household_id }, { onConflict: 'story_id,member_id', ignoreDuplicates: true });
+  if (error) throw new Error(error.message);
 }
 
+// The view row is made first (or already exists); only the reaction column may change after that,
+// so the reaction goes as an update of that one column rather than an upsert of the whole row.
 export async function setReaction(story: Story, me: Member, reaction: Reaction | null) {
-  const { error } = await supabase.from('story_views').upsert({ story_id: story.id, member_id: me.id, household_id: story.household_id, reaction }, { onConflict: 'story_id,member_id' });
+  await markViewed(story, me);
+  const { error } = await supabase.from('story_views').update({ reaction }).eq('story_id', story.id).eq('member_id', me.id);
   if (error) throw new Error(error.message);
 }
 
