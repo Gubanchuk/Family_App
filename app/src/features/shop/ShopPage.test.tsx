@@ -38,7 +38,7 @@ describe('ShopPage', () => {
   it('sums what is bought and what is left, naming lines without a price', async () => {
     const db = await ready();
     show(db);
-    expect(await screen.findByText(/Осталось ≈/)).toHaveTextContent(/без 1 продукта/);
+    expect(await screen.findByText(/Осталось ≈/)).toHaveTextContent(/· 1 без цены/);
   });
 
   it('adds an urgent item by hand', async () => {
@@ -50,6 +50,22 @@ describe('ShopPage', () => {
     await userEvent.click(screen.getByRole('switch', { name: 'Срочно' }));
     await userEvent.click(screen.getByRole('button', { name: 'Добавить в список' }));
     expect(await screen.findByRole('button', { name: /Молоко, 2 л/ })).toHaveTextContent('срочно');
+  });
+
+  it('keeps urgent lines in their own card on top of the departments', async () => {
+    const db = await ready();
+    show(db);
+    await userEvent.click(await screen.findByRole('button', { name: 'Добавить' }));
+    await userEvent.type(screen.getByLabelText('Что купить'), 'Хлеб{Enter}');
+    expect(await screen.findByRole('button', { name: 'Хлеб' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Добавить' }));
+    await userEvent.type(screen.getByLabelText('Что купить'), 'Сметана');
+    await userEvent.click(screen.getByRole('switch', { name: 'Срочно' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Добавить в список' }));
+    const card = await screen.findByRole('region', { name: 'Срочно' });
+    expect(screen.getAllByRole('region')[0]).toBe(card);
+    expect(within(card).getByRole('button', { name: 'Сметана, срочно' })).toBeInTheDocument();
+    expect(within(card).queryByRole('button', { name: 'Хлеб' })).toBeNull();
   });
 
   it('copies what is left as text', async () => {

@@ -13,10 +13,11 @@ import { addManualItem, goShopping, removeItem, setBought, setRealPrice } from '
 import { listText } from './listText';
 import AddItemSheet from './AddItemSheet';
 import ItemSheet from './ItemSheet';
+import { useToast } from '../shell/toastContext';
+import { capitalize } from './menuList';
 
 const TRIP_MS = 3 * 3600 * 1000;
 const hhmm = (iso: string) => new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-const products = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 'продукта' : 'продуктов');
 type Clip = { writeText: (t: string) => Promise<void> };
 
 export default function ShopPage({ me, members, db = localDb, today: fixedToday, clipboard }: { me: Member; members: Member[]; db?: LocalDb; today?: Date; clipboard?: Clip }) {
@@ -27,6 +28,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const [weekPick, setWeekPick] = useState<string | null>(null);
   const [sheet, setSheet] = useState<'add' | ShoppingItem | null>(null);
   const [note, setNote] = useState('');
+  const toast = useToast();
   const weekId = weekPick ?? data?.weeks[0]?.id ?? null;
   const shown = useMemo(() => {
     if (!data) return [];
@@ -42,6 +44,25 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const meShopping = tripFresh && lastTrip!.member_id === me.id;
   const week = data.weeks.find((w) => w.id === weekId);
   const origin = (i: ShoppingItem) => (i.source === 'menu' ? 'из меню' : i.source === 'offer' ? 'к предложенному блюду' : `вручную · ${name(i.added_by)}`);
+
+  // Urgent lines still to buy get their own card on top; once bought they go back to their department.
+  const urgent = shown.filter((i) => i.urgent && !marks.get(i.id)?.bought);
+  const urgentIds = new Set(urgent.map((i) => i.id));
+  const row = (i: ShoppingItem) => {
+    const m = marks.get(i.id);
+    const done = !!m?.bought;
+    const price = m?.price_real ?? i.est_price;
+    return (
+      <div className={`row ${done ? 'done' : ''}`} key={i.id}>
+        <button type="button" className="row-btn" aria-pressed={done} aria-label={`${i.title}${i.qty_text ? `, ${i.qty_text}` : ''}${i.urgent ? ', срочно' : ''}`} onClick={() => setBought(db, i, me, !done, m)}>
+          <span className="check" aria-hidden="true"><Icon name="check" /></span>
+          <span className="row-main"><b>{i.title}</b><small>{[i.qty_text, origin(i)].filter(Boolean).join(' · ')}</small></span>
+          {i.urgent ? <span className="pill">срочно</span> : null}
+        </button>
+        <button type="button" className="amount amount-btn" aria-label={`${i.title}: ${price !== null ? `цена ${rub(price)}` : 'цена не указана'}`} onClick={() => setSheet(i)}>{price !== null ? rub(price) : '—'}</button>
+      </div>
+    );
+  };
 
   const copy = async () => {
     const text = listText(week ? `Покупки на ${weekLabel(week.starts_on)}` : 'Покупки', shown.filter((i) => !marks.get(i.id)?.bought));
@@ -76,32 +97,28 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
         <>
           <div className="bento"><div className="tile wide" style={{ ['--h' as string]: 'var(--k-shop)', cursor: 'default' }}>
             <span className="t-k"><Icon name="cart" />Куплено на {rub(totals.bought)}</span>
-            <span className="t-v">Осталось ≈&nbsp;{rub(totals.left)}{totals.unpriced ? ` без ${totals.unpriced} ${products(totals.unpriced)}` : ''}</span>
+            <span className="t-v">Осталось ≈&nbsp;{rub(totals.left)}{totals.unpriced ? ` · ${totals.unpriced} без цены` : ''}</span>
             <span className="bar" aria-hidden="true"><i style={{ width: `${totals.bought + totals.left ? (totals.bought / (totals.bought + totals.left)) * 100 : 0}%` }} /></span>
           </div></div>
-          {groupByDept(shown, marks).map((g) => (
+          {urgent.length ? (
+            <section className="card urgent-card" aria-label="Срочно">
+              <div className="card-h"><h2>Срочно</h2><span className="note" style={{ margin: 0 }}>{urgent.length}</span></div>
+              {urgent.map(row)}
+            </section>
+          ) : null}
+          {groupByDept(shown.filter((i) => !urgentIds.has(i.id)), marks).map((g) => (
             <section className="card" key={g.dept} aria-labelledby={`dept-${g.dept}`}>
               <div className="card-h"><h2 id={`dept-${g.dept}`}>{g.dept}</h2><span className="note" style={{ margin: 0 }}>{g.items.filter((i) => marks.get(i.id)?.bought).length} из {g.items.length}</span></div>
-              {g.items.map((i) => {
-                const m = marks.get(i.id);
-                const done = !!m?.bought;
-                const price = m?.price_real ?? i.est_price;
-                return (
-                  <div className={`row ${done ? 'done' : ''}`} key={i.id}>
-                    <button type="button" className="row-btn" aria-pressed={done} aria-label={`${i.title}${i.qty_text ? `, ${i.qty_text}` : ''}${i.urgent ? ', срочно' : ''}`} onClick={() => setBought(db, i, me, !done, m)}>
-                      <span className="check" aria-hidden="true"><Icon name="check" /></span>
-                      <span className="row-main"><b>{i.title}</b><small>{[i.qty_text, origin(i)].filter(Boolean).join(' · ')}</small></span>
-                      {i.urgent ? <span className="pill">срочно</span> : null}
-                    </button>
-                    <button type="button" className="amount amount-btn" aria-label={`${i.title}: ${price !== null ? `цена ${rub(price)}` : 'цена не указана'}`} onClick={() => setSheet(i)}>{price !== null ? rub(price) : '—'}</button>
-                  </div>
-                );
-              })}
+              {g.items.map(row)}
             </section>
           ))}
         </>
       )}
-      {sheet === 'add' && vocab ? <AddItemSheet vocab={vocab} onAdd={(a) => addManualItem(db, me, { ...a, vocab })} onClose={() => setSheet(null)} /> : null}
+      {sheet === 'add' && vocab ? <AddItemSheet vocab={vocab} onClose={() => setSheet(null)} onAdd={async (a) => {
+        const dept = await addManualItem(db, me, { ...a, vocab });
+        const title = capitalize(a.title.trim());
+        toast({ text: a.urgent ? `«${title}» — в «Срочно» наверху списка` : `«${title}» в списке, отдел «${dept}»` });
+      }} /> : null}
       {sheet && sheet !== 'add' ? (
         <ItemSheet item={sheet} mark={marks.get(sheet.id)} onPrice={(p) => setRealPrice(db, sheet, me, p, marks.get(sheet.id))} onRemove={() => removeItem(db, sheet)} onClose={() => setSheet(null)} />
       ) : null}
