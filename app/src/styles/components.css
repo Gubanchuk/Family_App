@@ -260,3 +260,4 @@
 .i-dima { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--k-ink-2); }
 .i-dima::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--dima); flex: none; }
 .meta-line { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: -6px 16px 14px; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: color-mix(in oklab, var(--k-meal) 82%, var(--k-ink)); }
+a.hero-chip, a.tile, a.meal-now { text-decoration: none; color: inherit; }

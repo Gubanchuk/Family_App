@@ -1,0 +1,25 @@
+import { describe, expect, it } from 'vitest';
+import type { DishOffer, ShoppingItem } from '../../data/db';
+import type { Member } from '../family/useFamily';
+import { dateLine, greeting, mainThing } from './main';
+
+const papa = { id: 'm-papa' } as Member;
+const offer = { id: 'o1', from_member: 'm-mama', to_member: 'm-papa', status: 'open', on_date: '2026-10-13' } as DishOffer;
+const milk = { id: 'u:1', title: 'Молоко', urgent: true } as ShoppingItem;
+
+describe('home main thing', () => {
+  it('puts a dish offered to me first, then an urgent purchase, then dinner', () => {
+    const base = { me: papa, today: '2026-10-13', offers: [] as DishOffer[], urgent: [] as ShoppingItem[], dinner: 'котлеты', hasWeek: true };
+    expect(mainThing({ ...base, offers: [offer], urgent: [milk] })).toEqual({ kind: 'offer', offer });
+    expect(mainThing({ ...base, offers: [{ ...offer, from_member: 'm-papa' }], urgent: [milk] })).toEqual({ kind: 'urgent', item: milk });
+    expect(mainThing(base)).toEqual({ kind: 'dinner', text: 'котлеты' });
+    expect(mainThing({ ...base, hasWeek: false, dinner: null })).toEqual({ kind: 'no-week' });
+  });
+  it('greets by the time of day and names the date', () => {
+    expect(greeting(new Date(2026, 9, 13, 7, 0))).toBe('Доброе утро');
+    expect(greeting(new Date(2026, 9, 13, 14, 0))).toBe('Добрый день');
+    expect(greeting(new Date(2026, 9, 13, 20, 0))).toBe('Добрый вечер');
+    expect(greeting(new Date(2026, 9, 13, 2, 0))).toBe('Доброй ночи');
+    expect(dateLine(new Date(2026, 9, 13))).toBe('вторник, 13 октября');
+  });
+});

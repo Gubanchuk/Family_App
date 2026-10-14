@@ -1,4 +1,4 @@
-import { BrowserRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import TabBar from '../features/shell/TabBar';
 import Header from '../features/shell/Header';
 import ProbePage from '../features/probe/ProbePage';
@@ -11,6 +11,7 @@ import { readInviteCode } from '../features/family/invite';
 import Settings from '../features/settings/Settings';
 import MenuPage from '../features/menu/MenuPage';
 import ShopPage from '../features/shop/ShopPage';
+import HomePage from '../features/home/HomePage';
 import { gate } from './gate';
 import { SyncProvider } from '../data/SyncProvider';
 
@@ -47,10 +48,7 @@ function Shell() {
     <SyncProvider householdId={me.household_id} portions={fam.members.reduce((sum, m) => sum + m.portion, 0) || 3.5}>
       <div className="screen">
         <Routes>
-          <Route path="/" element={
-            <Header title={`Привет, ${me.name}`} subtitle="Меню и покупки появятся в следующих частях"
-              action={<NavLink to="/settings" className="av" style={{ ['--c' as string]: me.color }} aria-label="Настройки и профиль">{me.name.slice(0, 1)}</NavLink>} />
-          } />
+          <Route path="/" element={<HomePage me={me} members={fam.members} />} />
           <Route path="/menu" element={<MenuPage me={me} members={fam.members} />} />
           <Route path="/shop" element={<ShopPage me={me} members={fam.members} />} />
           <Route path="/settings" element={<Settings me={me} members={fam.members} reload={fam.reload} />} />
