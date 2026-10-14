@@ -8,6 +8,6 @@ describe('App', () => {
   it('asks a signed-out person to sign in', async () => {
     const { default: App } = await import('./App');
     render(<App />);
-    expect(screen.getByRole('button', { name: 'Войти через Google' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Продолжить через Google' })).toBeInTheDocument();
   });
 });

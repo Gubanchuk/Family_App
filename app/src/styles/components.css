@@ -16,6 +16,7 @@
 .toast-act { flex: none; border: 0; background: none; padding: 10px 6px; margin: -10px -6px; font: 700 14px var(--font); color: color-mix(in oklab, var(--k-primary) 42%, var(--k-card)); text-decoration: none; cursor: pointer; }
 @keyframes toast-in { from { transform: translateY(8px); opacity: 0.4; } to { transform: none; opacity: 1; } }
 @media (max-width: 599px) { .toast { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
+.toast.update-bar { top: calc(12px + env(safe-area-inset-top, 0px)); bottom: auto; z-index: 60; }
 
 /* ---------- Shared pieces ---------- */
 .k-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 20px 16px 12px; }

@@ -17,6 +17,7 @@ import HomePage from '../features/home/HomePage';
 import { gate } from './gate';
 import { SyncProvider } from '../data/SyncProvider';
 import ToastProvider from '../features/shell/Toast';
+import { useAppUpdate } from '../lib/appUpdate';
 
 // A Google account brings a first name; the family screens start from it.
 function firstName(meta: Record<string, unknown> | undefined): string {
@@ -82,6 +83,18 @@ function MemberShell() {
   );
 }
 
+// Shown on every screen, sign-in too: the open page runs old code until it reloads.
+function UpdateBar() {
+  const ready = useAppUpdate();
+  if (!ready) return null;
+  return (
+    <div className="toast update-bar" role="status">
+      <span>Вышла новая версия приложения</span>
+      <button type="button" className="toast-act" onClick={() => location.reload()}>Обновить</button>
+    </div>
+  );
+}
+
 export default function App() {
-  return <BrowserRouter><ToastProvider><Shell /></ToastProvider></BrowserRouter>;
+  return <BrowserRouter><ToastProvider><Shell /><UpdateBar /></ToastProvider></BrowserRouter>;
 }
