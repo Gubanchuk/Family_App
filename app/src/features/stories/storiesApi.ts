@@ -56,8 +56,32 @@ export async function setReaction(story: Story, me: Member, reaction: Reaction |
   if (error) throw new Error(error.message);
 }
 
-export async function storyUrls(stories: Story[]) {
-  return signedUrls(stories.map((s) => s.path), STORY_URL_S);
+type Signer = (paths: string[], seconds: number) => Promise<Map<string, string>>;
+type Link = { url: string; until: number };
+const LINKS_KEY = 'fa.story-urls';
+const readLinks = (): Record<string, Link> => { try { return JSON.parse(localStorage.getItem(LINKS_KEY) ?? '{}') as Record<string, Link>; } catch { return {}; } };
+
+// A signed link is reused while it has more than ten minutes left: the same address lets the browser
+// play a watched video from its cache instead of downloading it again, and works without network.
+export async function storyUrls(stories: Story[], signer: Signer = signedUrls, now = Date.now()): Promise<Map<string, string>> {
+  const links = readLinks();
+  for (const [p, l] of Object.entries(links)) if (l.until <= now) delete links[p];
+  const out = new Map<string, string>();
+  const need: string[] = [];
+  for (const s of stories) {
+    const l = links[s.path];
+    if (l && l.until - now > 10 * 60_000) out.set(s.path, l.url); else need.push(s.path);
+  }
+  if (need.length) {
+    let fresh = new Map<string, string>();
+    try { fresh = await signer(need, STORY_URL_S); } catch { /* offline: a remembered link is still better than none */ }
+    for (const p of need) {
+      const u = fresh.get(p);
+      if (u) { links[p] = { url: u, until: now + STORY_URL_S * 1000 }; out.set(p, u); } else if (links[p]) out.set(p, links[p].url);
+    }
+  }
+  try { localStorage.setItem(LINKS_KEY, JSON.stringify(links)); } catch { /* storage unavailable */ }
+  return out;
 }
 
 // Expired rows go first (the server removes them), then every story file of the family that has

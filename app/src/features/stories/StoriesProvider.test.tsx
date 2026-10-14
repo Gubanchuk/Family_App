@@ -63,4 +63,15 @@ describe('StoriesProvider', () => {
     await userEvent.click(within(layer).getByRole('button', { name: 'Удалить сторис' }));
     expect(within(layer).getByRole('dialog', { name: 'Удалить сторис?' })).toBeInTheDocument();
   });
+
+  it('shows the rings from the last list when the phone starts without network', async () => {
+    const fresh = { household_id: 'h', kind: 'photo', width: 1, height: 1, duration_ms: null, overlays: [], created_at: new Date().toISOString(), expires_at: new Date(Date.now() + 3600_000).toISOString() };
+    localStorage.setItem('fa.stories.h', JSON.stringify({ stories: [{ ...fresh, id: 'x', member_id: 'son', path: 'h/stories/x.jpg' }], views: [] }));
+    api.result = null;
+    const { default: StoriesProvider } = await import('./StoriesProvider');
+    render(<StoriesProvider me={me} members={[me]}><Probe /></StoriesProvider>);
+    expect(await screen.findByText('есть: unseen')).toBeInTheDocument();
+    localStorage.clear();
+  });
 });
+

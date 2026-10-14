@@ -13,11 +13,18 @@ import { useToast } from '../shell/toastContext';
 import { kindOf, preparePhoto, prepareVideo } from './prepare';
 import type { Overlay, Prepared, Story, StoryView } from './types';
 
+type StoriesData = { stories: Story[]; views: StoryView[] };
+// The last list is kept on the phone, so rings show at once and without network.
+const cacheKey = (h: string) => `fa.stories.${h}`;
+function cached(h: string): StoriesData | null {
+  try { const raw = localStorage.getItem(cacheKey(h)); return raw ? (JSON.parse(raw) as StoriesData) : null; } catch { return null; }
+}
+
 export default function StoriesProvider({ me, members, children }: { me: Member; members: Member[]; children: ReactNode }) {
   const { syncedAt } = useSync();
   const h = me.household_id;
-  const [data, setData] = useState<{ stories: Story[]; views: StoryView[] } | null>(null);
-  const [available, setAvailable] = useState(false);
+  const [data, setData] = useState<StoriesData | null>(() => cached(me.household_id));
+  const [available, setAvailable] = useState(() => cached(me.household_id) !== null);
   const [now, setNow] = useState(() => new Date());
   const input = useRef<HTMLInputElement>(null);
   const [viewer, setViewer] = useState<string | null>(null);
@@ -26,7 +33,11 @@ export default function StoriesProvider({ me, members, children }: { me: Member;
 
   const reload = useCallback(() => loadStories(h).catch(() => null).then((r) => {
     if (r === 'missing') { setAvailable(false); return; }
-    if (r) { setAvailable(true); setData(r); }
+    if (r) {
+      setAvailable(true);
+      setData(r);
+      try { localStorage.setItem(cacheKey(h), JSON.stringify(r)); } catch { /* storage unavailable */ }
+    }
   }), [h]);
 
   // Every finished sync re-reads the stories too.
