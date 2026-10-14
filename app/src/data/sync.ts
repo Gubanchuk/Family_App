@@ -7,10 +7,14 @@ type ServerError = { message: string; code?: string };
 const PAGE = 1000;
 const TABLES: SyncTable[] = ['week_templates', 'template_slots', 'weeks', 'week_slots', 'votes', 'dish_offers', 'shopping_items', 'shopping_marks', 'shop_trips', 'not_eat'];
 
-// Only answers about the data itself are refusals: our triggers (P0001), row level security (42501),
-// constraints (23xxx), bad values (22xxx), schema errors (42xxx). Everything else — no network,
-// an expired token, a 5xx page, a sleeping database — is temporary: keep the change and retry.
-const isRefusal = (e: ServerError) => /^(P0001|23\w{3}|22\w{3}|42\w{3}|PGRST204)$/.test(e.code ?? '');
+// Only the family's own rules refuse a change: our triggers (P0001), row level security (42501),
+// constraints (23xxx). Everything else — no network, an expired token, a 5xx page, a sleeping
+// database, and also a malformed value or a schema the app does not match yet — keeps the change
+// queued: an app bug must never turn into deleted family data.
+const isRefusal = (e: ServerError) => /^(P0001|42501|23\w{3})$/.test(e.code ?? '');
+
+// The server owns updated_at (a trigger stamps it); the phone's copy never travels.
+const forServer = (row: Row) => { const { updated_at: _u, ...rest } = row; return rest; };
 
 const tableOf = (db: LocalDb, t: SyncTable) => db.table(t);
 const keyArray = (t: SyncTable, row: Row) => {
@@ -23,7 +27,7 @@ export async function writeLocal(db: LocalDb, table: SyncTable, rows: Row[]): Pr
   await db.transaction('rw', [tableOf(db, table), db.outbox], async () => {
     for (const row of rows) {
       await tableOf(db, table).put({ ...row, updated_at: now });
-      await db.outbox.add({ table, row, created_at: now, tries: 0 });
+      await db.outbox.add({ table, row: forServer(row), created_at: now, tries: 0 });
     }
   });
 }
@@ -38,7 +42,7 @@ export async function writeWeekLocal(db: LocalDb, week: Row, slots: Row[]): Prom
     }
     await db.weeks.put({ ...week, updated_at: now } as never);
     await db.week_slots.bulkPut(slots.map((s) => ({ ...s, updated_at: now })) as never);
-    await db.outbox.add({ table: 'weeks', rpc: 'save_week', row: { p_week: week, p_slots: slots }, created_at: now, tries: 0 });
+    await db.outbox.add({ table: 'weeks', rpc: 'save_week', row: { p_week: forServer(week), p_slots: slots.map(forServer) }, created_at: now, tries: 0 });
   });
 }
 
