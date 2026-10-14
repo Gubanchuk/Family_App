@@ -1,0 +1,92 @@
+import { useMemo, useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import Icon from '../shell/Icon';
+import type { LocalDb, Recipe } from '../../data/db';
+import type { Member } from '../family/useFamily';
+import { addDaysIso, dayOfWeek, mondayOf } from '../menu/week';
+import { blockedBy, recipeMatches } from './search';
+import { COLLECTIONS, MEAL_FOR, createOffer, declineOffer, offerDate, takeOffer } from './offerActions';
+import RecipeSheet from './RecipeSheet';
+
+const DIMA = { ok: 'Диме можно', adapt: 'Диме с поправкой', skip: 'Диме нельзя' } as const;
+
+export default function IdeasPanel({ me, members, db, today }: { me: Member; members: Member[]; db: LocalDb; today: Date }) {
+  const todayIso = addDaysIso(mondayOf(today), dayOfWeek(today));
+  const data = useLiveQuery(async () => {
+    const [recipes, rows, offers, notEat, vocab, prices, portions] = await Promise.all([
+      db.recipes.filter((r) => !r.deleted_at && r.category !== 'side').toArray(),
+      db.recipe_ingredients.toArray(),
+      db.dish_offers.where('household_id').equals(me.household_id).toArray(),
+      db.not_eat.where('household_id').equals(me.household_id).toArray(),
+      db.ingredients.toArray(), db.prices.toArray(), db.meta.get('family_portions'),
+    ]);
+    const itemsOf = new Map<string, string[]>();
+    for (const r of rows) itemsOf.set(r.recipe_id, [...(itemsOf.get(r.recipe_id) ?? []), r.item]);
+    return {
+      recipes, rows, itemsOf, notEat,
+      offers: offers.filter((o) => !o.deleted_at && o.status === 'open' && o.from_member !== me.id && (o.to_member === me.id || o.to_member === null) && o.on_date >= todayIso).sort((a, b) => a.on_date.localeCompare(b.on_date)),
+      vocab: new Map(vocab.map((v) => [v.item, v])), prices: new Map(prices.map((p) => [p.item, Number(p.price_per_unit)])),
+      portions: Number(portions?.value ?? 3.5),
+    };
+  }, [db, me.household_id, me.id, todayIso]);
+  const [col, setCol] = useState('all');
+  const [q, setQ] = useState('');
+  const [open, setOpen] = useState<string | null>(null);
+  const list = useMemo(() => {
+    if (!data) return [];
+    const ok = (r: Recipe) => !blockedBy(r, data.itemsOf.get(r.id) ?? [], data.notEat);
+    if (q.trim()) return data.recipes.filter((r) => ok(r) && recipeMatches(q, r, data.itemsOf.get(r.id) ?? [])).sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+    return data.recipes.filter((r) => ok(r) && r.collections.length > 0 && (col === 'all' || r.collections.includes(col)));
+  }, [data, q, col]);
+  if (!data) return <p className="note" style={{ margin: 16 }}>Загружаем рецепты…</p>;
+
+  const name = (id: string | null) => members.find((m) => m.id === id)?.name ?? 'Кто-то';
+  const dish = (id: string) => data.recipes.find((r) => r.id === id);
+  const forMe = data.offers[0];
+  const weekend = data.recipes.filter((r) => r.collections.includes('weekend'));
+  const tip = weekend.length ? weekend[Math.floor(today.getTime() / (7 * 86400000)) % weekend.length] : undefined;
+  const recipe = open ? data.recipes.find((r) => r.id === open) : undefined;
+
+  return (
+    <>
+      {forMe && dish(forMe.dish_id) ? (
+        <section className="hero" aria-label="Вам предложили блюдо">
+          <h2>{name(forMe.from_member)} просит: {dish(forMe.dish_id)!.name}</h2>
+          <p>{forMe.on_date === todayIso ? 'Сегодня' : forMe.on_date} {MEAL_FOR[forMe.meal]}, {forMe.how === 'over' ? 'поверх меню' : 'вместо блюда по меню'}. {dish(forMe.dish_id)!.time_total} минут.</p>
+          <div className="hero-chips">
+            <button type="button" className="hero-chip primary" onClick={() => takeOffer(db, forMe, me)}><Icon name="check" />Сделаю</button>
+            <button type="button" className="hero-chip" onClick={() => setOpen(forMe.dish_id)}>Рецепт</button>
+            <button type="button" className="hero-chip" onClick={() => declineOffer(db, forMe)}>Не {forMe.on_date === todayIso ? 'сегодня' : 'в этот день'}</button>
+          </div>
+        </section>
+      ) : tip ? (
+        <section className="hero" aria-label="Идея на выходные">
+          <h2>На выходные: {tip.name.charAt(0).toLowerCase() + tip.name.slice(1)}</h2><p>{tip.about}. {tip.time_total} минут.</p>
+          <div className="hero-chips"><button type="button" className="hero-chip primary" onClick={() => setOpen(tip.id)}>Посмотреть и предложить</button></div>
+        </section>
+      ) : null}
+      <label className="search"><Icon name="search" /><span className="vh">Найти блюдо</span>
+        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Блюдо или продукт: курица, яйца" autoComplete="off" /></label>
+      {q.trim() ? null : (
+        <div className="col-chips" role="group" aria-label="Подборки">
+          {[{ id: 'all', name: 'Все' }, ...COLLECTIONS].map((c) => <button key={c.id} type="button" aria-pressed={col === c.id} onClick={() => setCol(c.id)}>{c.name}</button>)}
+        </div>
+      )}
+      <div className="idea-grid">
+        {list.map((r, i) => (
+          <button key={r.id} type="button" className={`idea ${i === 0 && !q.trim() ? 'wide' : ''}`} onClick={() => setOpen(r.id)}>
+            <b>{r.name}</b>{i === 0 && !q.trim() ? <span className="i-about">{r.about}</span> : null}
+            <span className="i-meta"><span className="i-min">{r.time_total}<small>мин</small></span></span>
+            <span className="i-dima">{DIMA[r.dima_level]}</span>
+          </button>
+        ))}
+      </div>
+      {list.length ? null : <p className="empty">Ничего не нашли. Попробуйте продукт: «курица», «творог», «яйца».</p>}
+      {recipe ? (
+        <RecipeSheet recipe={recipe} rows={data.rows.filter((r) => r.recipe_id === recipe.id).sort((a, b) => a.pos - b.pos)} vocab={data.vocab} prices={data.prices}
+          portions={data.portions} me={me} members={members} onClose={() => setOpen(null)}
+          onOffer={async (d, cook) => { await createOffer(db, { me, to: d.to, dish: recipe.id, date: offerDate(d.when, today), meal: d.meal, how: d.how, cookMyself: cook }); }} />
+      ) : null}
+    </>
+  );
+}
