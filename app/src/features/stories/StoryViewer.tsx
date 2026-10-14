@@ -18,26 +18,45 @@ export default function StoryViewer({ groups, start, me, members, views, urls, n
   groups: Group[]; start: { g: number; i: number }; me: Member; members: Member[]; views: StoryView[]; urls: Map<string, string>; now: Date;
   onViewed: (s: Story) => void; onReact: (s: Story, r: Reaction | null) => void; onClose: () => void; onOwn: Own; held?: boolean; children?: ReactNode;
 }) {
-  const [pos, setPos] = useState(start);
-  const [ready, setReady] = useState(false);
+  const [wanted, setPos] = useState(start);
+  // Ready and progress belong to one story: moving on starts the next one from zero.
+  const [readyId, setReadyId] = useState<string | null>(null);
   const [pressed, setPaused] = useState(false);
   const paused = pressed || held;
-  const [progress, setProgress] = useState(0);
+  const [prog, setProg] = useState<{ id: string; p: number } | null>(null);
   const [muted, setMuted] = useState(false);
   const video = useRef<HTMLVideoElement>(null);
   const press = useRef<{ x: number; y: number; t: ReturnType<typeof setTimeout>; held: boolean } | null>(null);
-  const group = groups[pos.g];
-  const story = group?.stories[pos.i];
+  // A story whose day ran out while the viewer was open is passed over, going the same way.
+  const alive = (s: Story) => Date.parse(s.expires_at) > now.getTime();
+  const settle = (p: { g: number; i: number } | null, dir: 1 | -1) => {
+    let cur = p;
+    while (cur && !alive(groups[cur.g].stories[cur.i])) {
+      const further = step(cur, dir, groups);
+      cur = further && (further.g !== cur.g || further.i !== cur.i) ? further : null;
+    }
+    return cur;
+  };
+  const pos = settle(wanted, 1);
+  const group = pos ? groups[pos.g] : undefined;
+  const story = pos ? group?.stories[pos.i] : undefined;
+  const ready = !!story && readyId === story.id;
+  const progress = story && prog?.id === story.id ? prog.p : 0;
+  const setProgress = (p: number) => { if (story) setProg({ id: story.id, p }); };
   const author = members.find((m) => m.id === group?.memberId);
   const mine = story?.member_id === me.id;
   const myReaction = views.find((v) => v.story_id === story?.id && v.member_id === me.id)?.reaction ?? null;
   const seenCount = views.filter((v) => v.story_id === story?.id && v.member_id !== me.id).length;
 
   const go = (dir: 1 | -1) => {
-    const next = step(pos, dir, groups);
+    if (!pos) { onClose(); return; }
+    const next = settle(step(pos, dir, groups), dir);
     if (!next) { onClose(); return; }
-    if (next.g !== pos.g || next.i !== pos.i) { setPos(next); setReady(false); setProgress(0); }
+    if (next.g !== pos.g || next.i !== pos.i) setPos(next);
   };
+
+  // Nothing left alive to show: the viewer closes itself.
+  useEffect(() => { if (!pos) onClose(); }, [pos === null]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Seen once it is actually on screen.
   useEffect(() => { if (ready && story && !mine) onViewed(story); }, [ready, story?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -72,7 +91,7 @@ export default function StoryViewer({ groups, start, me, members, views, urls, n
     v.play().catch(() => { v.muted = true; setMuted(true); v.play().catch(() => {}); });
   }, [ready, paused, muted, story?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!story || !author) return null;
+  if (!story || !author || !group || !pos) return null;
 
   const down = (e: PointerEvent) => {
     const t = setTimeout(() => { if (press.current) { press.current.held = true; setPaused(true); } }, HOLD_MS);
@@ -91,7 +110,7 @@ export default function StoryViewer({ groups, start, me, members, views, urls, n
 
   return (
     <div className="story-layer" role="dialog" aria-modal="true" aria-label={`Сторис: ${author.name}`}>
-      <StoryFrame key={story.id} kind={story.kind} src={urls.get(story.path) ?? null} overlays={story.overlays} videoRef={video} onReady={() => setReady(true)}>
+      <StoryFrame key={story.id} kind={story.kind} src={urls.get(story.path) ?? null} overlays={story.overlays} videoRef={video} onReady={() => setReadyId(story.id)} onFail={() => go(1)}>
         <div className="sv-tap" onPointerDown={down} onPointerUp={up} onPointerCancel={() => { press.current = null; setPaused(false); }} />
         <div className="sv-top">
           <div className="sv-bars">

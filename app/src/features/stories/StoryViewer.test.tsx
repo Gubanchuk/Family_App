@@ -57,4 +57,19 @@ describe('StoryViewer', () => {
     expect(screen.getByRole('button', { name: 'Посмотрели: 1' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Изменить надписи' })).toBeInTheDocument();
   });
+
+  it('skips a story whose day ran out while the viewer was open', () => {
+    const old = { ...st('a', 'son', 'Старое'), expires_at: '2026-10-15T19:59:00Z' };
+    show({ groups: [{ memberId: 'son', stories: [old, st('b', 'son', 'Свежее')] }] });
+    expect(screen.queryByText('Старое')).toBeNull();
+    expect(screen.getByText('Свежее')).toBeInTheDocument();
+  });
+
+  it('moves on when a story file cannot be shown instead of freezing', () => {
+    show({ groups: [{ memberId: 'son', stories: [st('a', 'son', 'Битое'), st('b', 'son', 'Целое')] }] });
+    fireEvent.error(screen.getByTestId('story-media'));
+    expect(screen.queryByText('Битое')).toBeNull();
+    expect(screen.getByText('Целое')).toBeInTheDocument();
+  });
 });
+

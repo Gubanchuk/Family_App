@@ -11,18 +11,18 @@ export function OverlayView({ o, selected, onPointerDown }: { o: Overlay; select
 
 // Always 9:16, so captions sit in the same place on every phone. The picture fits inside whole;
 // for a photo the free space is filled with a blurred copy of it.
-export default function StoryFrame({ kind, src, overlays, videoRef, onReady, children }: {
-  kind: 'photo' | 'video'; src: string | null; overlays: Overlay[]; videoRef?: Ref<HTMLVideoElement>; onReady?: () => void; children?: ReactNode;
+export default function StoryFrame({ kind, src, overlays, videoRef, onReady, onFail, children }: {
+  kind: 'photo' | 'video'; src: string | null; overlays: Overlay[]; videoRef?: Ref<HTMLVideoElement>; onReady?: () => void; onFail?: () => void; children?: ReactNode;
 }) {
   return (
     <div className="sf">
       {src && kind === 'photo' ? (
         <>
           <img className="sf-bg" src={src} alt="" aria-hidden="true" />
-          <img className="sf-media" data-testid="story-media" src={src} alt="" onLoad={onReady} />
+          <img className="sf-media" data-testid="story-media" src={src} alt="" onLoad={onReady} onError={onFail} />
         </>
       ) : null}
-      {src && kind === 'video' ? <video className="sf-media" data-testid="story-media" ref={videoRef} src={src} playsInline preload="auto" onLoadedData={onReady} /> : null}
+      {src && kind === 'video' ? <video className="sf-media" data-testid="story-media" ref={videoRef} src={src} playsInline preload="auto" onLoadedData={onReady} onError={onFail} /> : null}
       {overlays.map((o) => <OverlayView key={o.id} o={o} />)}
       {children}
     </div>
