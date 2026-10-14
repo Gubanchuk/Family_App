@@ -147,7 +147,7 @@ function PersonSheet({ title, sub, name: start, color: startColor, taken, placeh
     try { await onSave(name, color); onClose(); } catch (err) { setError(familyErrorText((err as Error).message)); }
   };
   return (
-    <Sheet title={title} sub={sub} onClose={onClose} actions={<button type="submit" form="person-form" className="btn" disabled={!name.trim()}>{save}</button>}>
+    <Sheet title={title} sub={sub} onClose={onClose} keepOnBackdrop={name.trim() !== start.trim() || color !== startColor} actions={<button type="submit" form="person-form" className="btn" disabled={!name.trim()}>{save}</button>}>
       <form id="person-form" style={{ margin: '0 16px' }} onSubmit={submit}>
         <label className="field">Имя<input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder={placeholder} autoFocus enterKeyHint="done" /></label>
         <ColorPicker value={color} onChange={setColor} letter={name.trim().slice(0, 1).toUpperCase()} taken={taken} />

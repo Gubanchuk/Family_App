@@ -13,7 +13,7 @@ export default function AddItemSheet({ vocab, onAdd, onClose }: { vocab: Map<str
     onClose();
   };
   return (
-    <Sheet title="Добавить в список" sub="Увидит вся семья. Срочное покажется на Главной." onClose={onClose}
+    <Sheet title="Добавить в список" sub="Увидит вся семья. Срочное покажется на Главной." onClose={onClose} keepOnBackdrop={!!(title.trim() || qtyText.trim())}
       actions={<button type="submit" form="add-item" className="btn" disabled={!title.trim()}>Добавить в список</button>}>
       {/* Enter in any field adds the line: the button sits outside the form, in the sheet's bottom bar. */}
       <form id="add-item" style={{ display: 'grid', gap: 12, margin: '0 16px' }} onSubmit={add}

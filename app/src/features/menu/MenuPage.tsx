@@ -159,7 +159,7 @@ function SaveTemplateSheet({ db, week, slots, onClose, onSaved }: { db: LocalDb;
   const [name, setName] = useState('');
   const save = async () => { await saveWeekAsTemplate(db, week, slots, name); onSaved?.(name.trim()); onClose(); };
   return (
-    <Sheet title="Сохранить неделю как шаблон" sub="Со всеми заменами. Потом её можно выбрать на любую неделю." onClose={onClose}
+    <Sheet title="Сохранить неделю как шаблон" sub="Со всеми заменами. Потом её можно выбрать на любую неделю." onClose={onClose} keepOnBackdrop={!!name.trim()}
       actions={<button type="button" className="btn" disabled={!name.trim()} onClick={save}>Сохранить</button>}>
       <label className="field" style={{ margin: '0 16px' }}>Название<input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder="Например, Наша осень" /></label>
     </Sheet>

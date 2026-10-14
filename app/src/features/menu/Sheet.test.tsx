@@ -5,12 +5,12 @@ import { describe, expect, it } from 'vitest';
 import Sheet from './Sheet';
 import MealRow from './MealRow';
 
-function Host() {
+function Host({ keep = false }: { keep?: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <button type="button" onClick={() => setOpen(true)}>Открыть</button>
-      {open ? <Sheet title="Ужин во вторник" onClose={() => setOpen(false)}><p>текст</p></Sheet> : null}
+      {open ? <Sheet title="Ужин во вторник" onClose={() => setOpen(false)} keepOnBackdrop={keep}><p>текст</p></Sheet> : null}
     </>
   );
 }
@@ -23,6 +23,17 @@ describe('Sheet', () => {
     expect(screen.getByRole('dialog', { name: 'Ужин во вторник' })).toContainElement(document.activeElement as HTMLElement);
     await userEvent.keyboard('{Escape}');
     expect(document.activeElement).toBe(opener);
+  });
+  it('closes on a tap beside it, unless something typed in it would be lost', async () => {
+    const { unmount } = render(<Host />);
+    await userEvent.click(screen.getByRole('button', { name: 'Открыть' }));
+    await userEvent.click(document.querySelector('.sheet-backdrop')!);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    unmount();
+    render(<Host keep />);
+    await userEvent.click(screen.getByRole('button', { name: 'Открыть' }));
+    await userEvent.click(document.querySelector('.sheet-backdrop')!);
+    expect(screen.getByRole('dialog', { name: 'Ужин во вторник' })).toBeInTheDocument();
   });
   it('has one close button for screen readers', async () => {
     render(<Host />);
