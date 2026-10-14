@@ -63,4 +63,16 @@ describe('useFamily', () => {
     expect(r.current.loading).toBe(false);
     expect(r.current.me?.name).toBe('Папа');
   });
+
+  it('keeps the same family object when a reload brings nothing new, and picks up someone who joined', async () => {
+    const { useFamily } = await import('./useFamily');
+    const { result: r } = renderHook(() => useFamily(session('u1')));
+    await waitFor(() => expect(r.current.me?.name).toBe('Папа'));
+    const before = r.current.members;
+    await act(async () => { await r.current.reload(); });
+    expect(r.current.members).toBe(before);
+    result.data = [papa, { ...papa, id: 'm2', user_id: 'u2', name: 'Сын', role: 'child', is_owner: false }];
+    await act(async () => { await r.current.reload(); });
+    expect(r.current.members.map((m) => m.name)).toEqual(['Папа', 'Сын']);
+  });
 });

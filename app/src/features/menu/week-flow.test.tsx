@@ -38,4 +38,15 @@ describe('choosing and approving weeks', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Утвердить' }));
     expect(await screen.findByText('Утверждено')).toBeInTheDocument();
   });
+
+  it('names a week proposed by someone this phone does not know yet in proper words', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    await db.weeks.put({ id: 'w-next', household_id: 'h1', starts_on: '2026-10-19', template_id: 'quick', status: 'proposed', proposed_by: 'm-new', approved_by: null, updated_at: 'x', deleted_at: null });
+    await db.votes.put({ week_id: 'w-next', member_id: 'm-new', household_id: 'h1', value: 'yes', comment: '', updated_at: 'x' });
+    render(<MemoryRouter><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
+    expect(await screen.findByText('Предложена неделя «Быстрая» на 19–25 октября')).toBeInTheDocument();
+    expect(screen.getByText(/За: кто-то из семьи\./)).toBeInTheDocument();
+  });
 });
+

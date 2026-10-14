@@ -34,7 +34,8 @@ export function useFamily(session: Session | null) {
       setError(!cached);
     } else {
       const list = data.map((m) => ({ ...m, portion: Number(m.portion) })) as Member[];
-      setMembers(list);
+      // Reloads run after every sync; an unchanged family keeps its object so screens do not redraw.
+      setMembers((prev) => (JSON.stringify(prev) === JSON.stringify(list) ? prev : list));
       setError(false);
       remember(userId, list);
     }

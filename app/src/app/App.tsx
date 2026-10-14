@@ -59,7 +59,7 @@ function MemberShell() {
   if (g === 'onboarding') return <Onboarding onDone={fam.reload} />;
   const me = fam.me!;
   return (
-    <SyncProvider householdId={me.household_id} isParent={me.role === 'parent'} portions={fam.members.reduce((sum, m) => sum + m.portion, 0) || 3.5}>
+    <SyncProvider householdId={me.household_id} isParent={me.role === 'parent'} portions={fam.members.reduce((sum, m) => sum + m.portion, 0) || 3.5} onSynced={fam.reload}>
       <div className="screen">
         <Routes>
           <Route path="/" element={<HomePage me={me} members={fam.members} />} />

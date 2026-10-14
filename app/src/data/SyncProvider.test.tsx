@@ -64,6 +64,20 @@ describe('SyncProvider', () => {
     expect(screen.queryByRole('button', { name: /Менять утверждённую неделю/ })).toBeNull();
   });
 
+  it('asks for a fresh family after every sync, so someone who joined shows up', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    let calls = 0;
+    const { rerender } = render(<SyncProvider householdId="h1" portions={3.5} client={withChannel(fake) as never} db={db} onSynced={() => { calls += 1; }}><Probe /></SyncProvider>);
+    await waitFor(() => expect(calls).toBe(1));
+    // A new callback on every render must not restart syncing.
+    rerender(<SyncProvider householdId="h1" portions={3.5} client={withChannel(fake) as never} db={db} onSynced={() => { calls += 1; }}><Probe /></SyncProvider>);
+    await act(async () => { window.dispatchEvent(new Event('online')); });
+    await waitFor(() => expect(calls).toBe(2));
+    await new Promise((r) => setTimeout(r, 300));
+    expect(calls).toBe(2);
+  });
+
   it('syncs when the app comes back to the screen', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     const store: Record<string, Record<string, unknown>[]> = {};

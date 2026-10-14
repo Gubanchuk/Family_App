@@ -19,14 +19,15 @@ export default function NextWeekHero({ me, members, db, data, openWeek }: { me: 
   }
   const t = templates.find((x) => x.id === next.week!.template_id);
   const by = members.find((m) => m.id === next.week!.proposed_by);
-  const yes = next.votes.filter((v) => v.value === 'yes').map((v) => members.find((m) => m.id === v.member_id)?.name).filter(Boolean);
+  // Someone who joined after this phone loaded the family still counts until the family reloads.
+  const yes = next.votes.filter((v) => v.value === 'yes').map((v) => members.find((m) => m.id === v.member_id)?.name ?? 'кто-то из семьи');
   const voted = next.votes.some((v) => v.member_id === me.id);
   const approved = next.week.status === 'approved';
   // A proposal reaches this phone meal by meal; approving it before all 28 arrive would be refused.
   const complete = next.slots.length >= 28;
   return (
     <section className="hero" aria-label={`Неделя на ${label}`}>
-      <h2>{by ? `${by.name}${by.id === me.id ? ' (вы)' : ''} предлагает` : 'Предложена'} неделю «{t?.name ?? 'своя'}» на {label}</h2>
+      <h2>{by ? `${by.name}${by.id === me.id ? ' (вы)' : ''} предлагает неделю` : 'Предложена неделя'} «{t?.name ?? 'своя'}» на {label}</h2>
       <p>{yes.length ? `За: ${yes.join(', ')}.` : 'Голосов пока нет.'}{complete ? '' : ' Неделя ещё загружается.'}</p>
       <div className="hero-chips">
         {approved ? <span className="hero-chip">Утверждено</span> : null}

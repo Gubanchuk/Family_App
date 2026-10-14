@@ -15,11 +15,14 @@ export const useSync = () => useContext(SyncContext);
 
 const REALTIME = ['weeks', 'week_slots', 'votes', 'dish_offers', 'shopping_items', 'shopping_marks', 'shop_trips', 'not_eat'];
 
-export function SyncProvider({ householdId, portions = 3.5, isParent = false, now, children, client = supabase, db = localDb }: { householdId: string; portions?: number; isParent?: boolean; now?: Date; children: ReactNode; client?: SupabaseClient; db?: LocalDb }) {
+export function SyncProvider({ householdId, portions = 3.5, isParent = false, now, children, client = supabase, db = localDb, onSynced }: { householdId: string; portions?: number; isParent?: boolean; now?: Date; children: ReactNode; client?: SupabaseClient; db?: LocalDb; onSynced?: () => void }) {
   const [state, setState] = useState<SyncState>({ syncing: false, offline: false, syncedAt: null, message: '' });
   const pending = useLiveQuery(() => db.outbox.count(), [db]) ?? 0;
   const running = useRef(false);
   const again = useRef(false);
+  // Kept in a ref: a new callback on every render must not restart syncing and resubscribe.
+  const synced = useRef(onSynced);
+  useEffect(() => { synced.current = onSynced; }, [onSynced]);
 
   const run = useCallback(async () => {
     // A call that arrives mid-run is remembered and served right after, not dropped.
@@ -38,6 +41,8 @@ export function SyncProvider({ householdId, portions = 3.5, isParent = false, no
           if (isParent) await refreshLists(db, householdId, now ?? new Date());
           const syncedAt = ((await db.meta.get('synced_at'))?.value as string | undefined) ?? null;
           setState((s) => ({ syncing: false, offline: r.offline, syncedAt, message: r.rejected.map(rejectionText).find(Boolean) ?? s.message }));
+          // The family itself is not synced to the phone: someone who joined since the start is fetched here.
+          if (!r.offline) synced.current?.();
         })(), 120_000);
       } while (again.current);
     } catch {
