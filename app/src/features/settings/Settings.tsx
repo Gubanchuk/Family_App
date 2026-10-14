@@ -3,6 +3,8 @@ import Header from '../shell/Header';
 import Icon from '../shell/Icon';
 import ThemePicker from './ThemePicker';
 import SyncStatus from './SyncStatus';
+import { signOutHere } from './signOut';
+import { localDb } from '../../data/db';
 import FoodCard from './FoodCard';
 import NotifyCard from './NotifyCard';
 import { pushIsOn, pushSupport, subscribePush, unsubscribePush } from '../../lib/push';
@@ -27,6 +29,14 @@ export default function Settings({ me, members, reload }: { me: Member; members:
     if (!mine) loadThemeChoice(me.id).then((t) => { if (t) setThemeChoice(t); });
   }, [me.id]);
 
+  const [outWarn, setOutWarn] = useState(0);
+  const signOut = async () => {
+    const r = await signOutHere({ db: localDb, signOut: () => supabase.auth.signOut(), force: outWarn > 0 });
+    if (!r.done) {
+      setOutWarn(r.pending);
+      setMsg(`На телефоне есть неотправленные изменения (${r.pending}). Подключитесь к интернету и подождите минуту — или нажмите «Выйти всё равно», тогда они пропадут.`);
+    }
+  };
   const [link, setLink] = useState('');
   const invite = async (role: 'parent' | 'child') => {
     try {
@@ -92,7 +102,7 @@ export default function Settings({ me, members, reload }: { me: Member; members:
       <SyncStatus />
       <section className="card">
         <div className="card-h"><h2>Вход</h2></div>
-        <button type="button" className="btn danger" onClick={() => supabase.auth.signOut()}><Icon name="logout" />Выйти</button>
+        <button type="button" className="btn danger" onClick={signOut}><Icon name="logout" />{outWarn ? 'Выйти всё равно' : 'Выйти'}</button>
       </section>
       {msg ? <p className="note" role="status" style={{ margin: '0 16px 16px' }}>{msg}</p> : null}
     </>
