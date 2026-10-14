@@ -4,16 +4,23 @@ import { acceptInvite, inviteInfo, MEMBER_COLORS, type InviteInfo } from './api'
 import { familyErrorText } from './invite';
 import ColorPicker from './ColorPicker';
 import { firstFreeColor } from './colors';
+import KinPicker from './KinPicker';
+import { KIN_WORD, type Kin } from './kin';
 
 const ROLE_TEXT = {
   child: 'Вы будете ребёнком: предлагаете меню, голосуете и отмечаете покупки.',
   parent: 'Вы будете родителем: утверждаете меню и видите траты.',
 } as const;
-const names = (m: InviteInfo['members']) => m.map((x) => x.name).join(', ');
+// «Андрей (папа), Оля (мама)»; a name that already says it, like «Мама», stays as is.
+const names = (m: InviteInfo['members']) => m.map((x) => {
+  const word = x.kin ? KIN_WORD[x.kin] : '';
+  return word && word !== x.name.toLowerCase() ? `${x.name} (${word})` : x.name;
+}).join(', ');
 
 export default function AcceptInvite({ code, onDone, suggestedName = '' }: { code: string; onDone: () => void | Promise<void>; suggestedName?: string }) {
   const [name, setName] = useState(suggestedName);
   const [color, setColor] = useState(MEMBER_COLORS[2]);
+  const [kin, setKin] = useState<Kin | null>(null);
   const [info, setInfo] = useState<InviteInfo | null>(null);
   const [dead, setDead] = useState('');
   const [error, setError] = useState('');
@@ -33,7 +40,7 @@ export default function AcceptInvite({ code, onDone, suggestedName = '' }: { cod
     e.preventDefault();
     setBusy(true);
     try {
-      await acceptInvite(code, name.trim(), color);
+      await acceptInvite(code, name.trim(), color, kin);
       navigate('/', { replace: true });
       // The stored code keeps this screen up until the family loads, so «Создать семью» never flashes.
       await onDone();
@@ -58,12 +65,13 @@ export default function AcceptInvite({ code, onDone, suggestedName = '' }: { cod
       <form className="card" onSubmit={join}>
         {forProfile ? <p className="note" style={{ marginTop: 0 }}>Вы войдёте в профиль «{forProfile}».</p> : (
           <>
-            <label className="field">Как вас называть<input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder="Например, Сын" autoComplete="given-name" autoFocus enterKeyHint="done" /></label>
+            <label className="field">Как вас называть<input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder="Например, Тёма" autoComplete="given-name" autoFocus enterKeyHint="done" /></label>
+            <KinPicker value={kin} onChange={setKin} role={info?.role} />
             <ColorPicker value={color} onChange={setColor} letter={name.trim().slice(0, 1).toUpperCase()} taken={info?.members} />
           </>
         )}
         {error ? <p className="form-error" role="alert">{error}</p> : null}
-        <div className="btns fill" style={{ marginTop: 12 }}><button type="submit" className="btn" disabled={(!forProfile && !name.trim()) || busy}>Вступить в семью</button></div>
+        <div className="btns fill" style={{ marginTop: 12 }}><button type="submit" className="btn" disabled={(!forProfile && (!name.trim() || !kin)) || busy}>Вступить в семью</button></div>
       </form>
     </main>
   );

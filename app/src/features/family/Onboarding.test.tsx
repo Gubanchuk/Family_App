@@ -7,19 +7,23 @@ const create = vi.hoisted(() => vi.fn((..._a: unknown[]) => Promise.resolve('h1'
 vi.mock('./api', () => ({ MEMBER_COLORS: ['#2F6FDB', '#E0457B', '#1FA463', '#F2A900'], createHousehold: create }));
 
 describe('Onboarding', () => {
-  it('asks for the name instead of assuming «Папа», and shows the picked colour with the initial', async () => {
+  it('asks for the name and who the person is, and shows the picked colour with the initial', async () => {
     const done = vi.fn();
     render(<Onboarding onDone={done} />);
     const button = screen.getByRole('button', { name: 'Создать семью' });
     expect(screen.getByLabelText('Как вас называть')).toHaveValue('');
     expect(button).toBeDisabled();
-    await userEvent.type(screen.getByLabelText('Как вас называть'), 'Мама');
+    await userEvent.type(screen.getByLabelText('Как вас называть'), 'Аня');
+    expect(button).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Сын' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Мама' }));
+    expect(screen.getByRole('button', { name: 'Мама' })).toHaveAttribute('aria-pressed', 'true');
     await userEvent.click(screen.getByRole('button', { name: 'Розовый' }));
     expect(screen.getByRole('button', { name: 'Розовый' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: 'Розовый' })).toHaveTextContent('М');
+    expect(screen.getByRole('button', { name: 'Розовый' })).toHaveTextContent('А');
     await userEvent.click(button);
     await waitFor(() => expect(done).toHaveBeenCalled());
-    expect(create).toHaveBeenCalledWith('Наша семья', 'Мама', '#E0457B');
+    expect(create).toHaveBeenCalledWith('Наша семья', 'Аня', '#E0457B', 'mother');
   });
 
   it('starts from the name the Google account gives', () => {

@@ -252,7 +252,7 @@
 
 /* Notices, offers and the shopping list (ported from mockups/styles.css) */
 .notice { display: flex; align-items: center; gap: 12px; margin: 0 16px 14px; padding: 14px 16px; border-radius: 22px; background: color-mix(in oklab, var(--k-meal) var(--k-tint), var(--k-card)); }
-.row.offer .row-btn { flex: 1; min-width: 0; }
+.row.offer .row-btn, .row.member .row-btn { flex: 1; min-width: 0; }
 .amount-btn { flex: none; min-width: 44px; min-height: 44px; text-align: right; border: 0; background: none; padding: 8px 0 8px 10px; font: inherit; color: inherit; cursor: pointer; }
 
 /* «Что покушать»: idea cards and the recipe sheet (ported from mockups/styles.css) */
@@ -276,8 +276,8 @@ a.more, a.av { text-decoration: none; }
 .sheet:focus { outline: none; }
 
 /* Member colour choice: the picked circle carries the person's initial and the member ring. */
-.color-pick { border: 0; padding: 0; margin: 6px 0 14px; min-width: 0; }
-.color-pick legend { padding: 0; margin-bottom: 10px; font: 600 14px var(--font); color: var(--k-ink-2); }
+.color-pick, .kin-pick { border: 0; padding: 0; margin: 6px 0 14px; min-width: 0; }
+.color-pick legend, .kin-pick legend { padding: 0; margin-bottom: 10px; font: 600 14px var(--font); color: var(--k-ink-2); }
 .color-row { display: flex; gap: 16px; }
 .color-pick .av { width: 48px; height: 48px; font-size: 19px; cursor: pointer; transition: box-shadow 200ms var(--ease); }
 .color-pick .av[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--k-card), 0 0 0 5px var(--c); }

@@ -12,16 +12,15 @@ import { loadThemeChoice, saveThemeChoice } from './syncTheme';
 import { setThemeChoice } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import type { Member } from '../family/useFamily';
-import { addProfileWithoutSignIn, createInvite, householdName, setRole, updateMyProfile } from '../family/api';
+import { addProfileWithoutSignIn, createInvite, householdName, setRole, updateMember, updateMyProfile } from '../family/api';
 import ColorPicker from '../family/ColorPicker';
+import KinPicker from '../family/KinPicker';
+import { roleLine, type Kin } from '../family/kin';
 import { firstFreeColor, memberColor } from '../family/colors';
 import Sheet from '../menu/Sheet';
 import { useToast } from '../shell/toastContext';
 import { familyErrorText, inviteUrl } from '../family/invite';
 
-const roleText = (m: Member) => (m.role === 'parent'
-  ? `Родитель${m.is_owner ? ' · владелец семьи' : ''}`
-  : m.user_id ? 'Ребёнок · свой вход' : 'Ребёнок · без входа, ведут родители');
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const INVITE_DAYS = 7;
 type Invite = { url: string; role: 'parent' | 'child'; until: Date };
@@ -31,7 +30,7 @@ export default function Settings({ me, members, reload }: { me: Member; members:
   const toast = useToast();
   const parent = me.role === 'parent';
   const [family, setFamily] = useState<string | null>(null);
-  const [sheet, setSheet] = useState<'profile' | 'toddler' | null>(null);
+  const [sheet, setSheet] = useState<'profile' | 'toddler' | Member | null>(null);
   useEffect(() => {
     // A choice made on this phone wins over the one stored for the member.
     let mine: string | null = null;
@@ -71,13 +70,15 @@ export default function Settings({ me, members, reload }: { me: Member; members:
     catch (e) { toast({ text: familyErrorText((e as Error).message) }); }
   };
   const others = members.filter((m) => m.id !== me.id);
+  // The database lets parents edit everyone but the owner; the owner edits their own row in «Изменить».
+  const editable = (m: Member) => parent && m.id !== me.id && !m.is_owner;
 
   return (
     <>
       <Header title="Настройки" back />
       <section className="card profile">
         <span className="av lg" style={{ ['--c' as string]: memberColor(me.color) }} aria-hidden="true">{me.name.slice(0, 1)}</span>
-        <span className="row-main"><b>{me.name}</b><small>{roleText(me)}</small></span>
+        <span className="row-main"><b>{me.name}</b><small>{roleLine(me)}</small></span>
         <button type="button" className="btn soft sm" onClick={() => setSheet('profile')}>Изменить</button>
       </section>
       <ThemePicker onPick={(c) => { saveThemeChoice(me.id, c); }} />
@@ -85,9 +86,19 @@ export default function Settings({ me, members, reload }: { me: Member; members:
         <section className="card">
           <div className="card-h"><h2>{family ? `Семья «${family}»` : 'Семья'}</h2></div>
           {members.map((m) => (
-            <div className="row" key={m.id}>
-              <span className="av sm" style={{ ['--c' as string]: memberColor(m.color) }} aria-hidden="true">{m.name.slice(0, 1)}</span>
-              <span className="row-main"><b>{m.name}</b><small>{roleText(m)}</small></span>
+            <div className="row member" key={m.id}>
+              {editable(m) ? (
+                <button type="button" className="row-btn" aria-label={`${m.name}, ${roleLine(m)}: изменить`} onClick={() => setSheet(m)}>
+                  <span className="av sm" style={{ ['--c' as string]: memberColor(m.color) }} aria-hidden="true">{m.name.slice(0, 1)}</span>
+                  <span className="row-main"><b>{m.name}</b><small>{roleLine(m)}</small></span>
+                  <Icon name="chev" className="chev" />
+                </button>
+              ) : (
+                <>
+                  <span className="av sm" style={{ ['--c' as string]: memberColor(m.color) }} aria-hidden="true">{m.name.slice(0, 1)}</span>
+                  <span className="row-main"><b>{m.name}</b><small>{roleLine(m)}</small></span>
+                </>
+              )}
               {me.is_owner && !m.is_owner && m.user_id ? (
                 <button type="button" className="more" aria-label={`${m.name}: сделать ${m.role === 'parent' ? 'ребёнком' : 'родителем'}`} onClick={() => switchRole(m)}>
                   {m.role === 'parent' ? 'Сделать ребёнком' : 'Сделать родителем'}
@@ -122,34 +133,42 @@ export default function Settings({ me, members, reload }: { me: Member; members:
         {msg ? <p className="note" role="status">{msg}</p> : null}
       </section>
       {sheet === 'profile' ? (
-        <PersonSheet title="Ваш профиль" name={me.name} color={me.color} taken={others} save="Сохранить" onClose={() => setSheet(null)}
-          onSave={async (name, color) => { await updateMyProfile(me, name, color); reload(); toast({ text: 'Профиль сохранён' }); }} />
+        <PersonSheet title="Ваш профиль" name={me.name} color={me.color} kin={me.kin ?? null} role={me.role} taken={others} save="Сохранить" onClose={() => setSheet(null)}
+          onSave={async (name, color, kin) => { await updateMyProfile(name, color, kin); reload(); toast({ text: 'Профиль сохранён' }); }} />
       ) : null}
       {sheet === 'toddler' ? (
-        <PersonSheet title="Малыш без входа" sub="Ест то же, что все, порция — половина взрослой. Его рацион ведут родители." name="" color={firstFreeColor(members)} taken={members}
+        <PersonSheet title="Малыш без входа" sub="Ест то же, что все, порция — половина взрослой. Его рацион ведут родители." name="" color={firstFreeColor(members)} kin={null} role="child" kinLegend="Кто в семье" taken={members}
           placeholder="Например, Дима" save="Добавить в семью" onClose={() => setSheet(null)}
-          onSave={async (name, color) => { await addProfileWithoutSignIn(me.household_id, name.trim(), color, 0.5); reload(); toast({ text: `${name.trim()} теперь в семье` }); }} />
+          onSave={async (name, color, kin) => { await addProfileWithoutSignIn(me.household_id, name.trim(), color, 0.5, kin); reload(); toast({ text: `${name.trim()} теперь в семье` }); }} />
+      ) : null}
+      {sheet && typeof sheet === 'object' ? (
+        <PersonSheet title={sheet.name} name={sheet.name} color={sheet.color} kin={sheet.kin ?? null} role={sheet.role} kinLegend="Кто в семье" taken={members.filter((m) => m.id !== sheet.id)}
+          save="Сохранить" onClose={() => setSheet(null)}
+          onSave={async (name, color, kin) => { await updateMember(sheet, name, color, kin); reload(); toast({ text: `${name.trim()}: сохранено` }); }} />
       ) : null}
     </>
   );
 }
 
-// Name and colour of a person: one's own profile, or a toddler without a login.
-function PersonSheet({ title, sub, name: start, color: startColor, taken, placeholder, save, onSave, onClose }: {
-  title: string; sub?: string; name: string; color: string; taken: Member[]; placeholder?: string; save: string;
-  onSave: (name: string, color: string) => Promise<void>; onClose: () => void;
+// Name, place in the family and colour of a person: one's own profile, another member, or a toddler without a login.
+function PersonSheet({ title, sub, name: start, color: startColor, kin: startKin, role, kinLegend, taken, placeholder, save, onSave, onClose }: {
+  title: string; sub?: string; name: string; color: string; kin: Kin | null; role: Member['role']; kinLegend?: string; taken: Member[]; placeholder?: string; save: string;
+  onSave: (name: string, color: string, kin: Kin | null) => Promise<void>; onClose: () => void;
 }) {
   const [name, setName] = useState(start);
   const [color, setColor] = useState(startColor);
+  const [kin, setKin] = useState(startKin);
   const [error, setError] = useState('');
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    try { await onSave(name, color); onClose(); } catch (err) { setError(familyErrorText((err as Error).message)); }
+    try { await onSave(name, color, kin); onClose(); } catch (err) { setError(familyErrorText((err as Error).message)); }
   };
   return (
-    <Sheet title={title} sub={sub} onClose={onClose} keepOnBackdrop={name.trim() !== start.trim() || color !== startColor} actions={<button type="submit" form="person-form" className="btn" disabled={!name.trim()}>{save}</button>}>
+    <Sheet title={title} sub={sub} onClose={onClose} keepOnBackdrop={name.trim() !== start.trim() || color !== startColor || kin !== startKin}
+      actions={<button type="submit" form="person-form" className="btn" disabled={!name.trim() || !kin}>{save}</button>}>
       <form id="person-form" style={{ margin: '0 16px' }} onSubmit={submit}>
-        <label className="field">Имя<input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder={placeholder} autoFocus enterKeyHint="done" /></label>
+        <label className="field">Имя<input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder={placeholder} autoFocus={!start} enterKeyHint="done" /></label>
+        <KinPicker value={kin} onChange={setKin} role={role} legend={kinLegend} />
         <ColorPicker value={color} onChange={setColor} letter={name.trim().slice(0, 1).toUpperCase()} taken={taken} />
         {error ? <p className="form-error" role="alert">{error}</p> : null}
       </form>

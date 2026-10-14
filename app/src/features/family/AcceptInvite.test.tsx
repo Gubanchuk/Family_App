@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import AcceptInvite from './AcceptInvite';
+import { acceptInvite } from './api';
 
 const api = vi.hoisted(() => ({ info: null as unknown }));
 vi.mock('./api', () => ({
@@ -22,10 +23,13 @@ describe('AcceptInvite', () => {
         </Routes>
       </MemoryRouter>,
     );
-    await userEvent.type(screen.getByLabelText('Как вас называть'), 'Сын');
+    await userEvent.type(screen.getByLabelText('Как вас называть'), 'Тёма');
+    expect(screen.getByRole('button', { name: 'Вступить в семью' })).toBeDisabled();
+    await userEvent.click(screen.getByRole('button', { name: 'Сын' }));
     await userEvent.click(screen.getByRole('button', { name: 'Вступить в семью' }));
     expect(await screen.findByText('Главная')).toBeInTheDocument();
     expect(done).toHaveBeenCalled();
+    expect(acceptInvite).toHaveBeenCalledWith('ABCD234XYZ', 'Тёма', '#1FA463', 'son');
   });
 
   it('keeps the invite until the family has loaded, so «Создать семью» never flashes', async () => {
@@ -36,7 +40,8 @@ describe('AcceptInvite', () => {
       <Route path="/join" element={<AcceptInvite code="ABCD234XYZ" onDone={done} />} />
       <Route path="/" element={<p>Главная</p>} />
     </Routes></MemoryRouter>);
-    await userEvent.type(screen.getByLabelText('Как вас называть'), 'Сын');
+    await userEvent.type(screen.getByLabelText('Как вас называть'), 'Тёма');
+    await userEvent.click(screen.getByRole('button', { name: 'Сын' }));
     await userEvent.click(screen.getByRole('button', { name: 'Вступить в семью' }));
     await waitFor(() => expect(done).toHaveBeenCalled());
     expect(sessionStorage.getItem('fa.invite')).toBe('ABCD234XYZ');
@@ -45,10 +50,11 @@ describe('AcceptInvite', () => {
   });
 
   it('names the family, who is there and the role, and keeps colours others have', async () => {
-    api.info = { family: 'Губанчуки', role: 'child', expires_at: '2026-10-21T00:00:00Z', profile: null, members: [{ name: 'Папа', color: '#2F6FDB' }, { name: 'Мама', color: '#1FA463' }] };
+    api.info = { family: 'Губанчуки', role: 'child', expires_at: '2026-10-21T00:00:00Z', profile: null, members: [{ name: 'Андрей', color: '#2F6FDB', kin: 'father' }, { name: 'Мама', color: '#1FA463', kin: 'mother' }] };
     render(<MemoryRouter><AcceptInvite code="ABCD234XYZ" onDone={vi.fn()} /></MemoryRouter>);
     expect(await screen.findByRole('heading', { name: 'Вас зовут в семью «Губанчуки»' })).toBeInTheDocument();
-    expect(screen.getByText(/Там уже: Папа, Мама\. Вы будете ребёнком/)).toBeInTheDocument();
+    expect(screen.getByText(/Там уже: Андрей \(папа\), Мама\. Вы будете ребёнком/)).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Кто вы в семье' })).toHaveTextContent('СынДочь');
     expect(screen.getByRole('button', { name: 'Зелёный, занят: Мама' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Розовый' })).toHaveAttribute('aria-pressed', 'true');
     api.info = null;

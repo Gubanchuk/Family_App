@@ -24,10 +24,13 @@ async function ready() {
 describe('HomePage', () => {
   it('greets, shows the family and today with the next meal large', async () => {
     const db = await ready();
-    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    render(<MemoryRouter><HomePage me={papa} members={[papa, { ...mama, name: 'Оля', kin: 'mother' }, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
     expect(await screen.findByRole('heading', { name: 'Доброе утро, Папа' })).toBeInTheDocument();
     expect(screen.getByText('вторник, 13 октября')).toBeInTheDocument();
-    expect(await screen.findByText('без входа')).toBeInTheDocument();
+    // Who someone is in the family; the bare role only while nobody has said.
+    expect(await screen.findByText('мама')).toBeInTheDocument();
+    expect(screen.getByText('родитель')).toBeInTheDocument();
+    expect(screen.getByText('без входа')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Ужин в 19:00 — котлеты' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Борщ, 2-й день из 7/ })).toHaveTextContent('Обед');
     expect(screen.getByRole('link', { name: /Покупки/ })).toHaveTextContent('9');

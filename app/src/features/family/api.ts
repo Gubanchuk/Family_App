@@ -1,10 +1,19 @@
 import { supabase } from '../../lib/supabase';
 import type { Member } from './useFamily';
+import type { Kin } from './kin';
 
 export const MEMBER_COLORS = ['#2F6FDB', '#E0457B', '#1FA463', '#F2A900'];
 
-export async function createHousehold(name: string, myName: string, color: string) {
-  const { data, error } = await supabase.rpc('create_household', { p_name: name, p_my_name: myName, p_color: color });
+type Reply = { data: unknown; error: { code?: string; message: string } | null };
+// A database without the kin column rejects the field; the call is repeated without it,
+// so the person is still saved while the app runs ahead of the database.
+async function withKin(call: (sendKin: boolean) => PromiseLike<Reply>): Promise<Reply> {
+  const r = await call(true);
+  return r.error?.code === 'PGRST202' || r.error?.code === 'PGRST204' ? call(false) : r;
+}
+
+export async function createHousehold(name: string, myName: string, color: string, kin: Kin | null = null) {
+  const { data, error } = await withKin((k) => supabase.rpc('create_household', { p_name: name, p_my_name: myName, p_color: color, ...(k && kin ? { p_kin: kin } : {}) }));
   if (error) throw new Error(error.message);
   return data as string;
 }
@@ -15,14 +24,14 @@ export async function createInvite(household: string, role: 'parent' | 'child', 
   return data as string;
 }
 
-export async function acceptInvite(code: string, myName: string, color: string) {
-  const { data, error } = await supabase.rpc('accept_invite', { p_code: code, p_my_name: myName, p_color: color });
+export async function acceptInvite(code: string, myName: string, color: string, kin: Kin | null = null) {
+  const { data, error } = await withKin((k) => supabase.rpc('accept_invite', { p_code: code, p_my_name: myName, p_color: color, ...(k && kin ? { p_kin: kin } : {}) }));
   if (error) throw new Error(error.message);
   return data as string;
 }
 
-export async function addProfileWithoutSignIn(household: string, name: string, color: string, portion: number) {
-  const { error } = await supabase.from('members').insert({ household_id: household, name, color, role: 'child', portion });
+export async function addProfileWithoutSignIn(household: string, name: string, color: string, portion: number, kin: Kin | null = null) {
+  const { error } = await withKin((k) => supabase.from('members').insert({ household_id: household, name, color, role: 'child', portion, ...(k && kin ? { kin } : {}) }));
   if (error) throw new Error(error.message);
 }
 
@@ -31,7 +40,7 @@ export async function setRole(member: Member, role: 'parent' | 'child') {
   if (error) throw new Error(error.message);
 }
 
-export type InviteInfo = { family: string; role: 'parent' | 'child'; expires_at: string; profile: string | null; members: Array<{ name: string; color: string }> };
+export type InviteInfo = { family: string; role: 'parent' | 'child'; expires_at: string; profile: string | null; members: Array<{ name: string; color: string; kin?: Kin | null }> };
 
 // null when the server cannot tell (no network, or the function is not installed yet): screens fall back to plain words.
 export async function inviteInfo(code: string): Promise<InviteInfo | { error: string } | null> {
@@ -40,16 +49,15 @@ export async function inviteInfo(code: string): Promise<InviteInfo | { error: st
   return data as InviteInfo;
 }
 
-// A parent can also edit the row directly; that keeps profile editing working for parents
-// before the update_my_profile function reaches the server.
-export async function updateMyProfile(me: Member, name: string, color: string) {
-  const { error } = await supabase.rpc('update_my_profile', { p_name: name, p_color: color });
-  if (!error) return;
-  if (error.code === 'PGRST202' && me.role === 'parent') {
-    const r = await supabase.from('members').update({ name: name.trim(), color }).eq('id', me.id);
-    if (!r.error) return;
-  }
-  throw new Error(error.message);
+export async function updateMyProfile(name: string, color: string, kin: Kin | null) {
+  const { error } = await withKin((k) => supabase.rpc('update_my_profile', { p_name: name, p_color: color, ...(k && kin ? { p_kin: kin } : {}) }));
+  if (error) throw new Error(error.message);
+}
+
+// Parents edit the other members' rows directly; the database keeps the owner's row to the owner.
+export async function updateMember(m: Member, name: string, color: string, kin: Kin | null) {
+  const { error } = await withKin((k) => supabase.from('members').update({ name: name.trim(), color, ...(k && kin ? { kin } : {}) }).eq('id', m.id));
+  if (error) throw new Error(error.message);
 }
 
 export async function householdName(id: string): Promise<string | null> {

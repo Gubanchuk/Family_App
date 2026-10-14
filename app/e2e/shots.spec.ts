@@ -32,7 +32,8 @@ test('screens of the create flows', async ({ browser }) => {
   await signUp(solo.page);
   await expect(solo.page.getByRole('heading', { name: 'Создать семью' })).toBeVisible();
   await shot(solo.page, '03-onboarding');
-  await solo.page.getByLabel('Как вас называть').fill('Мама');
+  await solo.page.getByLabel('Как вас называть').fill('Аня');
+  await solo.page.getByRole('button', { name: 'Мама', exact: true }).click();
   await solo.page.getByRole('button', { name: 'Розовый' }).click();
   await shot(solo.page, '03b-onboarding-filled');
   await solo.close();
@@ -51,6 +52,7 @@ test('screens of the create flows', async ({ browser }) => {
   await p.getByRole('button', { name: /^Добавить малыша/ }).click();
   await shot(p, '06b-toddler-sheet');
   await p.getByLabel('Имя').fill('Дима');
+  await p.getByRole('dialog').getByRole('button', { name: 'Сын', exact: true }).click();
   await p.getByRole('button', { name: 'Добавить в семью' }).click();
   await p.waitForTimeout(400);
   await shot(p, '06c-after-toddler');
@@ -68,9 +70,10 @@ test('screens of the create flows', async ({ browser }) => {
   await son.page.getByLabel('Почта').fill(`son-shots-${Date.now()}@example.com`);
   await son.page.getByLabel('Пароль').fill('e2e-pass-12345');
   await son.page.getByRole('button', { name: 'Создать вход' }).click();
-  await expect(son.page.getByRole('heading', { name: 'Вас пригласили в семью' })).toBeVisible();
+  await expect(son.page.getByRole('heading', { name: /^Вас (пригласили|зовут) в семью/ })).toBeVisible();
   await shot(son.page, '09-accept-invite');
   await son.page.getByLabel('Как вас называть').fill('Сын');
+  await son.page.getByRole('button', { name: 'Сын', exact: true }).click();
   await son.page.getByRole('button', { name: 'Вступить' }).click();
   await expect(son.page.getByRole('heading', { level: 1, name: /, Сын$/ })).toBeVisible();
   await shot(son.page, '10-son-home', true);

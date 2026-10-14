@@ -28,9 +28,10 @@ export async function signUp(page: Page, path = '/') {
 
 const greeted = (page: Page, name: string) => expect(page.getByRole('heading', { level: 1, name: new RegExp(`, ${name}$`) })).toBeVisible();
 
-export async function startFamily(page: Page, name: string) {
+export async function startFamily(page: Page, name: string, kin = 'Мама') {
   await signUp(page);
   await page.getByLabel('Как вас называть').fill(name);
+  await page.getByRole('group', { name: 'Кто вы в семье' }).getByRole('button', { name: kin, exact: true }).click();
   await page.getByRole('button', { name: 'Создать семью' }).click();
   await greeted(page, name);
 }
@@ -49,9 +50,10 @@ export async function inviteLink(page: Page, role: 'parent' | 'child'): Promise<
   return url.pathname + url.search;
 }
 
-export async function join(page: Page, invitePath: string, name: string) {
+export async function join(page: Page, invitePath: string, name: string, kin = 'Сын') {
   await signUp(page, invitePath);
   await page.getByLabel('Как вас называть').fill(name);
+  await page.getByRole('group', { name: 'Кто вы в семье' }).getByRole('button', { name: kin, exact: true }).click();
   await page.getByRole('button', { name: 'Вступить' }).click();
   await greeted(page, name);
 }
