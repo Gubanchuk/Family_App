@@ -25,4 +25,18 @@ describe('authErrorText', () => {
     expect(authErrorText({ message: 'Load failed' })).toBe('Нет связи с сервером. Проверьте интернет или войдите позже.');
     expect(authErrorText({ name: 'AuthRetryableFetchError', message: '{}' } as never)).toBe('Нет связи с сервером. Проверьте интернет или войдите позже.');
   });
+
+  it('explains a site built with a wrong server key instead of a plain failure', () => {
+    expect(authErrorText({ message: 'Invalid API key', status: 401 })).toBe('Приложение настроено с ошибкой: сервер не принимает его ключ. Скажите тому, кто его настраивал.');
+  });
+  it('explains letters the server may not send and addresses it rejects', () => {
+    expect(authErrorText({ code: 'email_address_not_authorized' })).toBe('Сервер пока не может отправить письмо на эту почту. Войдите через Google или попросите владельца семьи включить почту.');
+    expect(authErrorText({ code: 'email_address_invalid' })).toBe('Почта выглядит неправильно. Проверьте адрес.');
+    expect(authErrorText({ code: 'over_email_send_rate_limit' })).toBe('Слишком много писем подряд. Подождите час и попробуйте снова.');
+  });
+  it('explains closed sign-ups and a switched-off sign-in method', () => {
+    expect(authErrorText({ code: 'signup_disabled' })).toBe('Новые входы сейчас закрыты. Попросите владельца семьи.');
+    expect(authErrorText({ code: 'provider_disabled' })).toBe('Этот способ входа ещё не включён. Войдите по почте.');
+  });
 });
+

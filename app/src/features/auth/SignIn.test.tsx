@@ -26,9 +26,17 @@ describe('SignIn', () => {
 
   it('starts Google sign-in with a return to this site', async () => {
     const client = fakeClient({ error: null });
-    render(<SignIn client={client as never} />);
+    render(<SignIn client={client as never} googleReady={() => Promise.resolve(true)} />);
     await userEvent.click(screen.getByRole('button', { name: 'Войти через Google' }));
     expect(client.auth.signInWithOAuth).toHaveBeenCalledWith({ provider: 'google', options: { redirectTo: `${location.origin}/` } });
+  });
+
+  it('keeps the person here with a plain message while Google sign-in is switched off on the server', async () => {
+    const client = fakeClient({ error: null });
+    render(<SignIn client={client as never} googleReady={() => Promise.resolve(false)} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Войти через Google' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Вход через Google ещё не включён. Войдите по почте.');
+    expect(client.auth.signInWithOAuth).not.toHaveBeenCalled();
   });
 
   it('says to open the confirmation letter when sign-up needs it', async () => {

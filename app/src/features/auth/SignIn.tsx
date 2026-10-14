@@ -2,10 +2,11 @@ import { useState, type FormEvent } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
 import { authErrorText } from './errors';
+import { googleEnabled } from './providers';
 
 type AuthClient = Pick<SupabaseClient, 'auth'>;
 
-export default function SignIn({ client = supabase }: { client?: AuthClient }) {
+export default function SignIn({ client = supabase, googleReady = googleEnabled }: { client?: AuthClient; googleReady?: () => Promise<boolean | null> }) {
   const [mode, setMode] = useState<'in' | 'up'>('in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,6 +28,8 @@ export default function SignIn({ client = supabase }: { client?: AuthClient }) {
     else if (mode === 'up' && !r.data?.session) setNote(`Мы отправили письмо на ${email}. Откройте ссылку из письма — после неё вход откроется сам.`);
   };
   const google = async () => {
+    setError('');
+    if ((await googleReady()) === false) { setError('Вход через Google ещё не включён. Войдите по почте.'); return; }
     const r = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${location.origin}/` } });
     if (r.error) setError(authErrorText(r.error));
   };
