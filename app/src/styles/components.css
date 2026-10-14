@@ -345,3 +345,21 @@ a.more, a.av { text-decoration: none; }
 .fam.ring-seen .av { box-shadow: 0 0 0 3px var(--k-bg), 0 0 0 5px var(--k-rule); }
 .fam-plus { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; display: grid; place-items: center; border: 2px solid var(--k-bg); border-radius: 50%; background: var(--k-primary); color: var(--k-primary-ink); }
 .fam-plus .ic { width: 14px; height: 14px; }
+.se { grid-template-rows: 1fr auto; }
+.se-frame { position: relative; align-self: center; touch-action: none; }
+.se-tools { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); left: 8px; right: 8px; display: flex; gap: 8px; align-items: center; }
+.se-tools .sv-x { margin-left: 0; margin-right: auto; }
+.se-tools .sv-pill { min-width: 44px; font-size: 17px; }
+.se-trash { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: rgba(0, 0, 0, 0.5); font-size: 26px; transition: transform 150ms var(--ease); }
+.se-trash.hot { transform: translateX(-50%) scale(1.25); background: var(--k-urgent); }
+.se-bottom { flex-direction: column; align-items: stretch; max-width: 420px; }
+.se-publish { width: 100%; }
+.se-error { margin: 0 0 8px; text-align: center; color: #FFD7D7; font-size: 14px; }
+.se-type { position: fixed; inset: 0; z-index: 72; display: grid; align-content: center; justify-items: center; gap: 14px; padding: 24px; background: rgba(0, 0, 0, 0.6); }
+.se-type textarea { width: min(92vw, 420px); min-height: 90px; padding: 10px 14px; border: 0; border-radius: 14px; background: transparent; font: 800 28px/1.2 var(--font); text-align: center; resize: none; outline: none; }
+.se-colors { display: flex; gap: 10px; }
+.se-colors button { width: 30px; height: 30px; border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; cursor: pointer; }
+.se-colors button[aria-pressed="true"] { transform: scale(1.2); border-color: #FFFFFF; }
+.se-row { display: flex; gap: 10px; }
+.se-emojis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 0 12px 16px; }
+.se-emojis button { height: 52px; border: 0; border-radius: 12px; background: none; font-size: 30px; cursor: pointer; }

@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { Member } from '../family/useFamily';
 import { useStories } from './storiesContext';
@@ -29,5 +30,15 @@ describe('StoriesProvider', () => {
     const { default: StoriesProvider } = await import('./StoriesProvider');
     render(<StoriesProvider me={me} members={[me]}><Probe /></StoriesProvider>);
     expect(await screen.findByText('есть: unseen')).toBeInTheDocument();
+  });
+
+  it('says plainly when the picked file is neither a photo nor a video', async () => {
+    URL.createObjectURL = vi.fn(() => 'blob:x');
+    URL.revokeObjectURL = vi.fn();
+    const { default: StoriesProvider } = await import('./StoriesProvider');
+    render(<StoriesProvider me={me} members={[me]}><Probe /></StoriesProvider>);
+    await userEvent.upload(screen.getByLabelText('Файл для сторис'), new File(['%PDF'], 'a.pdf', { type: 'application/pdf' }), { applyAccept: false });
+    expect(await screen.findByRole('alert')).toHaveTextContent('Этот файл не фото и не видео.');
+    expect(screen.getByRole('button', { name: 'Опубликовать' })).toBeDisabled();
   });
 });
