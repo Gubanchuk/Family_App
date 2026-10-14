@@ -45,4 +45,12 @@ describe('timedFetch', () => {
     await vi.advanceTimersByTimeAsync(40_001);
     expect(await text).toBe('abababab');
   });
+
+  it('passes a «204 No Content» answer through even when the browser gives it an empty body stream', async () => {
+    // Chrome hands a 204 to fetch with a non-null, empty body; a Response with status 204 and a body cannot be built.
+    const noContent = { status: 204, statusText: 'No Content', ok: true, headers: new Headers(), body: new ReadableStream<Uint8Array>({ start(c) { c.close(); } }) } as unknown as Response;
+    const res = await timedFetch(15_000, (() => Promise.resolve(noContent)) as typeof fetch)('https://x.supabase.co/rest/v1/rpc/save_week');
+    expect(res.status).toBe(204);
+  });
 });
+

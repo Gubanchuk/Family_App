@@ -7,6 +7,8 @@ export const SUPABASE_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as st
 // The key auth-js would pick by default, named here so the app can read the stored session offline.
 export const AUTH_STORAGE_KEY = `sb-${new URL(SUPABASE_URL).hostname.split('.')[0]}-auth-token`;
 
+const NULL_BODY = [101, 103, 204, 205, 304];
+
 // supabase-js sets no timeout; a mobile network that goes silent mid-answer would hold sync forever.
 // The limit is on silence, not on the whole answer: every arriving chunk restarts it, so a slow but
 // moving download of the recipe base still completes.
@@ -26,7 +28,8 @@ export function timedFetch(ms = 15_000, base: typeof fetch = (...a) => fetch(...
     arm();
     let res: Response;
     try { res = await base(input, { ...init, signal: ctrl.signal }); } catch (e) { clearTimeout(timer); throw e; }
-    if (!res.body) { clearTimeout(timer); return res; }
+    // A «No Content» status cannot carry a body into a new Response, and Chrome still hands one over.
+    if (!res.body || NULL_BODY.includes(res.status)) { clearTimeout(timer); return res; }
     arm();
     const reader = res.body.getReader();
     const body = new ReadableStream<Uint8Array>({
