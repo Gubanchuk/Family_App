@@ -46,7 +46,9 @@ describe('family media bucket', { timeout: 60_000 }, () => {
   it('lets the owner of a file or a parent (for avatars) delete it', async () => {
     await put(MAMA, `${hh}/avatars/${ids['Дима']}/1.jpg`);
     await put(MAMA, `${hh}/stories/m.jpg`);
-    await asUser(db, SON, 'delete from storage.objects');
+    // A child cannot remove someone else's avatar. (A story file with no story behind it is fair game
+    // for the family, see the stories tests, so this check stays on avatars.)
+    await asUser(db, SON, "delete from storage.objects where name like '%/avatars/%'");
     expect((await rows(PAPA, 'select name from storage.objects order by name')).length).toBe(2);
     await asUser(db, PAPA, "delete from storage.objects where name like '%/avatars/%'");
     expect(await rows(PAPA, 'select name from storage.objects')).toEqual([{ name: `${hh}/stories/m.jpg` }]);
