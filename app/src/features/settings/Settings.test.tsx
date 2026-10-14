@@ -6,6 +6,8 @@ import Settings from './Settings';
 import { createInvite, setRole } from '../family/api';
 import type { Member } from '../family/useFamily';
 
+vi.mock('./FoodCard', () => ({ default: () => null }));
+vi.mock('./NotifyCard', () => ({ default: () => null }));
 vi.mock('./syncTheme', () => ({ saveThemeChoice: vi.fn(() => Promise.resolve()), loadThemeChoice: vi.fn(() => Promise.resolve(null)) }));
 vi.mock('../../lib/supabase', () => ({ supabase: { auth: { signOut: vi.fn() } } }));
 vi.mock('../family/api', () => ({

@@ -19,5 +19,7 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}', 'tests/**/*.test.ts'],
     // PGlite boots a full Postgres per test file; give setup hooks room under parallel load.
     hookTimeout: 60_000,
+    // The first import of a screen compiles a large module graph; under the parallel PGlite load it can pass 5 s.
+    testTimeout: 20_000,
   },
 });

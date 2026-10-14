@@ -3,6 +3,8 @@ import Header from '../shell/Header';
 import Icon from '../shell/Icon';
 import ThemePicker from './ThemePicker';
 import SyncStatus from './SyncStatus';
+import FoodCard from './FoodCard';
+import NotifyCard from './NotifyCard';
 import { loadThemeChoice, saveThemeChoice } from './syncTheme';
 import { setThemeChoice } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
@@ -74,6 +76,8 @@ export default function Settings({ me, members, reload }: { me: Member; members:
           )}
         </section>
       ) : null}
+      <FoodCard me={me} />
+      <NotifyCard me={me} />
       <SyncStatus />
       <section className="card">
         <div className="card-h"><h2>Вход</h2></div>
