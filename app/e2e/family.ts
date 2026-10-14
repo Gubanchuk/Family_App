@@ -9,7 +9,7 @@ export type Phone = { page: Page; offline: (on: boolean) => Promise<void>; close
 
 // Each family member gets a separate browser context: own storage, own session, own network switch.
 export async function phone(browser: Browser): Promise<Phone> {
-  const context = await browser.newContext({ ...devices['Pixel 7'], baseURL: BASE_URL, locale: 'ru-RU', timezoneId: 'Europe/Moscow' });
+  const context = await browser.newContext({ ...devices['Pixel 7'], baseURL: BASE_URL, locale: 'ru-RU', timezoneId: 'Europe/Moscow', permissions: ['clipboard-read', 'clipboard-write'] });
   const page = await context.newPage();
   return { page, offline: (on) => context.setOffline(on), close: () => context.close() };
 }
@@ -41,9 +41,10 @@ export const tab = (page: Page, name: 'Главная' | 'Меню' | 'Поку�
 export async function inviteLink(page: Page, role: 'parent' | 'child'): Promise<string> {
   await page.getByRole('link', { name: 'Настройки и профиль' }).click();
   await page.getByRole('button', { name: role === 'child' ? /^Пригласить ребёнка/ : /^Пригласить родителя/ }).click();
-  const link = page.getByText(/\/join\?code=/);
-  await expect(link).toBeVisible();
-  const url = new URL((await link.textContent())!.trim());
+  // The link is not printed on screen; it is taken the way a person does, with «Скопировать».
+  await expect(page.getByText(role === 'child' ? 'Ссылка для ребёнка' : 'Ссылка для родителя')).toBeVisible();
+  await page.getByRole('button', { name: 'Скопировать' }).click();
+  const url = new URL(String(await page.evaluate('navigator.clipboard.readText()')));
   await tab(page, 'Главная');
   return url.pathname + url.search;
 }
