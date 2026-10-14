@@ -11,7 +11,7 @@ type Ctx = SyncState & { pending: number; syncNow: () => Promise<void>; dismiss:
 export const SyncContext = createContext<Ctx>({ syncing: false, offline: false, pending: 0, syncedAt: null, message: '', syncNow: async () => {}, dismiss: () => {} });
 export const useSync = () => useContext(SyncContext);
 
-const REALTIME = ['weeks', 'week_slots', 'votes'];
+const REALTIME = ['weeks', 'week_slots', 'votes', 'dish_offers', 'shopping_items', 'shopping_marks', 'shop_trips', 'not_eat'];
 
 export function SyncProvider({ householdId, portions = 3.5, children, client = supabase, db = localDb }: { householdId: string; portions?: number; children: ReactNode; client?: SupabaseClient; db?: LocalDb }) {
   const [state, setState] = useState<SyncState>({ syncing: false, offline: false, syncedAt: null, message: '' });

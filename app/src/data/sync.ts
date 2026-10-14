@@ -5,7 +5,7 @@ type Row = Record<string, unknown>;
 type Client = Pick<SupabaseClient, 'from' | 'rpc'>;
 type ServerError = { message: string; code?: string };
 const PAGE = 1000;
-const TABLES: SyncTable[] = ['week_templates', 'template_slots', 'weeks', 'week_slots', 'votes'];
+const TABLES: SyncTable[] = ['week_templates', 'template_slots', 'weeks', 'week_slots', 'votes', 'dish_offers', 'shopping_items', 'shopping_marks', 'shop_trips', 'not_eat'];
 
 // Only answers about the data itself are refusals: our triggers (P0001), row level security (42501),
 // constraints (23xxx), bad values (22xxx), schema errors (42xxx). Everything else — no network,

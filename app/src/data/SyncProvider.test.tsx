@@ -75,4 +75,15 @@ describe('SyncProvider', () => {
     await act(async () => { document.dispatchEvent(new Event('visibilitychange')); });
     await waitFor(() => expect(store.votes).toHaveLength(1));
   });
+
+  it('remembers the family portions and listens to shopping changes', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    const tables: string[] = [];
+    const channel = { on(_e: unknown, f: { table: string }) { tables.push(f.table); return this; }, subscribe() { return this; } };
+    const client = Object.assign(fake.client as object, { channel: () => channel, removeChannel() {} });
+    render(<SyncProvider householdId="h1" portions={3.5} client={client as never} db={db}><Probe /></SyncProvider>);
+    await waitFor(async () => expect((await db.meta.get('family_portions'))?.value).toBe(3.5));
+    expect(tables).toEqual(expect.arrayContaining(['shopping_items', 'shopping_marks', 'dish_offers', 'shop_trips', 'not_eat']));
+  });
 });
