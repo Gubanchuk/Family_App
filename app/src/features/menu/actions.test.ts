@@ -16,7 +16,7 @@ describe('menu actions', () => {
     await replaceMeal(db, week, 1, 'dinner', { fromSlot: src });
     const s = await db.week_slots.get(['w-cur', 1, 'dinner']);
     expect([s?.dish_id, s?.side_id]).toEqual(['mn-plov', 'side-grechka']);
-    expect(await db.outbox.count()).toBe(1);
+    expect(await db.outbox.where('table').equals('week_slots').count()).toBe(1);
   });
 
   it('replaces one meal with any recipe and its first side', async () => {
@@ -33,7 +33,7 @@ describe('menu actions', () => {
     await replaceDay(db, week, 1, templateDays('quick', 'mn-plov', 'sp-ukha').filter((s) => s.day === 5));
     const day = await db.week_slots.where('week_id').equals('w-cur').filter((s) => s.day === 1).toArray();
     expect(day.map((s) => s.dish_id).sort()).toEqual(['br-kasha', 'mn-plov', 'sn-yabloki', 'sp-ukha'].sort());
-    expect(await db.outbox.count()).toBe(4);
+    expect(await db.outbox.where('table').equals('week_slots').count()).toBe(4);
   });
 
   it('lets only parents edit an approved week', () => {

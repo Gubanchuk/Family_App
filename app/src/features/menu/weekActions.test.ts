@@ -15,7 +15,7 @@ describe('week actions', () => {
     const w = await setWeekFromTemplate(db, { household: 'h1', startsOn: '2026-10-12', template: 'autumn', status: 'approved', by: 'm-papa' });
     expect(w.status).toBe('approved');
     expect(await db.week_slots.where('week_id').equals(w.id).count()).toBe(28);
-    const queued = await db.outbox.toArray();
+    const queued = await db.outbox.where('table').equals('weeks').toArray();
     expect(queued.map((o) => o.rpc)).toEqual(['save_week']);
     expect((queued[0].row.p_slots as unknown[]).length).toBe(28);
   });

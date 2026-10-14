@@ -1,4 +1,5 @@
 import { writeLocal, writeWeekLocal } from '../../data/sync';
+import { regenerateWeekList } from '../shop/menuList';
 import type { LocalDb, Week } from '../../data/db';
 import type { Member } from '../family/useFamily';
 
@@ -21,6 +22,7 @@ export async function setWeekFromTemplate(db: LocalDb, a: { household: string; s
     week_id: week.id, household_id: a.household, day: s.day, meal: s.meal,
     dish_id: s.dish_id, side_id: s.side_id, salad_id: s.salad_id, simple: s.simple,
   })));
+  await regenerateWeekList(db, week.id);
   return week;
 }
 
@@ -30,4 +32,5 @@ export async function voteWeek(db: LocalDb, week: Week, member: Member, value: '
 
 export async function approveWeek(db: LocalDb, week: Week, parent: Member) {
   await writeLocal(db, 'weeks', [{ ...week, status: 'approved', approved_by: parent.id }]);
+  await regenerateWeekList(db, week.id);
 }

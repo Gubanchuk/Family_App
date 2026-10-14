@@ -1,4 +1,5 @@
 import { writeLocal } from '../../data/sync';
+import { regenerateWeekList } from '../shop/menuList';
 import type { LocalDb, Recipe, TemplateSlot, Week, WeekSlot } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import type { Meal } from './week';
@@ -17,8 +18,10 @@ export async function replaceMeal(db: LocalDb, week: Week, day: number, meal: Me
     ? src.fromSlot
     : { dish_id: src.recipe.id, side_id: meal === 'dinner' ? src.sides[0] ?? null : null, salad_id: null, simple: null };
   await writeLocal(db, 'week_slots', [slotRow(week, day, meal, s)]);
+  await regenerateWeekList(db, week.id);
 }
 
 export async function replaceDay(db: LocalDb, week: Week, day: number, src: Array<TemplateSlot | WeekSlot>) {
   await writeLocal(db, 'week_slots', src.map((s) => slotRow(week, day, s.meal, s)));
+  await regenerateWeekList(db, week.id);
 }
