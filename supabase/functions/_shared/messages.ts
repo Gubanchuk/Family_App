@@ -27,3 +27,17 @@ export function compose(e: Ev, today: string) {
   }
   return { title: `${e.author} идёт в магазин`, body: 'Добавьте в список, что нужно купить.', url: '/shop', pref: 'shop', tag: 'shop' };
 }
+
+type Row = Record<string, unknown>;
+
+// One push per version of an event: a week re-proposed with another template or by someone else is news again.
+export function eventVersion(table: string, row: Row): string {
+  return table === 'weeks' ? `${row.template_id}:${row.proposed_by}` : '';
+}
+
+// A trip or an offer queued offline can reach the server hours later; by then the push would mislead.
+export function isStale(table: string, row: Row, now = Date.now()): boolean {
+  if (table === 'shop_trips') return now - Date.parse(String(row.started_at)) > 3600 * 1000;
+  if (table === 'dish_offers') return String(row.on_date) < new Date(now + 3 * 3600 * 1000).toISOString().slice(0, 10);
+  return false;
+}

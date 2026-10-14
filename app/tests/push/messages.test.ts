@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { compose } from '../../../supabase/functions/_shared/messages';
+import { compose, eventVersion, isStale } from '../../../supabase/functions/_shared/messages';
 
 describe('push texts', () => {
   const today = '2026-10-13';
@@ -15,5 +15,17 @@ describe('push texts', () => {
   });
   it('announces a shop trip', () => {
     expect(compose({ kind: 'shop_trips', author: 'Папа' }, today)).toEqual({ title: 'Папа идёт в магазин', body: 'Добавьте в список, что нужно купить.', url: '/shop', pref: 'shop', tag: 'shop' });
+  });
+
+  it('versions a week proposal by template and author, so a new proposal is pushed again', () => {
+    expect(eventVersion('weeks', { template_id: 'quick', proposed_by: 'm1' })).toBe('quick:m1');
+    expect(eventVersion('dish_offers', { id: 'x' })).toBe('');
+  });
+  it('drops news that is already stale', () => {
+    const now = Date.parse('2026-10-13T15:00:00Z');
+    expect(isStale('shop_trips', { started_at: '2026-10-13T13:30:00Z' }, now)).toBe(true);
+    expect(isStale('shop_trips', { started_at: '2026-10-13T14:30:00Z' }, now)).toBe(false);
+    expect(isStale('dish_offers', { on_date: '2026-10-12' }, now)).toBe(true);
+    expect(isStale('dish_offers', { on_date: '2026-10-13' }, now)).toBe(false);
   });
 });

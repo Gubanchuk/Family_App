@@ -77,4 +77,22 @@ describe('shopping schema', { timeout: 60_000 }, () => {
     expect(await rows(SON, 'select endpoint from public.push_subscriptions')).toEqual([{ endpoint: 'https://push.example/1' }]);
     await expect(asUser(db, PAPA, 'select * from public.push_log')).rejects.toThrow();
   });
+
+  it('keeps a bought menu line as it was bought', async () => {
+    await asUser(db, MAMA, "insert into public.shopping_marks (item_id, household_id, bought, by_member) values ('m:x:картофель', $1, true, $2)", [hh, id.mama]);
+    await expect(asUser(db, PAPA, "update public.shopping_items set qty = 6000, qty_text = '6 кг' where id = 'm:x:картофель'")).rejects.toThrow(/already_bought/);
+    await expect(asUser(db, PAPA, "update public.shopping_items set deleted_at = now() where id = 'm:x:картофель'")).rejects.toThrow(/already_bought/);
+    expect(await rows(PAPA, "select qty_text, deleted_at from public.shopping_items where id = 'm:x:картофель'")).toEqual([{ qty_text: '3 кг', deleted_at: null }]);
+  });
+
+  it('still recounts a menu line that nobody has bought', async () => {
+    await asUser(db, PAPA, "update public.shopping_items set qty = 6000, qty_text = '6 кг' where id = 'm:x:картофель'");
+    expect(await rows(PAPA, "select qty_text from public.shopping_items where id = 'm:x:картофель'")).toEqual([{ qty_text: '6 кг' }]);
+  });
+
+  it('logs a push once per version of an event', async () => {
+    await db.query("insert into public.push_log (kind, ref_id, version) values ('weeks', '11111111-1111-4111-8111-111111111111', 'quick:a')");
+    await db.query("insert into public.push_log (kind, ref_id, version) values ('weeks', '11111111-1111-4111-8111-111111111111', 'autumn:b')");
+    await expect(db.query("insert into public.push_log (kind, ref_id, version) values ('weeks', '11111111-1111-4111-8111-111111111111', 'quick:a')")).rejects.toThrow();
+  });
 });

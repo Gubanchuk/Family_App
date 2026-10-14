@@ -1,7 +1,7 @@
 // Sends Web Push for a week proposal, a dish offer or a shop trip. Called by a database trigger
 // with { table, id }; re-reads the row itself, so a forged call can only repeat a real event once.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { compose, type Ev } from '../_shared/messages.ts';
+import { compose, eventVersion, isStale, type Ev } from '../_shared/messages.ts';
 import { sendPush } from '../_shared/webpush.ts';
 
 const TABLES = ['weeks', 'dish_offers', 'shop_trips'];
@@ -19,11 +19,12 @@ Deno.serve(async (req) => {
   const { table, id } = await req.json().catch(() => ({}));
   if (!TABLES.includes(table) || typeof id !== 'string') return Response.json({ skipped: 'bad request' });
   const db = createClient(Deno.env.get('SUPABASE_URL')!, serverKey(), { auth: { persistSession: false } });
-  const { error: claimed } = await db.from('push_log').insert({ kind: table, ref_id: id });
-  if (claimed) return Response.json({ skipped: 'already sent' });
-
+  // Read the event first, then claim it: junk ids never reach the log, and each version is pushed once.
   const { data: row } = await db.from(table).select('*').eq('id', id).maybeSingle();
   if (!row) return Response.json({ skipped: 'no row' });
+  if (isStale(table, row)) return Response.json({ skipped: 'stale' });
+  const { error: claimed } = await db.from('push_log').insert({ kind: table, ref_id: id, version: eventVersion(table, row) });
+  if (claimed) return Response.json({ skipped: 'already sent' });
   const authorId: string = table === 'weeks' ? row.proposed_by : table === 'dish_offers' ? row.from_member : row.member_id;
   const { data: members } = await db.from('members').select('id, name, user_id').eq('household_id', row.household_id).is('deleted_at', null);
   const author = members?.find((m) => m.id === authorId)?.name ?? 'Кто-то';

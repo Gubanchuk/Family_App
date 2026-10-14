@@ -55,7 +55,11 @@ const REJECT_TEXT: Record<string, string> = {
   weeks_household_id_starts_on_key: 'На эту неделю уже есть предложение. Посмотрите его в Меню.',
 };
 
+// The list keeps a bought line on its own; the parent who edited the menu needs no explanation.
+const QUIET = ['already_bought'];
+
 export function rejectionText(message: string): string {
+  if (QUIET.some((k) => message.includes(k))) return '';
   const key = Object.keys(REJECT_TEXT).find((k) => message.includes(k));
   return key ? REJECT_TEXT[key] : 'Сервер не принял изменение. Вернули как было.';
 }

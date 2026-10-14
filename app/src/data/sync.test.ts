@@ -146,3 +146,9 @@ describe('sync without a session', () => {
     expect((await db.week_slots.get(['w1', 1, 'dinner']))?.dish_id).toBe('mn-plov');
   });
 });
+
+describe('quiet refusals', () => {
+  it('says nothing when the server keeps a line someone already bought', () => {
+    expect(rejectionText('already_bought')).toBe('');
+  });
+});

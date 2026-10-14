@@ -37,7 +37,7 @@ export function SyncProvider({ householdId, portions = 3.5, isParent = false, no
           // A week approved or edited on another phone gets its shopping list here; parents keep the list.
           if (isParent) await refreshLists(db, householdId, now ?? new Date());
           const syncedAt = ((await db.meta.get('synced_at'))?.value as string | undefined) ?? null;
-          setState((s) => ({ syncing: false, offline: r.offline, syncedAt, message: r.rejected.length ? rejectionText(r.rejected[0]) : s.message }));
+          setState((s) => ({ syncing: false, offline: r.offline, syncedAt, message: r.rejected.map(rejectionText).find(Boolean) ?? s.message }));
         })(), 120_000);
       } while (again.current);
     } catch {
