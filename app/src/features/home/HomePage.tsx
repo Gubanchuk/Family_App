@@ -51,6 +51,9 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
             <span className="av" aria-hidden="true">{m.name.slice(0, 1)}</span><b>{m.name}</b><small>{m.user_id ? (m.role === 'parent' ? 'родитель' : 'ребёнок') : 'без входа'}</small>
           </div>
         ))}
+        {me.role === 'parent' && members.length < 4 ? (
+          <Link className="fam fam-add" to="/settings"><span className="av" aria-hidden="true"><Icon name="plus" /></span><b>Позвать</b><small>ссылкой</small></Link>
+        ) : null}
       </div>
       <section className="hero" aria-label="Главное сейчас">
         {main.kind === 'offer' ? (
@@ -77,8 +80,8 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
         ) : (
           <>
             <h2>Меню на эту неделю ещё не выбрано</h2>
-            <p>Возьмите шаблон — меню и покупки соберутся сами.</p>
-            <div className="hero-chips"><Link className="hero-chip primary" to="/menu">Выбрать неделю</Link></div>
+            <p>{me.role === 'parent' ? 'Возьмите шаблон — меню и покупки соберутся сами.' : 'Предложите шаблон — родители утвердят.'}</p>
+            <div className="hero-chips"><Link className="hero-chip primary" to="/menu">{me.role === 'parent' ? 'Выбрать неделю' : 'Предложить неделю'}</Link></div>
           </>
         )}
       </section>

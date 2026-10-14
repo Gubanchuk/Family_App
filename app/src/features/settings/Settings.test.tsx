@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import Settings from './Settings';
-import { createInvite, setRole } from '../family/api';
+import { addProfileWithoutSignIn, createInvite, setRole, updateMyProfile } from '../family/api';
 import type { Member } from '../family/useFamily';
 
 vi.mock('./FoodCard', () => ({ default: () => null }));
@@ -15,6 +15,8 @@ vi.mock('../family/api', () => ({
   createInvite: vi.fn(() => Promise.resolve('ABCD234XYZ')),
   setRole: vi.fn(() => Promise.resolve()),
   addProfileWithoutSignIn: vi.fn(() => Promise.resolve()),
+  householdName: vi.fn(() => Promise.resolve('Губанчуки')),
+  updateMyProfile: vi.fn(() => Promise.resolve()),
 }));
 
 const m = (o: Partial<Member>): Member => ({ id: 'x', household_id: 'h', user_id: null, name: 'X', color: '#2F6FDB', role: 'parent', is_owner: false, portion: 1, ...o });
@@ -27,9 +29,9 @@ describe('Settings', () => {
   beforeEach(() => vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }))));
   afterEach(() => vi.unstubAllGlobals());
 
-  it('shows the family with roles to a parent', () => {
+  it('shows the family with its name and roles to a parent', async () => {
     render(<MemoryRouter><Settings me={papa} members={[papa, son, dima]} reload={vi.fn()} /></MemoryRouter>);
-    expect(screen.getByRole('heading', { name: 'Семья' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Семья «Губанчуки»' })).toBeInTheDocument();
     expect(screen.getByText('Ребёнок · без входа, ведут родители')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Пригласить ребёнка/ })).toBeInTheDocument();
   });
@@ -72,10 +74,35 @@ describe('Settings', () => {
     Object.defineProperty(navigator, 'share', { value: share, configurable: true });
     render(<MemoryRouter><Settings me={papa} members={[papa, son, dima]} reload={vi.fn()} /></MemoryRouter>);
     await userEvent.click(screen.getByRole('button', { name: /Пригласить ребёнка/ }));
-    expect(await screen.findByText(/join\?code=ABCD234XYZ/)).toBeInTheDocument();
+    expect(await screen.findByText('Ссылка для ребёнка')).toBeInTheDocument();
     expect(share).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole('button', { name: 'Отправить ссылку' }));
     expect(share).toHaveBeenCalledWith(expect.objectContaining({ url: expect.stringContaining('/join?code=ABCD234XYZ') }));
     Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });
   });
+
+  it('lets anyone, a child too, fix their own name and colour', async () => {
+    const reload = vi.fn();
+    render(<MemoryRouter><Settings me={son} members={[papa, son]} reload={reload} /></MemoryRouter>);
+    await userEvent.click(screen.getByRole('button', { name: 'Изменить' }));
+    const name = screen.getByLabelText('Имя');
+    await userEvent.clear(name);
+    await userEvent.type(name, 'Тёма');
+    expect(screen.getByRole('button', { name: 'Синий, занят: Папа' })).toBeDisabled();
+    await userEvent.click(screen.getByRole('button', { name: 'Жёлтый' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    expect(updateMyProfile).toHaveBeenCalledWith(son, 'Тёма', '#F2A900');
+    expect(reload).toHaveBeenCalled();
+  });
+
+  it("asks the toddler's name and colour instead of adding a fixed «Дима»", async () => {
+    render(<MemoryRouter><Settings me={papa} members={[papa, son]} reload={vi.fn()} /></MemoryRouter>);
+    await userEvent.click(screen.getByRole('button', { name: /Добавить малыша/ }));
+    const add = screen.getByRole('button', { name: 'Добавить в семью' });
+    expect(add).toBeDisabled();
+    await userEvent.type(screen.getByLabelText('Имя'), 'Дима');
+    await userEvent.click(add);
+    expect(addProfileWithoutSignIn).toHaveBeenCalledWith('h', 'Дима', '#E0457B', 0.5);
+  });
 });
+

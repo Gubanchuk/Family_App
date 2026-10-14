@@ -16,6 +16,13 @@ import ShopPage from '../features/shop/ShopPage';
 import HomePage from '../features/home/HomePage';
 import { gate } from './gate';
 import { SyncProvider } from '../data/SyncProvider';
+import ToastProvider from '../features/shell/Toast';
+
+// A Google account brings a first name; the family screens start from it.
+function firstName(meta: Record<string, unknown> | undefined): string {
+  const raw = meta?.given_name ?? meta?.full_name ?? meta?.name;
+  return typeof raw === 'string' ? raw.trim().split(/\s+/)[0] ?? '' : '';
+}
 
 // The invite code survives a Google sign-in round trip in sessionStorage.
 function storedInvite(search: string): string | null {
@@ -46,7 +53,7 @@ function MemberShell() {
   const g = gate({ path: loc.pathname, loadingSession: loading, session: !!session, loadingFamily: fam.loading, hasMember: !!fam.me, inviteCode: invite, familyError: fam.error });
   if (g === 'probe') return <ProbePage />;
   if (g === 'loading') return <main className="screen"><p className="note" style={{ margin: 16 }}>Загружаем…</p></main>;
-  if (g === 'sign-in') return <SignIn />;
+  if (g === 'sign-in') return <SignIn invite={invite} />;
   if (g === 'family-error') {
     return (
       <main className="screen">
@@ -55,8 +62,9 @@ function MemberShell() {
       </main>
     );
   }
-  if (g === 'accept-invite') return <AcceptInvite code={invite!} onDone={fam.reload} />;
-  if (g === 'onboarding') return <Onboarding onDone={fam.reload} />;
+  const suggested = firstName(session?.user.user_metadata);
+  if (g === 'accept-invite') return <AcceptInvite code={invite!} onDone={fam.reload} suggestedName={suggested} />;
+  if (g === 'onboarding') return <Onboarding onDone={fam.reload} suggestedName={suggested} />;
   const me = fam.me!;
   return (
     <SyncProvider householdId={me.household_id} isParent={me.role === 'parent'} portions={fam.members.reduce((sum, m) => sum + m.portion, 0) || 3.5} onSynced={fam.reload}>
@@ -75,5 +83,5 @@ function MemberShell() {
 }
 
 export default function App() {
-  return <BrowserRouter><Shell /></BrowserRouter>;
+  return <BrowserRouter><ToastProvider><Shell /></ToastProvider></BrowserRouter>;
 }

@@ -49,4 +49,14 @@ describe('SignIn', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Создать вход' }));
     expect(await screen.findByRole('status')).toHaveTextContent('Мы отправили письмо на mama@example.com');
   });
+
+  it('greets someone who came by an invite with the family name and starts with a new login', async () => {
+    const client = fakeClient({ error: null });
+    const lookup = vi.fn(() => Promise.resolve({ family: 'Губанчуки', role: 'child' as const, expires_at: '', profile: null, members: [] }));
+    render(<SignIn client={client as never} invite="ABCD234XYZ" lookup={lookup} />);
+    expect(await screen.findByRole('heading', { name: 'Вас зовут в семью «Губанчуки»' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Создать вход' })).toBeInTheDocument();
+    expect(screen.getByText('Не меньше 8 символов.')).toBeInTheDocument();
+  });
 });
+

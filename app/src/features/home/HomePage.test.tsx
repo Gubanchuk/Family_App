@@ -62,4 +62,24 @@ describe('HomePage', () => {
     render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
     expect(await screen.findByRole('link', { name: 'Рецепт' })).toHaveAttribute('href', '/menu?panel=ideas&recipe=br-syrniki');
   });
+
+  it('offers a parent to call the rest of the family while it is small', async () => {
+    const db = await ready();
+    const { unmount } = render(<MemoryRouter><HomePage me={papa} members={[papa, mama]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('link', { name: /Позвать/ })).toHaveAttribute('href', '/settings');
+    unmount();
+    const son: Member = { ...papa, id: 'm-son', user_id: 'u3', name: 'Сын', role: 'child', is_owner: false };
+    render(<MemoryRouter><HomePage me={son} members={[papa, son]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    await screen.findByRole('heading', { name: 'Доброе утро, Сын' });
+    expect(screen.queryByRole('link', { name: /Позвать/ })).toBeNull();
+  });
+
+  it('asks a child to propose a week, not to choose one', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db);
+    const son: Member = { ...papa, id: 'm-son', user_id: 'u3', name: 'Сын', role: 'child', is_owner: false };
+    render(<MemoryRouter><HomePage me={son} members={[papa, son]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('link', { name: 'Предложить неделю' })).toBeInTheDocument();
+  });
 });
+

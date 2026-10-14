@@ -4,7 +4,12 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import AcceptInvite from './AcceptInvite';
 
-vi.mock('./api', () => ({ MEMBER_COLORS: ['#2F6FDB', '#E0457B', '#1FA463', '#F2A900'], acceptInvite: vi.fn(() => Promise.resolve('m1')) }));
+const api = vi.hoisted(() => ({ info: null as unknown }));
+vi.mock('./api', () => ({
+  MEMBER_COLORS: ['#2F6FDB', '#E0457B', '#1FA463', '#F2A900'],
+  acceptInvite: vi.fn(() => Promise.resolve('m1')),
+  inviteInfo: vi.fn(() => Promise.resolve(api.info)),
+}));
 
 describe('AcceptInvite', () => {
   it('takes a new member to the home screen after joining', async () => {
@@ -18,7 +23,7 @@ describe('AcceptInvite', () => {
       </MemoryRouter>,
     );
     await userEvent.type(screen.getByLabelText('Как вас называть'), 'Сын');
-    await userEvent.click(screen.getByRole('button', { name: 'Вступить' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Вступить в семью' }));
     expect(await screen.findByText('Главная')).toBeInTheDocument();
     expect(done).toHaveBeenCalled();
   });
@@ -32,10 +37,28 @@ describe('AcceptInvite', () => {
       <Route path="/" element={<p>Главная</p>} />
     </Routes></MemoryRouter>);
     await userEvent.type(screen.getByLabelText('Как вас называть'), 'Сын');
-    await userEvent.click(screen.getByRole('button', { name: 'Вступить' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Вступить в семью' }));
     await waitFor(() => expect(done).toHaveBeenCalled());
     expect(sessionStorage.getItem('fa.invite')).toBe('ABCD234XYZ');
     finish();
     await waitFor(() => expect(sessionStorage.getItem('fa.invite')).toBeNull());
+  });
+
+  it('names the family, who is there and the role, and keeps colours others have', async () => {
+    api.info = { family: 'Губанчуки', role: 'child', expires_at: '2026-10-21T00:00:00Z', profile: null, members: [{ name: 'Папа', color: '#2F6FDB' }, { name: 'Мама', color: '#1FA463' }] };
+    render(<MemoryRouter><AcceptInvite code="ABCD234XYZ" onDone={vi.fn()} /></MemoryRouter>);
+    expect(await screen.findByRole('heading', { name: 'Вас зовут в семью «Губанчуки»' })).toBeInTheDocument();
+    expect(screen.getByText(/Там уже: Папа, Мама\. Вы будете ребёнком/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Зелёный, занят: Мама' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Розовый' })).toHaveAttribute('aria-pressed', 'true');
+    api.info = null;
+  });
+
+  it('says plainly when the link is used up instead of showing a form', async () => {
+    api.info = { error: 'invite_used' };
+    render(<MemoryRouter><AcceptInvite code="ABCD234XYZ" onDone={vi.fn()} /></MemoryRouter>);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Это приглашение уже использовали');
+    expect(screen.queryByRole('button', { name: 'Вступить в семью' })).toBeNull();
+    api.info = null;
   });
 });
