@@ -15,9 +15,9 @@ test('screens of the create flows', async ({ browser }) => {
   const mom = await phone(browser);
   const p = mom.page;
   await p.goto('/');
-  await expect(p.getByRole('button', { name: 'Войти через Google' })).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Продолжить через Google' })).toBeVisible();
   await shot(p, '01-signin');
-  await p.getByRole('button', { name: 'Первый раз? Создать вход по почте' }).click();
+  await p.getByRole('button', { name: 'Создать', exact: true }).click();
   await shot(p, '02-signup');
   await p.getByLabel('Почта').fill('mama-shots@example.com');
   await p.getByLabel('Пароль').fill('123');
@@ -65,7 +65,7 @@ test('screens of the create flows', async ({ browser }) => {
 
   const son = await phone(browser);
   await son.page.goto(link);
-  await expect(son.page.getByRole('button', { name: 'Войти через Google' })).toBeVisible();
+  await expect(son.page.getByRole('button', { name: 'Продолжить через Google' })).toBeVisible();
   await shot(son.page, '08-invite-opened-signin');
   await son.page.getByLabel('Почта').fill(`son-shots-${Date.now()}@example.com`);
   await son.page.getByLabel('Пароль').fill('e2e-pass-12345');

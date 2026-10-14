@@ -292,3 +292,15 @@ a.more, a.av { text-decoration: none; }
 /* A field with its button on one line, the button level with the input. */
 .inline-add { display: flex; gap: 8px; align-items: flex-end; margin-top: 12px; }
 .inline-add .field { flex: 1; margin: 0; }
+
+/* Sign-in: Google's own button (white or dark, grey outline, four-colour G), then email. */
+.g-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid var(--g-line); border-radius: 16px; background: var(--g-bg); color: var(--g-ink); font: 500 15px/20px Roboto, "Segoe UI", Arial, sans-serif; cursor: pointer; }
+.g-btn svg { width: 18px; height: 18px; flex: none; }
+.g-btn:focus-visible, .pw-eye:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 2px; }
+.or { display: flex; align-items: center; gap: 12px; margin: 18px 0 4px; font-size: 13px; color: var(--k-ink-2); }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--k-rule); }
+.pw { position: relative; display: grid; }
+.pw input { padding-right: 104px; }
+.pw-eye { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); min-height: 40px; padding: 0 12px; border: 0; border-radius: 10px; background: none; color: color-mix(in oklab, var(--k-primary) 80%, var(--k-ink)); font: 600 14px var(--font); cursor: pointer; }
+.auth-submit { width: 100%; margin-top: 8px; }
+.auth-switch { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 8px 0 -6px; font-size: 15px; color: var(--k-ink-2); }

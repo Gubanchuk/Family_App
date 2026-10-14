@@ -35,6 +35,8 @@
   --dima: #F2A900;
 
   --font: "Onest", "Segoe UI", Roboto, Arial, sans-serif;
+  /* Google sign-in button colours from its branding guidelines; the dark theme swaps them below. */
+  --g-bg: #FFFFFF; --g-line: #747775; --g-ink: #1F1F1F;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 @media (prefers-color-scheme: dark) {
@@ -42,6 +44,7 @@
     --k-base: #0F1014; --k-card: #1A1C22; --k-ink: #F2F3F6; --k-ink-2: #A5ABB8; --k-rule: #2A2D36; --k-tint: 24%; --k-tint-focal: 10%;
     --k-shadow: rgba(0, 0, 0, 0.4); --k-scrim: rgba(0, 0, 0, 0.6);
     --papa: #5B8FF0; --mama: #F06A98; --son: #3CC383; --dima: #F5BE2E;
+    --g-bg: #131314; --g-line: #8E918F; --g-ink: #E3E3E3;
     color-scheme: dark;
   }
 }
@@ -49,6 +52,7 @@
   --k-base: #0F1014; --k-card: #1A1C22; --k-ink: #F2F3F6; --k-ink-2: #A5ABB8; --k-rule: #2A2D36; --k-tint: 24%; --k-tint-focal: 10%;
   --k-shadow: rgba(0, 0, 0, 0.4); --k-scrim: rgba(0, 0, 0, 0.6);
   --papa: #5B8FF0; --mama: #F06A98; --son: #3CC383; --dima: #F5BE2E;
+  --g-bg: #131314; --g-line: #8E918F; --g-ink: #E3E3E3;
   color-scheme: dark;
 }
 

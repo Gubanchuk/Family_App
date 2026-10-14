@@ -18,7 +18,7 @@ describe('SignIn', () => {
     const client = fakeClient({ error: { code: 'invalid_credentials' } });
     render(<SignIn client={client as never} />);
     await userEvent.type(screen.getByLabelText('Почта'), 'papa@example.com');
-    await userEvent.type(screen.getByLabelText('Пароль'), 'wrongpass1');
+    await userEvent.type(screen.getByLabelText(/пароль/i), 'wrongpass1');
     await userEvent.click(screen.getByRole('button', { name: 'Войти' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Неверная почта или пароль');
     expect(screen.getByLabelText('Почта')).toHaveValue('papa@example.com');
@@ -27,14 +27,14 @@ describe('SignIn', () => {
   it('starts Google sign-in with a return to this site', async () => {
     const client = fakeClient({ error: null });
     render(<SignIn client={client as never} googleReady={() => Promise.resolve(true)} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Войти через Google' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Продолжить через Google' }));
     expect(client.auth.signInWithOAuth).toHaveBeenCalledWith({ provider: 'google', options: { redirectTo: `${location.origin}/` } });
   });
 
   it('keeps the person here with a plain message while Google sign-in is switched off on the server', async () => {
     const client = fakeClient({ error: null });
     render(<SignIn client={client as never} googleReady={() => Promise.resolve(false)} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Войти через Google' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Продолжить через Google' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Вход через Google ещё не включён. Войдите по почте.');
     expect(client.auth.signInWithOAuth).not.toHaveBeenCalled();
   });
@@ -43,9 +43,9 @@ describe('SignIn', () => {
     const client = fakeClient({ error: null });
     client.auth.signUp = vi.fn(() => Promise.resolve({ data: { session: null, user: { id: 'u1' } }, error: null })) as never;
     render(<SignIn client={client as never} />);
-    await userEvent.click(screen.getByRole('button', { name: /Создать вход по почте/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Создать' }));
     await userEvent.type(screen.getByLabelText('Почта'), 'mama@example.com');
-    await userEvent.type(screen.getByLabelText('Пароль'), 'длинныйпароль');
+    await userEvent.type(screen.getByLabelText(/пароль/i), 'длинныйпароль');
     await userEvent.click(screen.getByRole('button', { name: 'Создать вход' }));
     expect(await screen.findByRole('status')).toHaveTextContent('Мы отправили письмо на mama@example.com');
   });
@@ -57,6 +57,18 @@ describe('SignIn', () => {
     expect(await screen.findByRole('heading', { name: 'Вас зовут в семью «Губанчуки»' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Создать вход' })).toBeInTheDocument();
     expect(screen.getByText('Не меньше 8 символов.')).toBeInTheDocument();
+  });
+  it('shows the password on request and moves between signing in and a new login with a link', async () => {
+    render(<SignIn client={fakeClient({ error: null }) as never} />);
+    const pw = screen.getByLabelText('Пароль');
+    expect(pw).toHaveAttribute('type', 'password');
+    await userEvent.click(screen.getByRole('button', { name: 'Показать' }));
+    expect(pw).toHaveAttribute('type', 'text');
+    await userEvent.click(screen.getByRole('button', { name: 'Создать' }));
+    expect(screen.getByLabelText('Придумайте пароль')).toHaveAttribute('autocomplete', 'new-password');
+    expect(screen.getByRole('button', { name: 'Создать вход' })).toHaveAttribute('type', 'submit');
+    await userEvent.click(screen.getByRole('button', { name: 'Войти' }));
+    expect(screen.getByRole('button', { name: 'Войти' })).toHaveAttribute('type', 'submit');
   });
 });
 

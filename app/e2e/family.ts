@@ -17,9 +17,9 @@ export async function phone(browser: Browser): Promise<Phone> {
 export async function signUp(page: Page, path = '/') {
   count += 1;
   await page.goto(path);
-  await expect(page.getByRole('button', { name: 'Войти через Google' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Продолжить через Google' })).toBeVisible();
   // An invite link opens the screen already in «new login» mode.
-  const toNew = page.getByRole('button', { name: 'Первый раз? Создать вход по почте' });
+  const toNew = page.getByRole('button', { name: 'Создать', exact: true });
   if (await toNew.isVisible()) await toNew.click();
   await page.getByLabel('Почта').fill(`e2e-${run}-${count}@example.com`);
   await page.getByLabel('Пароль').fill(PASSWORD);
