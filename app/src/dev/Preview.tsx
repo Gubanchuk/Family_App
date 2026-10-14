@@ -13,6 +13,10 @@ import ShopPage from '../features/shop/ShopPage';
 import TabBar from '../features/shell/TabBar';
 import { mondayOf, addDaysIso, dayOfWeek } from '../features/menu/week';
 import { regenerateWeekList } from '../features/shop/menuList';
+import { StoriesContext } from '../features/stories/storiesContext';
+import StoryViewer from '../features/stories/StoryViewer';
+import StoryEditor from '../features/stories/StoryEditor';
+import type { Overlay, Story } from '../features/stories/types';
 
 type Json = Record<string, any>;
 const recipeFiles = import.meta.glob('../../../content/recipes/*.json', { eager: true, import: 'default' }) as Record<string, { recipes: Json[] }>;
@@ -72,6 +76,41 @@ async function seed() {
   await db.outbox.clear();
 }
 
+// A stand-in photo for story screens: a gradient with a horizon, drawn once.
+function samplePhoto(): string {
+  const c = Object.assign(document.createElement('canvas'), { width: 900, height: 1200 });
+  const g = c.getContext('2d')!;
+  const sky = g.createLinearGradient(0, 0, 0, 1200);
+  sky.addColorStop(0, '#F7B267'); sky.addColorStop(0.55, '#F4845F'); sky.addColorStop(0.56, '#2E4057'); sky.addColorStop(1, '#1B2838');
+  g.fillStyle = sky; g.fillRect(0, 0, 900, 1200);
+  g.fillStyle = '#FFE66D'; g.beginPath(); g.arc(450, 600, 120, Math.PI, 0); g.fill();
+  return c.toDataURL('image/jpeg', 0.9);
+}
+const SAMPLE_OVERLAYS: Overlay[] = [
+  { id: 'o1', type: 'text', text: 'Закат на даче', x: 0.5, y: 0.22, scale: 0.09, rotation: -4, color: '#FFFFFF', style: 'plain' },
+  { id: 'o2', type: 'text', text: 'Ужин в 19:00!', x: 0.5, y: 0.78, scale: 0.07, rotation: 0, color: '#C92A62', style: 'box' },
+  { id: 'o3', type: 'emoji', char: '🔥', x: 0.82, y: 0.36, scale: 0.18, rotation: 12 },
+];
+const story = (id: string, member: string, hoursAgo: number, overlays: Overlay[]): Story => ({
+  id, household_id: 'p-home', member_id: member, kind: 'photo', path: `p-home/stories/${id}.jpg`, width: 900, height: 1200, duration_ms: null, overlays,
+  created_at: new Date(Date.now() - hoursAgo * 3600_000).toISOString(), expires_at: new Date(Date.now() + (24 - hoursAgo) * 3600_000).toISOString(),
+});
+
+function StoriesPreview({ edit }: { edit: boolean }) {
+  const [src] = useState(samplePhoto);
+  const [now] = useState(() => new Date());
+  const [stories] = useState(() => [story('s1', 'p-mama', 2, SAMPLE_OVERLAYS), story('s2', 'p-mama', 1, [])]);
+  if (edit) return <StoryEditor kind="photo" src={src} initial={SAMPLE_OVERLAYS} status="Отправляем…" publishLabel="Опубликовать" error="" onPublish={async () => {}} onClose={() => {}} />;
+  return (
+    <StoryViewer groups={[{ memberId: 'p-mama', stories }]} start={{ g: 0, i: 0 }} me={PREVIEW_MEMBERS[0]} members={PREVIEW_MEMBERS} now={now}
+      views={[{ story_id: 's1', member_id: 'p-papa', viewed_at: '', reaction: '❤️' }]} urls={new Map(stories.map((s) => [s.path, src]))}
+      onViewed={() => {}} onReact={() => {}} onClose={() => {}} onOwn={{ viewers: () => {}, edit: () => {}, remove: () => {}, more: () => {} }} />
+  );
+}
+
+// Rings on the family row without a database: Mama has a new story, Son one already seen.
+const PREVIEW_STORIES = { available: true, ringOf: (id: string) => (id === 'p-mama' ? 'unseen' : id === 'p-son' ? 'seen' : 'none') as 'unseen' | 'seen' | 'none', openViewer: () => {}, compose: () => {} };
+
 export default function Preview() {
   const [ready, setReady] = useState(false);
   const [asChild, setChild] = useState(false);
@@ -83,7 +122,9 @@ export default function Preview() {
     <>
       <div className="screen">
         <Routes>
-          <Route path="/dev" element={<HomePage me={me} members={PREVIEW_MEMBERS} db={db} />} />
+          <Route path="/dev" element={<StoriesContext.Provider value={PREVIEW_STORIES}><HomePage me={me} members={PREVIEW_MEMBERS} db={db} /></StoriesContext.Provider>} />
+          <Route path="/dev/story" element={<StoriesPreview edit={false} />} />
+          <Route path="/dev/story-edit" element={<StoriesPreview edit />} />
           <Route path="/dev/menu" element={<MenuPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
           <Route path="/dev/shop" element={<ShopPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
         </Routes>
