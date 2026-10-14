@@ -10,7 +10,9 @@ const TABLES = ['weeks', 'dish_offers', 'shop_trips'];
 function serverKey(): string {
   try {
     const keys = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}') as Record<string, string>;
-    if (keys.default) return keys.default;
+    // Any current secret key works; after a rotation the new key may carry another name.
+    const key = keys.default ?? Object.values(keys)[0];
+    if (key) return key;
   } catch { /* fall back below */ }
   return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 }
