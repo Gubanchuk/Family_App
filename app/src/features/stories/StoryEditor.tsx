@@ -1,4 +1,4 @@
-import { useReducer, useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useReducer, useRef, useState, type PointerEvent } from 'react';
 import Icon from '../shell/Icon';
 import Sheet from '../menu/Sheet';
 import StoryFrame, { OverlayView } from './StoryFrame';
@@ -24,6 +24,9 @@ export default function StoryEditor({ kind, src, initial, status, publishLabel, 
   const [busy, setBusy] = useState(false);
   const frame = useRef<HTMLDivElement>(null);
   const drag = useRef<Drag | null>(null);
+  const video = useRef<HTMLVideoElement>(null);
+  // A video plays silently on a loop while captions are placed over it.
+  useEffect(() => { const v = video.current; if (v) { v.muted = true; v.loop = true; v.play().catch(() => {}); } }, [src]);
   const editing = s.items.find((o) => o.id === s.editing);
 
   const box = () => { const r = frame.current!.getBoundingClientRect(); return { r, w: r.width || 1, h: r.height || 1 }; };
@@ -77,7 +80,7 @@ export default function StoryEditor({ kind, src, initial, status, publishLabel, 
   return (
     <div className="story-layer se" role="dialog" aria-modal="true" aria-label="Сторис">
       <div ref={frame} className="se-frame" onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerDown={() => dispatch({ t: 'select', id: null })}>
-        <StoryFrame kind={kind} src={src} overlays={[]}>
+        <StoryFrame kind={kind} src={src} overlays={[]} videoRef={video}>
           {s.items.map((o) => (o.id === s.editing ? null : <OverlayView key={o.id} o={o} selected={o.id === s.selected} onPointerDown={down(o)} />))}
         </StoryFrame>
         {trash !== 'off' ? <span className={`se-trash${trash === 'hot' ? ' hot' : ''}`} aria-hidden="true">🗑</span> : null}
