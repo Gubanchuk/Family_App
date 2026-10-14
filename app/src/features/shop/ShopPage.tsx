@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useToday } from '../../lib/useToday';
 import { useLiveQuery } from 'dexie-react-hooks';
 import Header from '../shell/Header';
 import Icon from '../shell/Icon';
@@ -17,7 +18,8 @@ const hhmm = (iso: string) => new Date(iso).toLocaleTimeString('ru-RU', { hour: 
 const products = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 'продукта' : 'продуктов');
 type Clip = { writeText: (t: string) => Promise<void> };
 
-export default function ShopPage({ me, members, db = localDb, today = new Date(), clipboard }: { me: Member; members: Member[]; db?: LocalDb; today?: Date; clipboard?: Clip }) {
+export default function ShopPage({ me, members, db = localDb, today: fixedToday, clipboard }: { me: Member; members: Member[]; db?: LocalDb; today?: Date; clipboard?: Clip }) {
+  const today = useToday(fixedToday);
   const data = useShop(db, me.household_id, today);
   const vocab = useLiveQuery(async () => new Map((await db.ingredients.toArray()).map((v) => [v.item, v])), [db]);
   const [weekPick, setWeekPick] = useState<string | null>(null);

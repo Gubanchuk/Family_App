@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useToday } from '../../lib/useToday';
 import { useSearchParams } from 'react-router-dom';
 import Header from '../shell/Header';
 import IdeasPanel from '../ideas/IdeasPanel';
@@ -16,7 +17,7 @@ import DaySheet from './DaySheet';
 import { canEditWeek } from './actions';
 import NextWeekHero from './NextWeekHero';
 import WeekSheet from './WeekSheet';
-import { dayOfWeek, MEAL_LABEL, MEAL_TIME, MEALS, soupBatches, soupOn, weekLabel, addDaysIso, type Meal } from './week';
+import { dayOfWeek, MEAL_LABEL, MEAL_TIME, MEALS, mondayOf, soupBatches, soupOn, weekLabel, addDaysIso, type Meal } from './week';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const DAY_NAME = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
@@ -29,10 +30,14 @@ export type MenuSheet =
   | { kind: 'week'; mode: 'current' | 'next' }
   | { kind: 'save' };
 
-export default function MenuPage({ me, members, db = localDb, today = new Date() }: { me: Member; members: Member[]; db?: LocalDb; today?: Date }) {
+export default function MenuPage({ me, members, db = localDb, today: fixedToday }: { me: Member; members: Member[]; db?: LocalDb; today?: Date }) {
+  const today = useToday(fixedToday);
   const data = useMenu(db, me.household_id, today);
   const sync = useSync();
   const [day, setDay] = useState(dayOfWeek(today));
+  // A new week (the app left open past Sunday midnight) opens on its own today.
+  const weekStart = mondayOf(today);
+  useEffect(() => { setDay(dayOfWeek(today)); }, [weekStart]); // eslint-disable-line react-hooks/exhaustive-deps
   const [sheet, setSheet] = useState<MenuSheet | null>(null);
   const [saved, setSaved] = useState('');
   const [params, setParams] = useSearchParams();
