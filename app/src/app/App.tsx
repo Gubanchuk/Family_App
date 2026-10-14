@@ -10,6 +10,7 @@ import AcceptInvite from '../features/family/AcceptInvite';
 import { readInviteCode } from '../features/family/invite';
 import Settings from '../features/settings/Settings';
 import { gate } from './gate';
+import { SyncProvider } from '../data/SyncProvider';
 
 // The invite code survives a Google sign-in round trip in sessionStorage.
 function storedInvite(search: string): string | null {
@@ -33,7 +34,7 @@ function Shell() {
   if (g === 'onboarding') return <Onboarding onDone={fam.reload} />;
   const me = fam.me!;
   return (
-    <>
+    <SyncProvider householdId={me.household_id}>
       <div className="screen">
         <Routes>
           <Route path="/" element={
@@ -47,7 +48,7 @@ function Shell() {
         </Routes>
       </div>
       <TabBar tabs={['home', 'menu', 'shop']} />
-    </>
+    </SyncProvider>
   );
 }
 

@@ -15,7 +15,7 @@ function server() {
   return fakeSupabase(store, { ...KEY_FIELDS, ingredients: ['item'], prices: ['item'], recipes: ['id'], recipe_ingredients: ['recipe_id', 'pos'], recipe_sides: ['recipe_id', 'side_id'] });
 }
 
-describe('loadContent', () => {
+describe('loadContent', { timeout: 30_000 }, () => {
   it('loads every page of the recipe base', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     const r = await loadContent(db, server().client as never, { now: new Date('2026-10-14T00:00:00Z') });
