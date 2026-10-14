@@ -239,3 +239,8 @@
 .tpl small { font-size: 13px; color: var(--k-ink-2); }
 .tpl-now { margin-left: 8px; font: 600 12px var(--font); color: color-mix(in oklab, var(--k-primary) 80%, var(--k-ink)); }
 .card-foot { display: flex; justify-content: flex-end; padding-top: 6px; }
+
+/* Notices, offers and the shopping list (ported from mockups/styles.css) */
+.notice { display: flex; align-items: center; gap: 12px; margin: 0 16px 14px; padding: 14px 16px; border-radius: 22px; background: color-mix(in oklab, var(--k-meal) var(--k-tint), var(--k-card)); }
+.row.offer .row-btn { flex: 1; min-width: 0; }
+.amount-btn { flex: none; border: 0; background: none; padding: 8px 0 8px 10px; font: inherit; color: inherit; cursor: pointer; }
