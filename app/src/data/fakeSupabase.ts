@@ -3,7 +3,7 @@ type Row = Record<string, unknown>;
 type Store = Record<string, Row[]>;
 
 export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) {
-  const state = { offline: false, rejects: new Map<string, string>(), clock: 1 };
+  const state = { offline: false, rejects: new Map<string, string>(), clock: 1, requests: new Map<string, number>() };
   const key = (t: string, r: Row) => keyFields[t].map((k) => String(r[k])).join('|');
   const stamp = () => new Date(Date.UTC(2026, 9, 14, 0, 0, state.clock++)).toISOString();
   const failNet = { data: null, error: { message: 'TypeError: Failed to fetch', code: '' } };
@@ -11,12 +11,21 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
   function from(table: string) {
     store[table] ??= [];
     const filters: Array<(r: Row) => boolean> = [];
-    let order: string | null = null;
+    const order: string[] = [];
     let range: [number, number] | null = null;
     const exec = () => {
       if (state.offline) return failNet;
       let rows = store[table].filter((r) => filters.every((f) => f(r)));
-      if (order) rows = [...rows].sort((a, b) => String(a[order!]).localeCompare(String(b[order!])));
+      // Like Postgres, rows that tie on the order keys come back in no fixed order: flip ties on every other request.
+      const n = state.requests.get(table) ?? 0;
+      state.requests.set(table, n + 1);
+      const flip = n % 2 === 1;
+      if (order.length) {
+        rows = rows.map((r, i) => ({ r, i })).sort((a, b) => {
+          for (const k of order) { const c = String(a.r[k]).localeCompare(String(b.r[k]), 'en', { numeric: true }); if (c) return c; }
+          return flip ? b.i - a.i : a.i - b.i;
+        }).map((x) => x.r);
+      }
       if (range) rows = rows.slice(range[0], range[1] + 1);
       return { data: rows.map((r) => ({ ...r })), error: null };
     };
@@ -24,7 +33,7 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
       select: () => q,
       gt: (c: string, v: string) => { filters.push((r) => String(r[c]) > v); return q; },
       eq: (c: string, v: unknown) => { filters.push((r) => r[c] === v); return q; },
-      order: (c: string) => { order = c; return q; },
+      order: (c: string) => { order.push(c); return q; },
       range: (a: number, b: number) => { range = [a, b]; return q; },
       maybeSingle: () => Promise.resolve(((r) => (r.error ? r : { data: r.data?.[0] ?? null, error: null }))(exec())),
       then: (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => Promise.resolve(exec()).then(res, rej),
