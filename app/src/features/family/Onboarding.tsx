@@ -21,7 +21,7 @@ export default function Onboarding({ onDone, suggestedName = '' }: { onDone: () 
       <form className="card" onSubmit={create}>
         <label className="field">Как вас называть<input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder="Например, Мама" autoComplete="given-name" autoFocus enterKeyHint="next" /></label>
         <ColorPicker value={color} onChange={setColor} letter={name.trim().slice(0, 1).toUpperCase()} />
-        <label className="field">Название семьи<input value={family} onChange={(e) => setFamily(e.target.value)} maxLength={40} placeholder="Например, Губанчуки" enterKeyHint="done" /></label>
+        <label className="field">Название семьи<input value={family} onChange={(e) => setFamily(e.target.value)} maxLength={40} placeholder="Например, Ивановы" enterKeyHint="done" /></label>
         <p className="note">Его увидят те, кого вы пригласите.</p>
         {error ? <p className="form-error" role="alert">{error}</p> : null}
         <div className="btns fill" style={{ marginTop: 12 }}><button type="submit" className="btn" disabled={!name.trim() || busy}>Создать семью</button></div>

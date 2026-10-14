@@ -65,7 +65,8 @@ export function formatQty(qty: number | null, unit: string): string {
   return `${step} ${unit}`;
 }
 
-export const rub = (n: number) => `${Math.round(n).toLocaleString('ru-RU')} ₽`;
+// The sign never wraps away from the number.
+export const rub = (n: number) => `${Math.round(n).toLocaleString('ru-RU')}\u00A0₽`;
 
 export function listTotals(rows: Array<{ est: number | null; real: number | null; bought: boolean }>) {
   let bought = 0; let left = 0; let unpriced = 0; let doneCount = 0;

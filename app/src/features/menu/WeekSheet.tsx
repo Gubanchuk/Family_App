@@ -30,6 +30,8 @@ export default function WeekSheet({ db, mode, me, data, onClose }: { db: LocalDb
   const costs = useLiveQuery(() => templateCosts(db), [db]);
   const [confirm, setConfirm] = useState(false);
   const t = data.templates.find((x) => x.id === pick);
+  const first = seasonal(data.templates, target.start);
+  const ordered = [...data.templates].sort((a, b) => Number(b.id === first) - Number(a.id === first));
   const parent = me.role === 'parent';
   // An approved week is closed to children; a parent replaces it only after a second tap.
   const locked = target.week?.status === 'approved';
@@ -44,7 +46,7 @@ export default function WeekSheet({ db, mode, me, data, onClose }: { db: LocalDb
       toast({ text: `Неделя «${t?.name ?? ''}» предложена. Семья проголосует, родители утвердят.` });
     } else {
       const s = await weekListStats(db, w.id);
-      toast({ text: `Неделя «${t?.name ?? ''}» стоит. Список покупок: ${s.count} ${products(s.count)} ≈ ${rub(s.cost)}`, action: { label: 'К покупкам', to: '/shop' } });
+      toast({ text: `Неделя «${t?.name ?? ''}» стоит. Список покупок: ${s.count} ${products(s.count)} ≈\u00A0${rub(s.cost)}`, action: { label: 'К покупкам', to: '/shop' } });
     }
     onClose();
   };
@@ -58,7 +60,7 @@ export default function WeekSheet({ db, mode, me, data, onClose }: { db: LocalDb
       {locked && !parent ? <p className="note" style={{ margin: '0 16px 12px' }}>Неделя утверждена. Поменять её могут родители.</p> : null}
       {pick && !loaded ? <p className="note" role="status" style={{ margin: '0 16px 12px' }}>Шаблон ещё не загрузился — нужен интернет.</p> : null}
       <div className="tpl-list" role="radiogroup" aria-label="Шаблоны недель">
-        {data.templates.map((x) => (
+        {ordered.map((x) => (
           <div key={x.id} className="tpl-item">
             <button type="button" className="tpl" role="radio" aria-checked={x.id === pick} onClick={() => { setPick(x.id); setConfirm(false); }}>
               <span className="tpl-top"><b>{x.name}{x.household_id ? <span className="tpl-now">наш</span> : null}</b>

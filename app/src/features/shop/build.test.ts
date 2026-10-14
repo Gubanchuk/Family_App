@@ -63,6 +63,7 @@ describe('formatQty and money', () => {
   });
   it('formats rubles', () => {
     expect(rub(1050.4).replace(/\s/g, ' ')).toBe('1 050 ₽');
+    expect(rub(1050.4).endsWith('\u00A0₽')).toBe(true);
   });
   it('totals bought and left, counting items without a price', () => {
     expect(listTotals([

@@ -18,7 +18,7 @@ export function CurrentWeekHero({ db, data, openNext }: { db: LocalDb; data: Non
   return (
     <section className="hero" aria-label="Эта неделя">
       <h2>Неделя «{t?.name ?? 'своя'}» стоит до воскресенья</h2>
-      <p>{stats?.count ? `Список покупок собран: ${stats.count} ${products(stats.count)} ≈ ${rub(stats.cost)}.` : 'Список покупок соберётся, как только меню загрузится.'}</p>
+      <p>{stats?.count ? `Список покупок собран: ${stats.count} ${products(stats.count)} ≈\u00A0${rub(stats.cost)}.` : 'Список покупок соберётся, как только меню загрузится.'}</p>
       <div className="hero-chips">
         <Link className="hero-chip primary" to="/shop"><Icon name="cart" />К покупкам</Link>
         <button type="button" className="hero-chip" onClick={openNext}>Следующая неделя</button>
@@ -58,7 +58,7 @@ export default function NextWeekHero({ me, members, db, data, openWeek }: { me: 
         {!approved && complete && me.role === 'parent' ? <button type="button" className="hero-chip primary" onClick={async () => {
           await approveWeek(db, next.week!, me);
           const s = await weekListStats(db, next.week!.id);
-          toast({ text: `Неделя на ${label} утверждена. Список покупок: ${s.count} ${products(s.count)} ≈ ${rub(s.cost)}`, action: { label: 'К покупкам', to: '/shop' } });
+          toast({ text: `Неделя на ${label} утверждена. Список покупок: ${s.count} ${products(s.count)} ≈\u00A0${rub(s.cost)}`, action: { label: 'К покупкам', to: '/shop' } });
         }}>Утвердить</button> : null}
         {!approved && me.role !== 'parent' && !voted ? <button type="button" className="hero-chip primary" onClick={() => voteWeek(db, next.week!, me, 'yes')}><Icon name="check" />За</button> : null}
       </div>

@@ -103,7 +103,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
       <div className="bento">
         <Link className="tile wide" to="/shop" style={{ ['--h' as string]: 'var(--k-shop)' }}>
           <span className="t-k"><Icon name="cart" />Покупки</span><span className="t-v num">{totals.count - totals.doneCount}</span>
-          <span className="t-s">осталось купить{totals.left ? ` · ≈ ${rub(totals.left)}` : ''}</span>
+          <span className="t-s">осталось купить{totals.left ? ` · ≈ ${rub(totals.left)}` : ''}</span>
         </Link>
       </div>
     </>
