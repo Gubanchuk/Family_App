@@ -12,7 +12,7 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
   function from(table: string) {
     store[table] ??= [];
     const filters: Array<(r: Row) => boolean> = [];
-    const order: string[] = [];
+    const order: Array<{ k: string; asc: boolean }> = [];
     let range: [number, number] | null = null;
     const exec = () => {
       if (state.offline) return failNet;
@@ -24,7 +24,7 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
       const flip = n % 2 === 1;
       if (order.length) {
         rows = rows.map((r, i) => ({ r, i })).sort((a, b) => {
-          for (const k of order) { const c = String(a.r[k]).localeCompare(String(b.r[k]), 'en', { numeric: true }); if (c) return c; }
+          for (const { k, asc } of order) { const c = String(a.r[k]).localeCompare(String(b.r[k]), 'en', { numeric: true }); if (c) return asc ? c : -c; }
           return flip ? b.i - a.i : a.i - b.i;
         }).map((x) => x.r);
       }
@@ -35,7 +35,7 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
       select: () => q,
       gt: (c: string, v: string) => { filters.push((r) => String(r[c]) > v); return q; },
       eq: (c: string, v: unknown) => { filters.push((r) => r[c] === v); return q; },
-      order: (c: string) => { order.push(c); return q; },
+      order: (c: string, o?: { ascending?: boolean }) => { order.push({ k: c, asc: o?.ascending !== false }); return q; },
       range: (a: number, b: number) => { range = [a, b]; return q; },
       maybeSingle: () => Promise.resolve(((r) => (r.error ? r : { data: r.data?.[0] ?? null, error: null }))(exec())),
       then: (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => (state.hangs.has(table) ? new Promise(() => {}) : Promise.resolve(exec())).then(res, rej),

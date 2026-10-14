@@ -12,7 +12,7 @@ function server() {
     recipe_ingredients: Array.from({ length: 2400 }, (_, i) => ({ recipe_id: `r${i % 229}`, pos: Math.floor(i / 229), item: 'морковь', qty: 100 })),
     recipe_sides: [{ recipe_id: 'r0', side_id: 'r1' }],
   };
-  return fakeSupabase(store, { ...KEY_FIELDS, ingredients: ['item'], prices: ['item'], recipes: ['id'], recipe_ingredients: ['recipe_id', 'pos'], recipe_sides: ['recipe_id', 'side_id'] });
+  return { ...fakeSupabase(store, { ...KEY_FIELDS, ingredients: ['item'], prices: ['item'], recipes: ['id'], recipe_ingredients: ['recipe_id', 'pos'], recipe_sides: ['recipe_id', 'side_id'] }), store };
 }
 
 describe('loadContent', { timeout: 30_000 }, () => {
@@ -31,6 +31,17 @@ describe('loadContent', { timeout: 30_000 }, () => {
     await loadContent(db, fake.client as never, { now: new Date('2026-10-14T00:00:00Z') });
     expect((await loadContent(db, fake.client as never, { now: new Date('2026-10-15T00:00:00Z') })).loaded).toBe(false);
     expect((await loadContent(db, fake.client as never, { now: new Date('2026-10-22T00:00:00Z') })).loaded).toBe(true);
+  });
+
+  it('reloads a fresh copy at once when the recipe base changed on the server', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const fake = server();
+    fake.store.recipes.forEach((r) => { r.updated_at = '2026-10-14T00:00:00+00:00'; });
+    await loadContent(db, fake.client as never, { now: new Date('2026-10-14T01:00:00Z') });
+    expect((await loadContent(db, fake.client as never, { now: new Date('2026-10-14T02:00:00Z') })).loaded).toBe(false);
+    fake.store.recipes[5] = { ...fake.store.recipes[5], name: 'Новое имя', updated_at: '2026-10-14T20:00:00+00:00' };
+    expect((await loadContent(db, fake.client as never, { now: new Date('2026-10-14T21:00:00Z') })).loaded).toBe(true);
+    expect((await db.recipes.get('r5'))?.name).toBe('Новое имя');
   });
 
   it('keeps the old copy when the network is down', async () => {

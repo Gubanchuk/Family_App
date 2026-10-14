@@ -26,10 +26,25 @@ async function fetchAll(client: Client, table: string, order: readonly string[])
   }
 }
 
+// The newest recipe change on the server. One row, so it is cheap to ask on every sync:
+// a content update reaches the phones on their next sync instead of within a week.
+async function serverVersion(client: Client): Promise<string | null> {
+  try {
+    const { data, error } = await (client.from('recipes').select('updated_at').order('updated_at', { ascending: false }).range(0, 0) as unknown as Promise<{ data: Row[] | null; error: unknown }>);
+    return error || !data?.length ? null : String(data[0].updated_at);
+  } catch { return null; }
+}
+
+const newest = (rows: Row[]) => rows.reduce((max, r) => (String(r.updated_at) > max ? String(r.updated_at) : max), '');
+
 export async function loadContent(db: LocalDb, client: Client, opts: { force?: boolean; now?: Date } = {}) {
   const now = opts.now ?? new Date();
   const at = (await db.meta.get('content_loaded_at'))?.value as string | undefined;
-  if (!opts.force && at && now.getTime() - new Date(at).getTime() < WEEK_MS) return { loaded: false, counts: {} };
+  if (!opts.force && at && now.getTime() - new Date(at).getTime() < WEEK_MS) {
+    const version = (await db.meta.get('content_version'))?.value as string | undefined;
+    const server = await serverVersion(client);
+    if (server === null || server === version) return { loaded: false, counts: {} };
+  }
   let fetched: Record<string, Row[]>;
   try {
     fetched = Object.fromEntries(await Promise.all(TABLES.map(async (t) => [t.name, await fetchAll(client, t.name, t.order)] as const)));
@@ -45,6 +60,7 @@ export async function loadContent(db: LocalDb, client: Client, opts: { force?: b
       await db.table(t.name).bulkPut(fetched[t.name]);
     }
     await db.meta.put({ key: 'content_loaded_at', value: now.toISOString() });
+    await db.meta.put({ key: 'content_version', value: newest(fetched.recipes) });
   });
   return { loaded: true, counts: Object.fromEntries(TABLES.map((t) => [t.name, fetched[t.name].length])) };
 }

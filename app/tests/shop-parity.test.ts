@@ -7,8 +7,8 @@ import type { Ingredient } from '../src/data/db';
 
 const root = resolve(__dirname, '../..');
 const read = (p: string) => JSON.parse(readFileSync(join(root, 'content', p), 'utf8'));
-// Food cost per template from `python content/tools/week_cost.py .` on 2026-10-14 (pantry excluded).
-const FOOD: Record<string, number> = { autumn: 9048, winter: 9527, spring: 11530, summer: 9379, budget: 7223, quick: 8116 };
+// Food cost per template from `python content/tools/week_cost.py .` after the recipe review of 2026-10-14 (pantry excluded).
+const FOOD: Record<string, number> = { autumn: 9048, winter: 9523, spring: 11557, summer: 9387, budget: 7432, quick: 8136 };
 
 describe('shopping list cost matches the week cost script', () => {
   const vocab = new Map<string, Ingredient>(read('ingredients.json').map((x: Record<string, unknown>) => [x.item, { item: x.item, unit: x.unit, dept: x.dept, grp: x.group, piece_weight: x.pieceWeight ?? null, piece_name: x.pieceName ?? null, pantry: !!x.pantry }]));
