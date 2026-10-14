@@ -28,4 +28,9 @@ describe('NotifyCard', () => {
     await waitFor(() => expect(offers).toHaveAttribute('aria-checked', 'true'));
     expect(screen.getByRole('status')).toHaveTextContent('Нет связи — настройка не сохранилась. Попробуйте ещё раз.');
   });
+
+  it('has a switch for stories', async () => {
+    render(<NotifyCard me={papa} />);
+    expect(await screen.findByRole('switch', { name: 'Сторис' })).toBeInTheDocument();
+  });
 });

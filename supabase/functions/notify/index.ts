@@ -1,10 +1,10 @@
-// Sends Web Push for a week proposal, a dish offer or a shop trip. Called by a database trigger
+// Sends Web Push for a week proposal, a dish offer, a shop trip or a new story. Called by a database trigger
 // with { table, id }; re-reads the row itself, so a forged call can only repeat a real event once.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { compose, eventVersion, isStale, type Ev } from '../_shared/messages.ts';
+import { compose, eventVersion, isStale, verbFor, type Ev } from '../_shared/messages.ts';
 import { sendPush } from '../_shared/webpush.ts';
 
-const TABLES = ['weeks', 'dish_offers', 'shop_trips'];
+const TABLES = ['weeks', 'dish_offers', 'shop_trips', 'stories'];
 
 // The new secret key when the project has one, the legacy service role key otherwise.
 function serverKey(): string {
@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
   const { error: claimed } = await db.from('push_log').insert({ kind: table, ref_id: id, version: eventVersion(table, row) });
   if (claimed) return Response.json({ skipped: 'already sent' });
   const authorId: string = table === 'weeks' ? row.proposed_by : table === 'dish_offers' ? row.from_member : row.member_id;
-  const { data: members } = await db.from('members').select('id, name, user_id').eq('household_id', row.household_id).is('deleted_at', null);
+  const { data: members } = await db.from('members').select('id, name, user_id, kin').eq('household_id', row.household_id).is('deleted_at', null);
   const author = members?.find((m) => m.id === authorId)?.name ?? 'Кто-то';
   let ev: Ev;
   if (table === 'weeks') {
@@ -38,6 +38,8 @@ Deno.serve(async (req) => {
     if (row.status !== 'open') return Response.json({ skipped: 'not open' });
     const { data: r } = await db.from('recipes').select('name').eq('id', row.dish_id).maybeSingle();
     ev = { kind: 'dish_offers', author, dish: r?.name ?? 'блюдо', meal: row.meal, onDate: row.on_date, toAll: !row.to_member };
+  } else if (table === 'stories') {
+    ev = { kind: 'stories', author, verb: verbFor(members?.find((m) => m.id === authorId)?.kin) };
   } else {
     ev = { kind: 'shop_trips', author };
   }

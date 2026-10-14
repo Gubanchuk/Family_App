@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { compose, eventVersion, isStale } from '../../../supabase/functions/_shared/messages';
+import { compose, eventVersion, isStale, verbFor } from '../../../supabase/functions/_shared/messages';
 
 describe('push texts', () => {
   const today = '2026-10-13';
@@ -27,5 +27,19 @@ describe('push texts', () => {
     expect(isStale('shop_trips', { started_at: '2026-10-13T14:30:00Z' }, now)).toBe(false);
     expect(isStale('dish_offers', { on_date: '2026-10-12' }, now)).toBe(true);
     expect(isStale('dish_offers', { on_date: '2026-10-13' }, now)).toBe(false);
+  });
+
+  it('announces a story with the verb that fits who posted it', () => {
+    expect(compose({ kind: 'stories', author: 'Мама', verb: 'выложила' }, '2026-10-15')).toMatchObject({ title: 'Мама выложила сторис', url: '/', pref: 'stories' });
+    expect(compose({ kind: 'stories', author: 'Тёма', verb: null }, '2026-10-15').title).toBe('Новая сторис от Тёма');
+    expect(verbFor('son')).toBe('выложил');
+    expect(verbFor('grandmother')).toBe('выложила');
+    expect(verbFor(null)).toBeNull();
+  });
+
+  it('does not push a story that reached the server an hour late', () => {
+    const now = Date.parse('2026-10-15T20:00:00Z');
+    expect(isStale('stories', { created_at: '2026-10-15T18:30:00Z' }, now)).toBe(true);
+    expect(isStale('stories', { created_at: '2026-10-15T19:30:00Z' }, now)).toBe(false);
   });
 });

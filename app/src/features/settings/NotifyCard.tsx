@@ -4,6 +4,7 @@ import { loadMemberSettings, saveNotify } from './memberSettings';
 
 const ROWS: Array<[string, string, string?]> = [
   ['offers', 'Предложения блюд', '«Сделай сегодня…»'],
+  ['stories', 'Сторис', 'когда кто-то выложил новую'],
   ['votes', 'Голосование за меню'],
   ['shop', 'Кто идёт в магазин'],
   ['quiet', 'Тихие часы', 'с 22:00 до 8:00 без звука'],

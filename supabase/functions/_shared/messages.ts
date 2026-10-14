@@ -1,7 +1,8 @@
 export type Ev =
   | { kind: 'weeks'; author: string; template: string; startsOn: string }
   | { kind: 'dish_offers'; author: string; dish: string; meal: 'breakfast' | 'lunch' | 'snack' | 'dinner'; onDate: string; toAll: boolean }
-  | { kind: 'shop_trips'; author: string };
+  | { kind: 'shop_trips'; author: string }
+  | { kind: 'stories'; author: string; verb: 'выложила' | 'выложил' | null };
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const MEAL_FOR = { breakfast: 'на завтрак', lunch: 'на обед', snack: 'на полдник', dinner: 'на ужин' };
@@ -16,6 +17,12 @@ function weekLabel(start: string) {
     : `${a.getUTCDate()} ${MONTHS[a.getUTCMonth()]} – ${b.getUTCDate()} ${MONTHS[b.getUTCMonth()]}`;
 }
 
+const FEMALE = ['mother', 'daughter', 'grandmother'];
+const MALE = ['father', 'son', 'grandfather'];
+// The verb follows who the person is in the family; without that it stays out of the sentence.
+export const verbFor = (kin: string | null | undefined): 'выложила' | 'выложил' | null =>
+  FEMALE.includes(kin ?? '') ? 'выложила' : MALE.includes(kin ?? '') ? 'выложил' : null;
+
 export function compose(e: Ev, today: string) {
   if (e.kind === 'weeks') {
     return { title: `${e.author} предлагает меню на ${weekLabel(e.startsOn)}`, body: `Неделя «${e.template}». Проголосуйте в приложении.`, url: '/menu', pref: 'votes', tag: `week-${e.startsOn}` };
@@ -24,6 +31,9 @@ export function compose(e: Ev, today: string) {
     const d = days(today, e.onDate);
     const when = d === 0 ? 'Сегодня' : d === 1 ? 'Завтра' : `${parse(e.onDate).getUTCDate()} ${MONTHS[parse(e.onDate).getUTCMonth()]}`;
     return { title: `${e.author} просит: ${e.dish}`, body: `${when} ${MEAL_FOR[e.meal]}.${e.toAll ? ' Предложено всем.' : ''}`, url: '/menu?panel=ideas', pref: 'offers', tag: `offer-${e.onDate}` };
+  }
+  if (e.kind === 'stories') {
+    return { title: e.verb ? `${e.author} ${e.verb} сторис` : `Новая сторис от ${e.author}`, body: 'Она исчезнет через сутки.', url: '/', pref: 'stories', tag: `story-${e.author}` };
   }
   return { title: `${e.author} идёт в магазин`, body: 'Добавьте в список, что нужно купить.', url: '/shop', pref: 'shop', tag: 'shop' };
 }
@@ -38,6 +48,7 @@ export function eventVersion(table: string, row: Row): string {
 // A trip or an offer queued offline can reach the server hours later; by then the push would mislead.
 export function isStale(table: string, row: Row, now = Date.now()): boolean {
   if (table === 'shop_trips') return now - Date.parse(String(row.started_at)) > 3600 * 1000;
+  if (table === 'stories') return now - Date.parse(String(row.created_at)) > 3600 * 1000;
   if (table === 'dish_offers') return String(row.on_date) < new Date(now + 3 * 3600 * 1000).toISOString().slice(0, 10);
   return false;
 }
