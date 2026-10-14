@@ -4,7 +4,7 @@ type Store = Record<string, Row[]>;
 
 export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) {
   type Err = { message: string; code: string };
-  const state = { offline: false, rejects: new Map<string, Err>(), writeFails: new Map<string, Err>(), readFails: new Set<string>(), clock: 1, requests: new Map<string, number>() };
+  const state = { offline: false, rejects: new Map<string, Err>(), writeFails: new Map<string, Err>(), readFails: new Set<string>(), hangs: new Set<string>(), clock: 1, requests: new Map<string, number>() };
   const key = (t: string, r: Row) => keyFields[t].map((k) => String(r[k])).join('|');
   const stamp = () => new Date(Date.UTC(2026, 9, 14, 0, 0, state.clock++)).toISOString();
   const failNet = { data: null, error: { message: 'TypeError: Failed to fetch', code: '' } };
@@ -38,7 +38,7 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
       order: (c: string) => { order.push(c); return q; },
       range: (a: number, b: number) => { range = [a, b]; return q; },
       maybeSingle: () => Promise.resolve(((r) => (r.error ? r : { data: r.data?.[0] ?? null, error: null }))(exec())),
-      then: (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => Promise.resolve(exec()).then(res, rej),
+      then: (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => (state.hangs.has(table) ? new Promise(() => {}) : Promise.resolve(exec())).then(res, rej),
       upsert: (rows: Row | Row[]) => {
         const fail = writeFail(table);
         if (fail) return Promise.resolve(fail);
@@ -85,6 +85,7 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
     reject(table: string, message: string, code = 'P0001') { state.rejects.set(table, { message, code }); },
     failWrite(table: string, error: Err) { state.writeFails.set(table, error); },
     failRead(table: string) { state.readFails.add(table); },
+    hang(table: string) { state.hangs.add(table); },
     serverRow(table: string, r: Row) { store[table] ??= []; store[table].push({ ...r, updated_at: stamp() }); },
   };
 }

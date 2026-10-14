@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Header from '../shell/Header';
+import { useSync } from '../../data/SyncProvider';
 import { localDb, type LocalDb, type Week, type WeekSlot } from '../../data/db';
 import Sheet from './Sheet';
 import { saveWeekAsTemplate } from './saveTemplate';
@@ -26,6 +27,7 @@ export type MenuSheet =
 
 export default function MenuPage({ me, members, db = localDb, today = new Date() }: { me: Member; members: Member[]; db?: LocalDb; today?: Date }) {
   const data = useMenu(db, me.household_id, today);
+  const sync = useSync();
   const [day, setDay] = useState(dayOfWeek(today));
   const [sheet, setSheet] = useState<MenuSheet | null>(null);
   const [saved, setSaved] = useState('');
@@ -33,6 +35,10 @@ export default function MenuPage({ me, members, db = localDb, today = new Date()
   const { current, recipes, templates } = data;
   const parent = me.role === 'parent';
   const name = (id: string | null) => (id ? recipes.get(id)?.name ?? 'Блюдо не загружено' : '');
+  const refused = sync.message ? (
+    <section className="notice" role="alert"><span className="row-main"><b>{sync.message}</b></span>
+      <button type="button" className="btn soft sm" onClick={sync.dismiss}>Понятно</button></section>
+  ) : null;
   const noRecipes = recipes.size === 0 ? <section className="notice" role="status"><span className="row-main"><b>Рецепты ещё не загрузились. Откройте приложение с интернетом.</b></span></section> : null;
   const slotAt = (d: number, meal: Meal): WeekSlot | undefined => current.slots.find((s) => s.day === d && s.meal === meal);
   const template = templates.find((t) => t.id === current.week?.template_id);
@@ -42,6 +48,8 @@ export default function MenuPage({ me, members, db = localDb, today = new Date()
       <>
         <Header title="Меню" subtitle={`Неделя ${weekLabel(current.start)}`} />
         {noRecipes}
+      {refused}
+        {refused}
         <section className="card">
           <div className="card-h"><h2>Неделя на {weekLabel(current.start)} не выбрана</h2></div>
           <p className="note">Возьмите один из шаблонов — меню и список покупок соберутся сами. Потом любое блюдо можно заменить.</p>
@@ -77,6 +85,7 @@ export default function MenuPage({ me, members, db = localDb, today = new Date()
     <>
       <Header title="Меню" subtitle={`Неделя ${weekLabel(current.start)} · ${current.week.status === 'approved' ? 'утверждена' : 'предложена'}`} />
       {noRecipes}
+      {refused}
       <NextWeekHero me={me} members={members} db={db} data={data} openWeek={() => setSheet({ kind: 'week', mode: 'next' })} />
       <section className="week-bar">
         <span className="row-main"><b>Сейчас: «{template?.name ?? 'своя неделя'}», {weekLabel(current.start)}</b><small>{template?.note ?? ''}</small></span>

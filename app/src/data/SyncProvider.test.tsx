@@ -1,5 +1,6 @@
 import 'fake-indexeddb/auto';
 import { act, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { createLocalDb, KEY_FIELDS } from './db';
 import { fakeSupabase } from './fakeSupabase';
@@ -8,8 +9,10 @@ import { writeLocal } from './sync';
 
 function Probe() {
   const s = useSync();
-  return <p>{s.offline ? 'offline' : 'online'} · {s.pending}</p>;
+  return <><p>{s.offline ? 'offline' : 'online'} · {s.pending}</p>{s.message ? <button type="button" onClick={s.dismiss}>{s.message}</button> : null}</>;
 }
+const withChannel = (fake: ReturnType<typeof fakeSupabase>) => Object.assign(fake.client as object, { channel: () => ({ on() { return this; }, subscribe() { return this; } }), removeChannel() {} });
+const vote = { week_id: 'w1', member_id: 'm1', household_id: 'h1', value: 'yes', comment: '' };
 
 describe('SyncProvider', () => {
   it('sends queued changes when the browser comes back online', async () => {
@@ -23,5 +26,53 @@ describe('SyncProvider', () => {
     fake.setOffline(false);
     await act(async () => { window.dispatchEvent(new Event('online')); });
     await waitFor(() => expect(screen.getByText('online · 0')).toBeInTheDocument());
+  });
+
+  it('sends a change made online right away, without waiting for the timer', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const store: Record<string, Record<string, unknown>[]> = {};
+    const fake = fakeSupabase(store, KEY_FIELDS);
+    render(<SyncProvider householdId="h1" portions={3.5} client={withChannel(fake) as never} db={db}><Probe /></SyncProvider>);
+    await waitFor(() => expect(screen.getByText('online · 0')).toBeInTheDocument());
+    await act(async () => { await writeLocal(db, 'votes', [vote]); });
+    await waitFor(() => expect(store.votes).toHaveLength(1), { timeout: 3000 });
+    await waitFor(() => expect(screen.getByText('online · 0')).toBeInTheDocument());
+  });
+
+  it('sends changes before downloading the recipe base', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const store: Record<string, Record<string, unknown>[]> = {};
+    const fake = fakeSupabase(store, KEY_FIELDS);
+    fake.hang('ingredients');
+    await writeLocal(db, 'votes', [vote]);
+    render(<SyncProvider householdId="h1" portions={3.5} client={withChannel(fake) as never} db={db}><Probe /></SyncProvider>);
+    await waitFor(() => expect(store.votes).toHaveLength(1));
+  });
+
+  it('keeps a refusal message until it is dismissed', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    fake.reject('votes', 'not_a_parent');
+    await writeLocal(db, 'votes', [vote]);
+    render(<SyncProvider householdId="h1" portions={3.5} client={withChannel(fake) as never} db={db}><Probe /></SyncProvider>);
+    const msg = await screen.findByRole('button', { name: /Менять утверждённую неделю могут только родители/ });
+    await act(async () => { window.dispatchEvent(new Event('online')); });
+    await waitFor(() => expect(screen.getByText('online · 0')).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: /Менять утверждённую неделю/ })).toBeInTheDocument();
+    await userEvent.click(msg);
+    expect(screen.queryByRole('button', { name: /Менять утверждённую неделю/ })).toBeNull();
+  });
+
+  it('syncs when the app comes back to the screen', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const store: Record<string, Record<string, unknown>[]> = {};
+    const fake = fakeSupabase(store, KEY_FIELDS);
+    fake.setOffline(true);
+    render(<SyncProvider householdId="h1" portions={3.5} client={withChannel(fake) as never} db={db}><Probe /></SyncProvider>);
+    await waitFor(() => expect(screen.getByText(/offline/)).toBeInTheDocument());
+    await act(async () => { await writeLocal(db, 'votes', [vote]); });
+    fake.setOffline(false);
+    await act(async () => { document.dispatchEvent(new Event('visibilitychange')); });
+    await waitFor(() => expect(store.votes).toHaveLength(1));
   });
 });

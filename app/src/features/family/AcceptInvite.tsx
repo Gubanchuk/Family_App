@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { acceptInvite, MEMBER_COLORS } from './api';
 import { familyErrorText } from './invite';
 
-export default function AcceptInvite({ code, onDone }: { code: string; onDone: () => void }) {
+export default function AcceptInvite({ code, onDone }: { code: string; onDone: () => void | Promise<void> }) {
   const [name, setName] = useState('');
   const [color, setColor] = useState(MEMBER_COLORS[2]);
   const [error, setError] = useState('');
@@ -11,9 +11,10 @@ export default function AcceptInvite({ code, onDone }: { code: string; onDone: (
   const join = async () => {
     try {
       await acceptInvite(code, name.trim(), color);
-      try { sessionStorage.removeItem('fa.invite'); } catch { /* storage unavailable */ }
       navigate('/', { replace: true });
-      onDone();
+      // The stored code keeps this screen up until the family loads, so «Создать семью» never flashes.
+      await onDone();
+      try { sessionStorage.removeItem('fa.invite'); } catch { /* storage unavailable */ }
     } catch (e) { setError(familyErrorText((e as Error).message)); }
   };
   return (

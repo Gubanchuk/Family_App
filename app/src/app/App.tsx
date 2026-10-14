@@ -43,7 +43,7 @@ function Shell() {
   if (g === 'onboarding') return <Onboarding onDone={fam.reload} />;
   const me = fam.me!;
   return (
-    <SyncProvider householdId={me.household_id}>
+    <SyncProvider householdId={me.household_id} portions={fam.members.reduce((sum, m) => sum + m.portion, 0) || 3.5}>
       <div className="screen">
         <Routes>
           <Route path="/" element={
