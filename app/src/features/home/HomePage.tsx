@@ -16,7 +16,7 @@ import { useHome } from './useHome';
 import { dateLine, greeting, mainThing } from './main';
 import { memberColor } from '../family/colors';
 import AvatarFace from '../family/AvatarFace';
-import { kinLine } from '../family/kin';
+import FamilyRow from './FamilyRow';
 
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 const mins = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
@@ -63,16 +63,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   return (
     <>
       {head}
-      <div className="family" role="group" aria-label="Семья">
-        {members.map((m) => (
-          <div className="fam" key={m.id} style={{ ['--c' as string]: memberColor(m.color) }}>
-            <span className="av" aria-hidden="true"><AvatarFace member={m} /></span><b>{m.name}</b><small>{kinLine(m)}</small>
-          </div>
-        ))}
-        {me.role === 'parent' && members.length < 4 ? (
-          <Link className="fam fam-add" to="/settings"><span className="av" aria-hidden="true"><Icon name="plus" /></span><b>Позвать</b><small>ссылкой</small></Link>
-        ) : null}
-      </div>
+      <FamilyRow me={me} members={members} />
       <section className="hero" aria-label="Главное сейчас">
         {main.kind === 'offer' ? (
           <>
