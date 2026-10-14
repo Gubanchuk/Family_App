@@ -14,21 +14,31 @@ export default function WeekSheet({ db, mode, me, data, onClose }: { db: LocalDb
   const target = mode === 'current' ? data.current : data.next;
   const [pick, setPick] = useState(target.week?.template_id ?? data.templates[0]?.id);
   const slots = useLiveQuery(() => (pick ? db.template_slots.where('template_id').equals(pick).toArray() : []), [db, pick]) ?? [];
+  const [confirm, setConfirm] = useState(false);
   const t = data.templates.find((x) => x.id === pick);
+  const parent = me.role === 'parent';
+  // An approved week is closed to children; a parent replaces it only after a second tap.
+  const locked = target.week?.status === 'approved';
+  const loaded = slots.length >= 28;
   const apply = async () => {
     if (!pick) return;
-    const w = await setWeekFromTemplate(db, { household: me.household_id, startsOn: target.start, template: pick, status: mode === 'current' ? 'approved' : 'proposed', by: me.id, existing: target.week });
-    if (mode === 'next') await voteWeek(db, w, me, 'yes');
+    if (locked && !confirm) { setConfirm(true); return; }
+    const status = mode === 'current' || locked ? 'approved' : 'proposed';
+    const w = await setWeekFromTemplate(db, { household: me.household_id, startsOn: target.start, template: pick, status, by: me.id, existing: target.week });
+    if (status === 'proposed') await voteWeek(db, w, me, 'yes');
     onClose();
   };
+  const label = locked ? (confirm ? 'Точно заменить? Замены блюд пропадут' : 'Заменить утверждённую неделю') : mode === 'current' ? `Поставить «${t?.name ?? ''}»` : `Предложить «${t?.name ?? ''}»`;
   return (
     <Sheet title={`Неделя на ${weekLabel(target.start)}`}
       sub={mode === 'current' ? 'Выберите шаблон: меню и список покупок соберутся заново.' : 'Выберите шаблон и предложите семье, родители утвердят.'}
       onClose={onClose}
-      actions={<button type="button" className="btn" onClick={apply} disabled={!pick}>{mode === 'current' ? `Поставить «${t?.name ?? ''}»` : `Предложить «${t?.name ?? ''}»`}</button>}>
+      actions={locked && !parent ? undefined : <button type="button" className="btn" onClick={apply} disabled={!pick || !loaded}>{label}</button>}>
+      {locked && !parent ? <p className="note" style={{ margin: '0 16px 12px' }}>Неделя утверждена. Поменять её могут родители.</p> : null}
+      {pick && !loaded ? <p className="note" role="status" style={{ margin: '0 16px 12px' }}>Шаблон ещё не загрузился — нужен интернет.</p> : null}
       <div className="tpl-list" role="radiogroup" aria-label="Шаблоны недель">
         {data.templates.map((x) => (
-          <button key={x.id} type="button" className="tpl" role="radio" aria-checked={x.id === pick} onClick={() => setPick(x.id)}>
+          <button key={x.id} type="button" className="tpl" role="radio" aria-checked={x.id === pick} onClick={() => { setPick(x.id); setConfirm(false); }}>
             <span className="tpl-top"><b>{x.name}{x.household_id ? <span className="tpl-now">наш</span> : null}</b></span>
             <small>{x.note}</small>
           </button>

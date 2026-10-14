@@ -32,7 +32,8 @@ export default function MenuPage({ me, members, db = localDb, today = new Date()
   if (!data) return <><Header title="Меню" /><p className="note" style={{ margin: 16 }}>Загружаем меню…</p></>;
   const { current, recipes, templates } = data;
   const parent = me.role === 'parent';
-  const name = (id: string | null) => (id ? recipes.get(id)?.name ?? 'Блюдо удалено' : '');
+  const name = (id: string | null) => (id ? recipes.get(id)?.name ?? 'Блюдо не загружено' : '');
+  const noRecipes = recipes.size === 0 ? <section className="notice" role="status"><span className="row-main"><b>Рецепты ещё не загрузились. Откройте приложение с интернетом.</b></span></section> : null;
   const slotAt = (d: number, meal: Meal): WeekSlot | undefined => current.slots.find((s) => s.day === d && s.meal === meal);
   const template = templates.find((t) => t.id === current.week?.template_id);
 
@@ -40,6 +41,7 @@ export default function MenuPage({ me, members, db = localDb, today = new Date()
     return (
       <>
         <Header title="Меню" subtitle={`Неделя ${weekLabel(current.start)}`} />
+        {noRecipes}
         <section className="card">
           <div className="card-h"><h2>Неделя на {weekLabel(current.start)} не выбрана</h2></div>
           <p className="note">Возьмите один из шаблонов — меню и список покупок соберутся сами. Потом любое блюдо можно заменить.</p>
@@ -74,6 +76,7 @@ export default function MenuPage({ me, members, db = localDb, today = new Date()
   return (
     <>
       <Header title="Меню" subtitle={`Неделя ${weekLabel(current.start)} · ${current.week.status === 'approved' ? 'утверждена' : 'предложена'}`} />
+      {noRecipes}
       <NextWeekHero me={me} members={members} db={db} data={data} openWeek={() => setSheet({ kind: 'week', mode: 'next' })} />
       <section className="week-bar">
         <span className="row-main"><b>Сейчас: «{template?.name ?? 'своя неделя'}», {weekLabel(current.start)}</b><small>{template?.note ?? ''}</small></span>

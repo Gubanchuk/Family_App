@@ -12,7 +12,7 @@ const DIMA = { ok: 'Диме можно', adapt: 'Диме с поправкой
 
 export function lineOf(s: Pick<WeekSlot, 'dish_id' | 'side_id' | 'simple'> | undefined, recipes: Map<string, Recipe>) {
   if (!s) return 'Не выбрано';
-  const main = s.dish_id ? recipes.get(s.dish_id)?.name ?? 'Блюдо удалено' : s.simple?.simple ?? 'Не выбрано';
+  const main = s.dish_id ? recipes.get(s.dish_id)?.name ?? 'Блюдо не загружено' : s.simple?.simple ?? 'Не выбрано';
   const side = s.side_id ? recipes.get(s.side_id)?.name : undefined;
   return side ? `${main} + ${side.charAt(0).toLowerCase()}${side.slice(1)}` : main;
 }
