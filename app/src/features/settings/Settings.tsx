@@ -27,15 +27,19 @@ export default function Settings({ me, members, reload }: { me: Member; members:
     if (!mine) loadThemeChoice(me.id).then((t) => { if (t) setThemeChoice(t); });
   }, [me.id]);
 
+  const [link, setLink] = useState('');
   const invite = async (role: 'parent' | 'child') => {
     try {
-      const code = await createInvite(me.household_id, role);
-      const url = inviteUrl(location.origin, code);
-      await navigator.clipboard.writeText(url).then(
-        () => setMsg(`Ссылка скопирована: ${url}. Отправьте её в мессенджере, она действует 7 дней.`),
-        () => setMsg(`Ссылка: ${url}. Скопируйте и отправьте, она действует 7 дней.`),
-      );
+      setLink(inviteUrl(location.origin, await createInvite(me.household_id, role)));
+      setMsg('');
     } catch (e) { setMsg(familyErrorText((e as Error).message)); }
+  };
+  // Sharing and copying run in their own tap: Safari refuses both once a network request has passed.
+  const send = async () => {
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Семейный помощник', text: 'Приглашение в нашу семью в «Семейном помощнике»', url: link }); return; } catch { /* closed the menu: offer copying */ }
+    }
+    try { await navigator.clipboard.writeText(link); setMsg('Ссылка скопирована. Отправьте её в мессенджере.'); } catch { setMsg('Выделите ссылку и скопируйте её вручную.'); }
   };
   const switchRole = async (m: Member) => {
     try { await setRole(m, m.role === 'parent' ? 'child' : 'parent'); reload(); }
@@ -72,6 +76,12 @@ export default function Settings({ me, members, reload }: { me: Member; members:
             <button type="button" className="row set-row add-row" onClick={() => invite('parent')}><span className="row-main"><b>Пригласить родителя</b><small>сможет утверждать меню и видеть траты, ссылка на 7 дней</small></span></button>
           ) : null}
           <button type="button" className="row set-row add-row" onClick={() => invite('child')}><span className="row-main"><b>Пригласить ребёнка</b><small>свой вход, предлагает и голосует, ссылка на 7 дней</small></span></button>
+          {link ? (
+            <div className="row">
+              <span className="row-main"><b>Ссылка на 7 дней</b><small style={{ userSelect: 'all', wordBreak: 'break-all' }}>{link}</small></span>
+              <button type="button" className="btn soft sm" onClick={send}>Отправить ссылку</button>
+            </div>
+          ) : null}
           {members.some((m) => !m.user_id && m.portion < 1) ? null : (
             <button type="button" className="row set-row add-row" onClick={addToddler}><span className="row-main"><b>Добавить малыша без входа</b><small>его рацион ведут родители</small></span></button>
           )}

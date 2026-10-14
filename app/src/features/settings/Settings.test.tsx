@@ -66,4 +66,16 @@ describe('Settings', () => {
     expect(screen.queryByRole('button', { name: /Дима: сделать/ })).toBeNull();
     expect(reload).toHaveBeenCalled();
   });
+
+  it('creates the invite first, then sends it with the phone share menu in a second tap', async () => {
+    const share = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'share', { value: share, configurable: true });
+    render(<MemoryRouter><Settings me={papa} members={[papa, son, dima]} reload={vi.fn()} /></MemoryRouter>);
+    await userEvent.click(screen.getByRole('button', { name: /Пригласить ребёнка/ }));
+    expect(await screen.findByText(/join\?code=ABCD234XYZ/)).toBeInTheDocument();
+    expect(share).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: 'Отправить ссылку' }));
+    expect(share).toHaveBeenCalledWith(expect.objectContaining({ url: expect.stringContaining('/join?code=ABCD234XYZ') }));
+    Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });
+  });
 });
