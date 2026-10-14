@@ -10,6 +10,7 @@ const PATHS: Record<string, string> = {
   check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   logout: '<path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><path d="m15 8 4 4-4 4"/><path d="M19 12H9"/>',
   x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  swap: '<path d="M7 4 4 7l3 3"/><path d="M4 7h13"/><path d="m17 20 3-3-3-3"/><path d="M20 17H7"/>',
 };
 
 export default function Icon({ name, className = '' }: { name: string; className?: string }) {
