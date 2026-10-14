@@ -6,6 +6,7 @@ import { localDb, type LocalDb } from './db';
 import { loadContent } from './content';
 import { rejectionText, syncNow } from './sync';
 import { withTimeout } from '../features/probe/checks';
+import { refreshLists } from '../features/shop/menuList';
 
 type SyncState = { syncing: boolean; offline: boolean; syncedAt: string | null; message: string };
 type Ctx = SyncState & { pending: number; syncNow: () => Promise<void>; dismiss: () => void };
@@ -14,7 +15,7 @@ export const useSync = () => useContext(SyncContext);
 
 const REALTIME = ['weeks', 'week_slots', 'votes', 'dish_offers', 'shopping_items', 'shopping_marks', 'shop_trips', 'not_eat'];
 
-export function SyncProvider({ householdId, portions = 3.5, children, client = supabase, db = localDb }: { householdId: string; portions?: number; children: ReactNode; client?: SupabaseClient; db?: LocalDb }) {
+export function SyncProvider({ householdId, portions = 3.5, isParent = false, now, children, client = supabase, db = localDb }: { householdId: string; portions?: number; isParent?: boolean; now?: Date; children: ReactNode; client?: SupabaseClient; db?: LocalDb }) {
   const [state, setState] = useState<SyncState>({ syncing: false, offline: false, syncedAt: null, message: '' });
   const pending = useLiveQuery(() => db.outbox.count(), [db]) ?? 0;
   const running = useRef(false);
@@ -33,6 +34,8 @@ export function SyncProvider({ householdId, portions = 3.5, children, client = s
           // Changes go out first: the weekly recipe download must not hold them back.
           const r = await syncNow(db, client);
           if (!r.offline) await loadContent(db, client);
+          // A week approved or edited on another phone gets its shopping list here; parents keep the list.
+          if (isParent) await refreshLists(db, householdId, now ?? new Date());
           const syncedAt = ((await db.meta.get('synced_at'))?.value as string | undefined) ?? null;
           setState((s) => ({ syncing: false, offline: r.offline, syncedAt, message: r.rejected.length ? rejectionText(r.rejected[0]) : s.message }));
         })(), 120_000);
@@ -42,7 +45,7 @@ export function SyncProvider({ householdId, portions = 3.5, children, client = s
     } finally {
       running.current = false;
     }
-  }, [client, db]);
+  }, [client, db, householdId, isParent, now]);
 
   useEffect(() => { db.meta.put({ key: 'family_portions', value: portions }); }, [db, portions]);
 

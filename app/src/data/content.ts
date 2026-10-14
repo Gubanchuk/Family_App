@@ -37,6 +37,8 @@ export async function loadContent(db: LocalDb, client: Client, opts: { force?: b
     // Offline or blocked: keep the copy the phone already has.
     return { loaded: false, counts: {} };
   }
+  // An empty base means the answer was wrong (for example read without a session), not that recipes vanished.
+  if (!fetched.recipes.length || !fetched.ingredients.length) return { loaded: false, counts: {} };
   await db.transaction('rw', [...TABLES.map((t) => db.table(t.name)), db.meta], async () => {
     for (const t of TABLES) {
       await db.table(t.name).clear();

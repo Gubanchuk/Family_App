@@ -43,3 +43,13 @@ describe('loadContent', { timeout: 30_000 }, () => {
     expect(await db.recipes.count()).toBe(229);
   });
 });
+
+describe('loadContent safety', () => {
+  it('does not replace the recipe base with an empty answer', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.recipes.put({ id: 'r1', name: 'Борщ' } as never);
+    const empty = fakeSupabase({ ingredients: [], prices: [], recipes: [], recipe_ingredients: [], recipe_sides: [] }, { ...KEY_FIELDS, ingredients: ['item'], prices: ['item'], recipes: ['id'], recipe_ingredients: ['recipe_id', 'pos'], recipe_sides: ['recipe_id', 'side_id'] });
+    expect((await loadContent(db, empty.client as never, { force: true })).loaded).toBe(false);
+    expect(await db.recipes.count()).toBe(1);
+  });
+});

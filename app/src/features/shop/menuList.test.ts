@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createLocalDb } from '../../data/db';
 import { seedMenu, RECIPES } from '../menu/testData';
 import { replaceMeal } from '../menu/actions';
-import { menuItemId, regenerateWeekList } from './menuList';
+import { menuItemId, refreshLists, regenerateWeekList } from './menuList';
 
 const items = async (db: ReturnType<typeof createLocalDb>) => new Map((await db.shopping_items.where('week_id').equals('w-cur').toArray()).filter((i) => !i.deleted_at).map((i) => [i.item, i]));
 
@@ -63,5 +63,22 @@ describe('regenerateWeekList', () => {
     expect(await regenerateWeekList(db, 'w-cur')).toBe('skipped');
     expect(await db.shopping_items.count()).toBe(before);
     expect((await items(db)).size).toBe(before);
+  });
+
+  it('rebuilds the lists of approved weeks after a sync only when the menu or portions changed', async () => {
+    const db = await ready();
+    expect(await refreshLists(db, 'h1', new Date(2026, 9, 13))).toEqual(['w-cur']);
+    const queued = await db.outbox.count();
+    expect(queued).toBeGreaterThan(0);
+    expect(await refreshLists(db, 'h1', new Date(2026, 9, 13))).toEqual([]);
+    expect(await db.outbox.count()).toBe(queued);
+    await db.week_slots.update(['w-cur', 2, 'dinner'], { dish_id: 'mn-plov' });
+    expect(await refreshLists(db, 'h1', new Date(2026, 9, 13))).toEqual(['w-cur']);
+    expect((await items(db)).get('рис')?.qty_text).toBe('300 г');
+  });
+
+  it('leaves weeks that are over alone', async () => {
+    const db = await ready();
+    expect(await refreshLists(db, 'h1', new Date(2026, 9, 21))).toEqual([]);
   });
 });

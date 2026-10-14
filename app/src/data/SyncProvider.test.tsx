@@ -6,6 +6,7 @@ import { createLocalDb, KEY_FIELDS } from './db';
 import { fakeSupabase } from './fakeSupabase';
 import { SyncProvider, useSync } from './SyncProvider';
 import { writeLocal } from './sync';
+import { seedMenu } from '../features/menu/testData';
 
 function Probe() {
   const s = useSync();
@@ -85,5 +86,22 @@ describe('SyncProvider', () => {
     render(<SyncProvider householdId="h1" portions={3.5} client={client as never} db={db}><Probe /></SyncProvider>);
     await waitFor(async () => expect((await db.meta.get('family_portions'))?.value).toBe(3.5));
     expect(tables).toEqual(expect.arrayContaining(['shopping_items', 'shopping_marks', 'dish_offers', 'shop_trips', 'not_eat']));
+  });
+
+  it('builds the shopping list of an approved week that arrived from another phone', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    render(<SyncProvider householdId="h1" portions={3.5} isParent now={new Date(2026, 9, 13)} client={withChannel(fake) as never} db={db}><Probe /></SyncProvider>);
+    await waitFor(async () => expect(await db.shopping_items.count()).toBeGreaterThan(0));
+  });
+
+  it('leaves the list to the parents', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    render(<SyncProvider householdId="h1" portions={3.5} now={new Date(2026, 9, 13)} client={withChannel(fake) as never} db={db}><Probe /></SyncProvider>);
+    await waitFor(() => expect(screen.getByText('online · 0')).toBeInTheDocument());
+    expect(await db.shopping_items.count()).toBe(0);
   });
 });
