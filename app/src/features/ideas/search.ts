@@ -15,7 +15,9 @@ export function blockedBy(r: Pick<Recipe, 'id' | 'name'>, items: string[], notEa
     if (x.deleted_at) continue;
     if (x.kind === 'dish' && x.ref === r.id) return r.name;
     const ref = norm(x.ref);
-    if (x.kind === 'item' && items.some((i) => norm(i) === ref || norm(i).startsWith(`${ref} `))) return x.ref;
+    const name = norm(r.name);
+    // «Не едим» takes products and dish names alike: «сырники» hides «Сырники с изюмом» too.
+    if (x.kind === 'item' && (items.some((i) => norm(i) === ref || norm(i).startsWith(`${ref} `)) || name === ref || name.startsWith(`${ref} `))) return x.ref;
   }
   return null;
 }

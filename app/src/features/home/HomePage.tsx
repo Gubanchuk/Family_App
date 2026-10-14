@@ -33,7 +33,9 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
     return [name(s?.dish_id), s?.side_id ? lower(name(s.side_id)) : ''].filter(Boolean).join(' + ');
   };
   const urgent = data.items.filter((i) => i.urgent && !data.marks.get(i.id)?.bought);
-  const dinner = name(slot('dinner')?.dish_id);
+  // A dish someone took «instead» of dinner is what the family eats tonight.
+  const swap = data.offers.find((o) => o.meal === 'dinner' && o.how === 'instead' && o.status === 'taken');
+  const dinner = name(swap?.dish_id ?? slot('dinner')?.dish_id);
   const main = mainThing({ me, today: data.todayIso, offers: data.offers, urgent, dinner: data.week && dinner ? lower(dinner) : null, hasWeek: !!data.week });
   const nowMin = today.getHours() * 60 + today.getMinutes();
   const next = MEALS.find((m) => mins(times[m]) > nowMin);
@@ -57,7 +59,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
             <p>Сегодня {MEAL_FOR[main.offer.meal]}, {main.offer.how === 'over' ? 'поверх меню' : 'вместо блюда по меню'}.</p>
             <div className="hero-chips">
               <button type="button" className="hero-chip primary" onClick={() => takeOffer(db, main.offer, me)}><Icon name="check" />Сделаю</button>
-              <Link className="hero-chip" to="/menu?panel=ideas">Рецепт</Link>
+              <Link className="hero-chip" to={`/menu?panel=ideas&recipe=${main.offer.dish_id}`}>Рецепт</Link>
             </div>
           </>
         ) : main.kind === 'urgent' ? (

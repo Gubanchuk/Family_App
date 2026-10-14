@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import Icon from '../shell/Icon';
 import type { LocalDb, Recipe } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { addDaysIso, dayOfWeek, mondayOf } from '../menu/week';
 import { blockedBy, recipeMatches } from './search';
-import { COLLECTIONS, MEAL_FOR, createOffer, declineOffer, offerDate, takeOffer } from './offerActions';
+import { COLLECTIONS, MEAL_FOR, createOffer, declineOffer, offerDate, takeOffer, whenText } from './offerActions';
 import RecipeSheet from './RecipeSheet';
 
 const DIMA = { ok: 'Диме можно', adapt: 'Диме с поправкой', skip: 'Диме нельзя' } as const;
@@ -31,7 +32,9 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
   }, [db, me.household_id, me.id, todayIso]);
   const [col, setCol] = useState('all');
   const [q, setQ] = useState('');
-  const [open, setOpen] = useState<string | null>(null);
+  const [params] = useSearchParams();
+  // Home links straight to a recipe with ?recipe=<id>.
+  const [open, setOpen] = useState<string | null>(params.get('recipe'));
   const list = useMemo(() => {
     if (!data) return [];
     const ok = (r: Recipe) => !blockedBy(r, data.itemsOf.get(r.id) ?? [], data.notEat);
@@ -52,7 +55,7 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
       {forMe && dish(forMe.dish_id) ? (
         <section className="hero" aria-label="Вам предложили блюдо">
           <h2>{name(forMe.from_member)} просит: {dish(forMe.dish_id)!.name}</h2>
-          <p>{forMe.on_date === todayIso ? 'Сегодня' : forMe.on_date} {MEAL_FOR[forMe.meal]}, {forMe.how === 'over' ? 'поверх меню' : 'вместо блюда по меню'}. {dish(forMe.dish_id)!.time_total} минут.</p>
+          <p>{whenText(forMe.on_date, todayIso)} {MEAL_FOR[forMe.meal]}, {forMe.how === 'over' ? 'поверх меню' : 'вместо блюда по меню'}. {dish(forMe.dish_id)!.time_total} минут.</p>
           <div className="hero-chips">
             <button type="button" className="hero-chip primary" onClick={() => takeOffer(db, forMe, me)}><Icon name="check" />Сделаю</button>
             <button type="button" className="hero-chip" onClick={() => setOpen(forMe.dish_id)}>Рецепт</button>

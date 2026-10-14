@@ -62,4 +62,19 @@ describe('Что покушать', () => {
     await userEvent.type(await screen.findByRole('searchbox'), 'сырники');
     expect(await screen.findByText(/Ничего не нашли/)).toBeInTheDocument();
   });
+
+  it('opens a recipe named in the link', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    render(<MemoryRouter initialEntries={['/menu?panel=ideas&recipe=mn-plov']}><MenuPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></MemoryRouter>);
+    expect(await screen.findByRole('dialog', { name: 'Плов' })).toBeInTheDocument();
+  });
+
+  it('says «Завтра» rather than a date for a request for tomorrow', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    await db.dish_offers.put({ id: 'o2', household_id: 'h1', from_member: 'm-mama', to_member: 'm-papa', dish_id: 'mn-plov', on_date: '2026-10-14', meal: 'dinner', how: 'over', status: 'open', taken_by: null, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter initialEntries={['/menu?panel=ideas']}><MenuPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></MemoryRouter>);
+    expect(await screen.findByText(/^Завтра на ужин, поверх меню/)).toBeInTheDocument();
+  });
 });

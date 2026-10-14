@@ -11,6 +11,15 @@ export const COLLECTIONS = [
   { id: 'quick-new', name: 'Быстро и необычно' }, { id: 'sweet', name: 'Сладкое' }, { id: 'kids-cook', name: 'Готовим с детьми' },
 ];
 
+const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+
+export function whenText(onDate: string, todayIso: string): string {
+  if (onDate === todayIso) return 'Сегодня';
+  if (onDate === addDaysIso(todayIso, 1)) return 'Завтра';
+  const [, m, d] = onDate.split('-').map(Number);
+  return `${d} ${MONTHS[m - 1]}`;
+}
+
 export function offerDate(when: 'today' | 'tomorrow' | 'weekend', today: Date): string {
   const t = addDaysIso(mondayOf(today), dayOfWeek(today));
   if (when === 'today') return t;

@@ -51,4 +51,15 @@ describe('HomePage', () => {
     render(<MemoryRouter><HomePage me={papa} members={[papa, mama]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
     expect(await screen.findByRole('heading', { name: 'Меню на эту неделю ещё не выбрано' })).toBeInTheDocument();
   });
+
+  it('shows the dish cooked instead of the dinner and links straight to its recipe', async () => {
+    const db = await ready();
+    await db.dish_offers.put({ id: 'o3', household_id: 'h1', from_member: 'm-mama', to_member: 'm-papa', dish_id: 'mn-plov', on_date: '2026-10-13', meal: 'dinner', how: 'instead', status: 'taken', taken_by: 'm-papa', updated_at: 'x', deleted_at: null });
+    const { unmount } = render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('heading', { name: 'Ужин в 19:00 — плов' })).toBeInTheDocument();
+    unmount();
+    await db.dish_offers.put({ id: 'o4', household_id: 'h1', from_member: 'm-mama', to_member: 'm-papa', dish_id: 'br-syrniki', on_date: '2026-10-13', meal: 'snack', how: 'over', status: 'open', taken_by: null, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('link', { name: 'Рецепт' })).toHaveAttribute('href', '/menu?panel=ideas&recipe=br-syrniki');
+  });
 });

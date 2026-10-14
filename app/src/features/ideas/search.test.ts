@@ -18,4 +18,11 @@ describe('search', () => {
     expect(blockedBy(syrniki, ['курица целая'], [ne('курица')])).toBe('курица');
     expect(blockedBy(syrniki, [], [ne('br-syrniki', 'dish')])).toBe('Сырники');
   });
+
+  it('blocks a dish by its name, typed into «Не едим»', () => {
+    const ne = { household_id: 'h1', kind: 'item' as const, ref: 'сырники', updated_at: 'x', deleted_at: null };
+    expect(blockedBy(syrniki, ['творог'], [ne])).toBe('сырники');
+    expect(blockedBy({ ...syrniki, name: 'Сырники с изюмом' }, [], [ne])).toBe('сырники');
+    expect(blockedBy({ ...syrniki, name: 'Ленивые сырники' }, [], [ne])).toBeNull();
+  });
 });

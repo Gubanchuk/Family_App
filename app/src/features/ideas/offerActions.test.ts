@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createLocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { seedMenu } from '../menu/testData';
-import { createOffer, declineOffer, offerDate, takeOffer } from './offerActions';
+import { createOffer, declineOffer, offerDate, takeOffer, whenText } from './offerActions';
 
 const papa: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: 'Папа', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1 };
 const son: Member = { ...papa, id: 'm-son', user_id: 'u3', name: 'Сын', role: 'child', is_owner: false };
@@ -37,5 +37,11 @@ describe('offers', () => {
     const other = await createOffer(db, { me: son, to: null, dish: 'br-syrniki', date: '2026-10-14', meal: 'breakfast', how: 'over' });
     await declineOffer(db, other);
     expect((await db.dish_offers.get(other.id))?.status).toBe('declined');
+  });
+
+  it('names the day of an offer in words', () => {
+    expect(whenText('2026-10-13', '2026-10-13')).toBe('Сегодня');
+    expect(whenText('2026-10-14', '2026-10-13')).toBe('Завтра');
+    expect(whenText('2026-10-17', '2026-10-13')).toBe('17 октября');
   });
 });
