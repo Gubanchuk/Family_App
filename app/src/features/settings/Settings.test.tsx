@@ -145,5 +145,20 @@ describe('Settings', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
     expect(setAvatar).toHaveBeenCalledWith(son, { kind: 'new', file, crop: { x: 0.5, y: 0.5, zoom: 1 } });
   });
+
+  it('keeps a new toddler added once even when the photo fails to save', async () => {
+    vi.mocked(addProfileWithoutSignIn).mockClear();
+    vi.mocked(setAvatar).mockImplementationOnce(() => Promise.reject(new Error('Bucket not found')));
+    const reload = vi.fn();
+    render(<MemoryRouter><Settings me={papa} members={[papa, son]} reload={reload} /></MemoryRouter>);
+    await userEvent.click(screen.getByRole('button', { name: /Добавить малыша/ }));
+    await userEvent.type(screen.getByLabelText('Имя'), 'Дима');
+    await userEvent.click(screen.getByRole('button', { name: 'Сын' }));
+    await userEvent.upload(screen.getByLabelText('Выбрать фото'), new File(['x'], 'd.jpg', { type: 'image/jpeg' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Добавить в семью' }));
+    expect(addProfileWithoutSignIn).toHaveBeenCalledTimes(1);
+    expect(reload).toHaveBeenCalled();
+    expect(screen.queryByRole('dialog', { name: 'Малыш без входа' })).toBeNull();
+  });
 });
 

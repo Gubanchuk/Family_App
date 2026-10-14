@@ -143,9 +143,10 @@ export default function Settings({ me, members, reload }: { me: Member; members:
           placeholder="Например, Дима" save="Добавить в семью" onClose={() => setSheet(null)}
           onSave={async (name, color, kin, photo) => {
             const id = await addProfileWithoutSignIn(me.household_id, name.trim(), color, 0.5, kin);
-            await setAvatar({ id, household_id: me.household_id }, photo);
+            // The profile exists from here on: a failed photo must not turn «Сохранить» into a second profile.
+            const photoSaved = await setAvatar({ id, household_id: me.household_id }, photo).then(() => true, () => false);
             reload();
-            toast({ text: `${name.trim()} теперь в семье` });
+            toast({ text: photoSaved ? `${name.trim()} теперь в семье` : `${name.trim()} теперь в семье. Фото не сохранилось — добавьте его потом в Настройках.` });
           }} />
       ) : null}
       {sheet && typeof sheet === 'object' ? (
