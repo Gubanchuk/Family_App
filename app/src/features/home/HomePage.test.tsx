@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { createLocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
@@ -32,7 +33,7 @@ describe('HomePage', () => {
     expect(screen.getByText('родитель')).toBeInTheDocument();
     expect(screen.getByText('без входа')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Ужин в 19:00 — котлеты' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Борщ, 2-й день из 7/ })).toHaveTextContent('Обед');
+    expect(screen.getByRole('button', { name: /Борщ, 2-й день из 7/ })).toHaveTextContent('Обед');
     expect(screen.getByRole('link', { name: /Покупки/ })).toHaveTextContent('9');
   });
 
@@ -46,6 +47,17 @@ describe('HomePage', () => {
     render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
     expect(await screen.findByRole('heading', { name: 'Мама просит: Плов' })).toBeInTheDocument();
     expect(screen.getByText('Предложили на сегодня')).toBeInTheDocument();
+  });
+
+  it('opens the recipe of a meal of today, and sends «Заменить» to the menu', async () => {
+    const db = await ready();
+    const Where = () => <p>{`Меню${useLocation().search}`}</p>;
+    render(<MemoryRouter><Routes><Route path="/" element={<HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} />} /><Route path="/menu" element={<Where />} /></Routes></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: /Котлеты/ }));
+    expect(await screen.findByRole('heading', { name: 'Котлеты' })).toBeInTheDocument();
+    expect(await screen.findByText('Фарш')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Заменить' }));
+    expect(await screen.findByText('Меню?replace=dinner')).toBeInTheDocument();
   });
 
   it('asks to choose a week when there is none', async () => {

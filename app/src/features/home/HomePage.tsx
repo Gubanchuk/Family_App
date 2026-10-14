@@ -1,4 +1,5 @@
-import { Link, NavLink } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useToday } from '../../lib/useToday';
 import Header from '../shell/Header';
 import Icon from '../shell/Icon';
@@ -6,6 +7,8 @@ import { localDb, type LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { getMealTimes } from '../../lib/mealTimes';
 import { dayOfWeek, MEAL_LABEL, MEALS, soupOn, type Meal } from '../menu/week';
+import MealSheet from '../menu/MealSheet';
+import { canEditWeek } from '../menu/actions';
 import OfferRow from '../ideas/OfferRow';
 import { MEAL_FOR, takeOffer } from '../ideas/offerActions';
 import { listTotals, rub } from '../shop/build';
@@ -21,6 +24,8 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const today = useToday(fixedToday);
   const data = useHome(db, me.household_id, today);
   const times = getMealTimes();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState<Meal | null>(null);
   const avatar = <NavLink to="/settings" className="av" style={{ ['--c' as string]: memberColor(me.color) }} aria-label="Настройки и профиль">{me.name.slice(0, 1)}</NavLink>;
   const head = <Header title={`${greeting(today)}, ${me.name}`} subtitle={dateLine(today)} action={avatar} />;
   if (!data) return head;
@@ -37,6 +42,16 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const urgent = data.items.filter((i) => i.urgent && !data.marks.get(i.id)?.bought);
   // A dish someone took «instead» of dinner is what the family eats tonight.
   const swap = data.offers.find((o) => o.meal === 'dinner' && o.how === 'instead' && o.status === 'taken');
+  const swapOf = (m: Meal) => data.offers.find((o) => o.meal === m && o.how === 'instead' && o.status === 'taken');
+  const partsOf = (m: Meal) => {
+    const sw = swapOf(m);
+    if (sw) return { dish_id: sw.dish_id, side_id: null, salad_id: null, simple: null };
+    const s = slot(m);
+    const pot = m === 'lunch' ? soupOn(data.slots, d) : null;
+    return { dish_id: pot?.dish_id ?? s?.dish_id ?? null, side_id: s?.side_id ?? null, salad_id: s?.salad_id ?? null, simple: s?.simple ?? null };
+  };
+  // Today's meals open their recipe; an empty one goes to the menu to be chosen.
+  const openMeal = (m: Meal) => { const p = partsOf(m); if (p.dish_id || p.simple) setOpen(m); else navigate(`/menu?replace=${m}`); };
   const dinner = name(swap?.dish_id ?? slot('dinner')?.dish_id);
   const main = mainThing({ me, today: data.todayIso, offers: data.offers, urgent, dinner: data.week && dinner ? lower(dinner) : null, hasWeek: !!data.week });
   const nowMin = today.getHours() * 60 + today.getMinutes();
@@ -91,16 +106,20 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
         <>
           <div className="sec-h"><h2>Сегодня едим</h2><Link className="more" to="/menu">Меню</Link></div>
           {next ? (
-            <Link className="meal-now" to="/menu"><span className="mn-time">{times[next]}</span><span className="mn-main"><b>{text(next) || 'Не выбрано'}</b><small>{MEAL_LABEL[next]}</small></span></Link>
+            <button type="button" className="meal-now" onClick={() => openMeal(next)}><span className="mn-time">{times[next]}</span><span className="mn-main"><b>{text(next) || 'Не выбрано'}</b><small>{MEAL_LABEL[next]}</small></span></button>
           ) : null}
           <section className="card">
             {MEALS.filter((m) => m !== next).map((m) => (
-              <div className={`row ${mins(times[m]) < nowMin ? 'past' : ''}`} key={m}><span className="tl-t">{times[m]}</span><span className="row-main"><b>{text(m) || 'Не выбрано'}</b><small>{MEAL_LABEL[m]}</small></span></div>
+              <button type="button" className={`row meal-row ${mins(times[m]) < nowMin ? 'past' : ''}`} key={m} onClick={() => openMeal(m)}><span className="tl-t">{times[m]}</span><span className="row-main"><b>{text(m) || 'Не выбрано'}</b><small>{MEAL_LABEL[m]}</small></span></button>
             ))}
             {data.offers.length ? <p className="tl-group">Предложили на сегодня</p> : null}
             {data.offers.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} />)}
           </section>
         </>
+      ) : null}
+      {open && data.week ? (
+        <MealSheet key={open} db={db} parts={partsOf(open)} recipes={data.recipes} onClose={() => setOpen(null)}
+          onReplace={canEditWeek(me, data.week) ? () => navigate(`/menu?replace=${open}`) : null} />
       ) : null}
       <div className="bento">
         <Link className="tile wide" to="/shop" style={{ ['--h' as string]: 'var(--k-shop)' }}>

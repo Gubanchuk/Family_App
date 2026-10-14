@@ -89,7 +89,9 @@ test('screens of the create flows', async ({ browser }) => {
   await shot(p, '13-menu-week-toast');
   await p.waitForTimeout(4600);
   await shot(p, '13b-menu-week', true);
-  await p.locator('.meal-row').nth(3).click();
+  await p.locator('.meal-row .row-btn').nth(3).click();
+  await shot(p, '14a-meal-recipe');
+  await p.getByRole('dialog').getByRole('button', { name: 'Заменить' }).click();
   await shot(p, '14-slot-sheet');
   await p.getByRole('tab', { name: 'Все рецепты' }).click();
   await shot(p, '14b-slot-all-recipes');

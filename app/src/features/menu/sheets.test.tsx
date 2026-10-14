@@ -16,7 +16,7 @@ describe('replace sheets', () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db, { currentWeek: true });
     render(<MemoryRouter><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
-    await userEvent.click(await screen.findByRole('button', { name: /Ужин: Котлеты/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Заменить ужин' }));
     await userEvent.click(screen.getByRole('button', { name: 'Быстрая' }));
     await userEvent.click(await screen.findByRole('button', { name: /Пт · Плов/ }));
     await waitFor(async () => expect((await db.week_slots.get(['w-cur', 1, 'dinner']))?.dish_id).toBe('mn-plov'));
@@ -27,7 +27,7 @@ describe('replace sheets', () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db, { currentWeek: true });
     render(<MemoryRouter><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
-    await userEvent.click(await screen.findByRole('button', { name: /Завтрак: Овсяная каша/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Заменить завтрак' }));
     await userEvent.click(screen.getByRole('tab', { name: 'Все рецепты' }));
     await userEvent.type(screen.getByRole('searchbox'), 'сыр');
     expect(screen.getByRole('button', { name: /^Сырники/ })).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe('replace sheets', () => {
     await seedMenu(db, { currentWeek: true });
     await db.not_eat.put({ household_id: 'h1', kind: 'item', ref: 'рис', updated_at: 'x', deleted_at: null });
     render(<MemoryRouter><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
-    await userEvent.click(await screen.findByRole('button', { name: /Ужин: Котлеты/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Заменить ужин' }));
     await userEvent.click(screen.getByRole('tab', { name: 'Все рецепты' }));
     expect(await screen.findByRole('button', { name: /^Котлеты/ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Плов/ })).toBeNull();
@@ -57,13 +57,38 @@ describe('replace sheets', () => {
     expect(await screen.findByRole('button', { name: /Обед: Уха/ })).toBeInTheDocument();
   });
 
-  it('tells a child that an approved week belongs to parents', async () => {
+  it('shows a child the recipe of an approved week and says that changing it is for parents', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db, { currentWeek: true });
     const son: Member = { ...papa, id: 'm-son', user_id: 'u2', name: 'Сын', role: 'child', is_owner: false };
     render(<MemoryRouter><MenuPage me={son} members={[papa, son]} db={db} today={TUESDAY} /></MemoryRouter>);
+    expect(screen.queryByRole('button', { name: 'Заменить ужин' })).toBeNull();
     await userEvent.click(await screen.findByRole('button', { name: /Ужин: Котлеты/ }));
+    expect(await screen.findByRole('heading', { name: 'Котлеты' })).toBeInTheDocument();
     expect(screen.getByText('Утверждённую неделю меняют родители. Предложите блюдо — им придёт просьба.')).toBeInTheDocument();
+  });
+
+  it('opens the replace sheet of the meal of today when it comes from «Заменить» on Home', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    render(<MemoryRouter initialEntries={['/menu?replace=dinner']}><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
+    expect(await screen.findByRole('tab', { name: 'Все рецепты' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toHaveTextContent('Котлеты');
+  });
+
+  it('opens the recipe of a meal with its side, and replaces it from there', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    await db.meta.put({ key: 'family_portions', value: 3.5 });
+    render(<MemoryRouter><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: /Ужин: Котлеты/ }));
+    expect(await screen.findByRole('heading', { name: 'Котлеты' })).toBeInTheDocument();
+    expect(await screen.findByText('Фарш')).toBeInTheDocument();
+    expect(screen.getByText('Приготовить.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Гречка' }));
+    expect(await screen.findByText('Гречка', { selector: '.ing span' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Заменить' }));
+    expect(await screen.findByRole('tab', { name: 'Все рецепты' })).toBeInTheDocument();
   });
 
   it('picks the template of the season once templates arrive after the week sheet opened', async () => {

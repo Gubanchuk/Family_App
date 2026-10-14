@@ -43,8 +43,9 @@ describe('Sheet', () => {
 });
 
 describe('MealRow', () => {
-  it('reads out what goes with the dish and the note for Dima', () => {
-    render(<MealRow name="Борщ" label="Обед" time="13:00" extra={['кастрюля на 3 дня, 2-й день']} note="отложить до зажарки" onOpen={() => {}} />);
-    expect(screen.getByRole('button', { name: 'Обед: Борщ, кастрюля на 3 дня, 2-й день. Диме: отложить до зажарки. Заменить' })).toBeInTheDocument();
+  it('reads out what goes with the dish and the note for Dima, and keeps replacing on its own button', () => {
+    render(<MealRow name="Борщ" label="Обед" time="13:00" extra={['кастрюля на 3 дня, 2-й день']} note="отложить до зажарки" onOpen={() => {}} onReplace={() => {}} />);
+    expect(screen.getByRole('button', { name: 'Обед: Борщ, кастрюля на 3 дня, 2-й день. Диме: отложить до зажарки.' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Заменить обед' })).toHaveTextContent('Заменить');
   });
 });
