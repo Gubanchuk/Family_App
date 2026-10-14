@@ -17,6 +17,7 @@ import HomePage from '../features/home/HomePage';
 import { gate } from './gate';
 import { SyncProvider } from '../data/SyncProvider';
 import ToastProvider from '../features/shell/Toast';
+import StoriesProvider from '../features/stories/StoriesProvider';
 import { useAppUpdate } from '../lib/appUpdate';
 
 // A Google account brings a first name; the family screens start from it.
@@ -69,6 +70,7 @@ function MemberShell() {
   const me = fam.me!;
   return (
     <SyncProvider householdId={me.household_id} isParent={me.role === 'parent'} portions={fam.members.reduce((sum, m) => sum + m.portion, 0) || 3.5} onSynced={fam.reload}>
+      <StoriesProvider me={me} members={fam.members}>
       <div className="screen">
         <Routes>
           <Route path="/" element={<HomePage me={me} members={fam.members} />} />
@@ -79,6 +81,7 @@ function MemberShell() {
         </Routes>
       </div>
       <TabBar tabs={['home', 'menu', 'shop']} />
+      </StoriesProvider>
     </SyncProvider>
   );
 }
