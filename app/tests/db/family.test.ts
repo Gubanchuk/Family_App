@@ -65,7 +65,7 @@ describe('family', { timeout: 60_000 }, () => {
   it('does not let a child change roles', async () => {
     const code = (await rows<{ c: string }>(PAPA, "select public.create_invite($1, 'child') as c", [household]))[0].c;
     await asUser(db, SON, "select public.accept_invite($1, 'Сын', '#1FA463')", [code]);
-    await asUser(db, SON, "update public.members set role = 'parent' where user_id = $1", [SON]);
+    await expect(asUser(db, SON, "update public.members set role = 'parent' where user_id = $1", [SON])).rejects.toThrow(/permission denied/);
     const me = await rows<{ role: string }>(PAPA, 'select role from public.members where user_id = $1', [SON]);
     expect(me).toEqual([{ role: 'child' }]);
     await expect(asUser(db, SON, "select public.create_invite($1, 'parent')", [household])).rejects.toThrow(/not_a_parent/);
