@@ -76,6 +76,13 @@ describe('HomePage', () => {
     expect(await screen.findByRole('link', { name: /Цель.*25%.*Море летом/ })).toHaveAttribute('href', '/board?tab=goals');
   });
 
+  it('tells a parent about a payment due within a week', async () => {
+    const db = await ready();
+    await db.payments.put({ id: 'p1', household_id: 'h1', title: 'Интернет и ТВ', amount: 650, day: 16, kind: 'monthly', total: null, first_month: null, note: '', created_by: null, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('link', { name: /Скоро платить.*650\s₽.*Интернет и ТВ · через 3 дня/ })).toHaveAttribute('href', '/money');
+  });
+
   it('asks to choose a week when there is none', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db);

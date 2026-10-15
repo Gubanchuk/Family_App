@@ -17,11 +17,14 @@ export function useHome(db: LocalDb, householdId: string, today: Date) {
     const offerMap = new Map((await db.dish_offers.where('household_id').equals(householdId).toArray()).map((o) => [o.id, o]));
     const items = visibleItems(all, week?.status === 'approved' ? week.id : null, { weekStart: start, marks, offers: offerMap });
     // The board: requests and goals live there, Home shows what needs attention.
-    const [requests, goals, wishes] = await Promise.all([
+    const [requests, goals, wishes, payments, paymentMarks] = await Promise.all([
       db.requests.where('household_id').equals(householdId).filter((r) => !r.deleted_at).toArray(),
       db.goals.where('household_id').equals(householdId).filter((g) => !g.deleted_at).toArray(),
       db.wishes.where('household_id').equals(householdId).filter((w) => !w.deleted_at && !w.done_at).toArray(),
+      // Money reaches parents' phones only; for a child these are empty.
+      db.payments.where('household_id').equals(householdId).filter((p) => !p.deleted_at).toArray(),
+      db.payment_marks.where('household_id').equals(householdId).toArray(),
     ]);
-    return { week, slots, recipes, offers, items, marks, todayIso, requests, goals, wishes };
+    return { week, slots, recipes, offers, items, marks, todayIso, requests, goals, wishes, payments, paymentMarks };
   }, [db, householdId, start, todayIso]);
 }
