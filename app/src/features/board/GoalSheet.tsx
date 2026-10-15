@@ -5,12 +5,15 @@ import type { LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { useToast } from '../shell/toastContext';
 import { rub } from '../shop/build';
-import { addToGoal, removeGoal, saveGoal, toggleStep } from './boardActions';
-import type { Goal, GoalStep } from './types';
+import { putIn, removeGoal, saveGoal, takeBack, toggleStep } from './boardActions';
+import type { Deposit, Goal, GoalStep } from './types';
+import DepositHistory from './DepositHistory';
 
 const sid = () => Math.random().toString(36).slice(2, 8);
 
-export default function GoalSheet({ me, members, db, goal, onClose }: { me: Member; members: Member[]; db: LocalDb; goal: Goal | null; onClose: () => void }) {
+export default function GoalSheet({ me, members, db, goal, deposits = [], banked, ready = false, onClose }: {
+  me: Member; members: Member[]; db: LocalDb; goal: Goal | null; deposits?: Deposit[]; banked?: number; ready?: boolean; onClose: () => void;
+}) {
   const toast = useToast();
   const parent = me.role === 'parent';
   const canEdit = !goal || parent || goal.owner_id === me.id;
@@ -23,7 +26,7 @@ export default function GoalSheet({ me, members, db, goal, onClose }: { me: Memb
   const [sum, setSum] = useState('');
   if (goal && !editing) {
     return (
-      <Sheet title={goal.title} sub={`${rub(goal.saved)} из ${rub(goal.target)}`} onClose={onClose}
+      <Sheet title={goal.title} sub={`${rub(banked ?? goal.saved)} из ${rub(goal.target)}`} onClose={onClose}
         actions={canEdit ? <button type="button" className="btn soft" onClick={() => setEditing(true)}>Изменить цель</button> : undefined}>
         <div style={{ margin: '0 16px' }}>
           {goal.steps.map((s) => (
@@ -32,12 +35,13 @@ export default function GoalSheet({ me, members, db, goal, onClose }: { me: Memb
               <span className="row-main"><b>{s.t}</b></span>
             </label>
           ))}
-          {canEdit ? (
-            <form className="inline-add" onSubmit={async (e) => { e.preventDefault(); const n = parseRub(sum); if (!n) return; await addToGoal(db, goal, n); setSum(''); toast({ text: `В копилку +${rub(n)}` }); }}>
+          {ready || canEdit ? (
+            <form className="inline-add" onSubmit={async (e) => { e.preventDefault(); const n = parseRub(sum); if (!n) return; await putIn(db, me, { goal }, n, ready); setSum(''); toast({ text: `В копилку +${rub(n)}` }); }}>
               <label className="field">Положить в копилку, ₽<input inputMode="numeric" value={sum} onChange={(e) => setSum(e.target.value)} placeholder="5000" /></label>
               <button type="submit" className="btn soft" disabled={!parseRub(sum)}>Положить</button>
             </form>
           ) : null}
+          <DepositHistory me={me} members={members} deposits={deposits} onTakeBack={async (d) => { await takeBack(db, d); toast({ text: `Взнос ${rub(d.amount)} убран` }); }} />
         </div>
       </Sheet>
     );

@@ -5,12 +5,15 @@ import type { LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { useToast } from '../shell/toastContext';
 import { rub } from '../shop/build';
-import { addToWish, removeWish, saveWish, wishDone } from './boardActions';
-import type { Wish } from './types';
+import { putIn, removeWish, saveWish, takeBack, wishDone } from './boardActions';
+import type { Deposit, Wish } from './types';
+import DepositHistory from './DepositHistory';
 
 
 // A new wish, or an open one: its piggy bank, «Сбылось», edit and delete for the owner and parents.
-export default function WishSheet({ me, members, db, wish, onClose }: { me: Member; members: Member[]; db: LocalDb; wish: Wish | null; onClose: () => void }) {
+export default function WishSheet({ me, members, db, wish, deposits = [], banked, ready = false, onClose }: {
+  me: Member; members: Member[]; db: LocalDb; wish: Wish | null; deposits?: Deposit[]; banked?: number; ready?: boolean; onClose: () => void;
+}) {
   const toast = useToast();
   const parent = me.role === 'parent';
   const canEdit = !wish || wish.owner_id === me.id || parent;
@@ -25,16 +28,20 @@ export default function WishSheet({ me, members, db, wish, onClose }: { me: Memb
     toast({ text: wish ? 'Хотелка сохранена' : 'Хотелка на доске' });
     onClose();
   };
+  // With deposits anyone in the family can chip in; before them only the owner and parents change the wish.
+  const canPut = ready || canEdit;
   if (wish && !editing) {
+    const inBank = banked ?? wish.saved;
     return (
-      <Sheet title={wish.title} sub={wish.price ? `${rub(wish.price)} · в копилке ${rub(wish.saved)}` : undefined} onClose={onClose}
+      <Sheet title={wish.title} sub={wish.price ? `${rub(wish.price)} · в копилке ${rub(inBank)}` : `в копилке ${rub(inBank)}`} onClose={onClose}
         actions={canEdit ? <div className="btns fill"><button type="button" className="btn soft" onClick={() => setEditing(true)}>Изменить</button><button type="button" className="btn" onClick={async () => { await wishDone(db, wish); toast({ text: `«${wish.title}» сбылось!` }); onClose(); }}>Сбылось</button></div> : undefined}>
-        {canEdit ? (
-          <form className="inline-add" style={{ margin: '0 16px' }} onSubmit={async (e) => { e.preventDefault(); const n = parseRub(sum); if (!n) return; await addToWish(db, wish, n); toast({ text: `В копилку +${rub(n)}` }); onClose(); }}>
+        {canPut ? (
+          <form className="inline-add" style={{ margin: '0 16px' }} onSubmit={async (e) => { e.preventDefault(); const n = parseRub(sum); if (!n) return; await putIn(db, me, { wish }, n, ready); toast({ text: `В копилку +${rub(n)}` }); onClose(); }}>
             <label className="field">Положить в копилку, ₽<input inputMode="numeric" value={sum} onChange={(e) => setSum(e.target.value)} placeholder="1000" /></label>
             <button type="submit" className="btn soft" disabled={!parseRub(sum)}>Положить</button>
           </form>
         ) : <p className="note" style={{ margin: '0 16px 16px' }}>Копилку ведёт {members.find((m) => m.id === wish.owner_id)?.name ?? 'владелец'} и родители.</p>}
+        <div style={{ margin: '0 16px' }}><DepositHistory me={me} members={members} deposits={deposits} onTakeBack={async (d) => { await takeBack(db, d); toast({ text: `Взнос ${rub(d.amount)} убран` }); }} /></div>
         {canEdit ? <button type="button" className="more" style={{ margin: '8px 16px 16px' }} onClick={async () => { await removeWish(db, wish); toast({ text: 'Хотелка удалена' }); onClose(); }}>Удалить хотелку</button> : null}
       </Sheet>
     );

@@ -19,7 +19,7 @@ import { useHome } from './useHome';
 import { dateLine, greeting, mainThing } from './main';
 import { setRequestDone } from '../board/boardActions';
 import { mineToDo, whenText } from '../board/requestText';
-import { progress } from '../board/boardMath';
+import { progress, savedIn } from '../board/boardMath';
 import { daysTo, dueText, nextDue } from '../money/month';
 import { memberColor } from '../family/colors';
 import AvatarFace from '../family/AvatarFace';
@@ -80,9 +80,11 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   // Open requests to me beyond the one on top, for the «Просьбы мне» card.
   const heroRequest = main.kind === 'request' ? main.request.id : null;
   const moreRequests = mineToDo(data.requests, me.id).filter((r) => r.status === 'open' && r.id !== heroRequest).slice(0, 3);
-  const goal = data.goals.filter((g) => !g.owner_id && progress(g.saved, g.target) < 1).sort((x, y) => progress(y.saved, y.target) - progress(x.saved, x.target))[0];
+  // Piggy banks count the old saved sum plus deposits.
+  const inBank = (x: { id: string; saved: number }) => savedIn(data.bank, x);
+  const goal = data.goals.filter((g) => !g.owner_id && progress(inBank(g), g.target) < 1).sort((x, y) => progress(inBank(y), y.target) - progress(inBank(x), x.target))[0];
   // A child sees the wish closest to its price; without prices, the newest.
-  const left = (w: { price: number | null; saved: number }) => (w.price ? Math.max(0, w.price - w.saved) : Number.MAX_SAFE_INTEGER);
+  const left = (w: { id: string; price: number | null; saved: number }) => (w.price ? Math.max(0, w.price - inBank(w)) : Number.MAX_SAFE_INTEGER);
   const myWish = me.role === 'child'
     ? data.wishes.filter((w) => w.owner_id === me.id).sort((a, b) => left(a) - left(b) || String(b.updated_at).localeCompare(String(a.updated_at)))[0]
     : undefined;
@@ -174,8 +176,8 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
       <div className="bento">
         {goal ? (
           <Link className={`tile ${pay || myWish ? 'tall' : ''}`} to="/board?tab=goals" style={{ ['--h' as string]: 'var(--k-goal)' }}>
-            <span className="t-k"><Icon name="board" />{goal.title}</span><span className="t-v num">{rub(goal.saved)}</span>
-            <span className="bar" aria-hidden="true"><i style={{ width: `${Math.round(progress(goal.saved, goal.target) * 100)}%` }} /></span>
+            <span className="t-k"><Icon name="board" />{goal.title}</span><span className="t-v num">{rub(inBank(goal))}</span>
+            <span className="bar" aria-hidden="true"><i style={{ width: `${Math.round(progress(inBank(goal), goal.target) * 100)}%` }} /></span>
             <span className="t-s">из {rub(goal.target)}</span>
           </Link>
         ) : null}
@@ -191,7 +193,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
         ) : myWish ? (
           <Link className="tile" to="/board?tab=wishes" style={{ ['--h' as string]: 'var(--k-money)' }}>
             <span className="t-k"><Icon name="gift" />Хотелки</span><span className="t-v">{myWish.title}</span>
-            <span className="t-s">в копилке {rub(myWish.saved)}</span>
+            <span className="t-s">в копилке {rub(inBank(myWish))}</span>
           </Link>
         ) : null}
       </div>

@@ -1,7 +1,7 @@
 import { writeLocal } from '../../data/sync';
 import type { LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
-import type { Goal, GoalStep, Need, Request, Wish } from './types';
+import type { Goal, GoalStep, Need, Request, Wish, Deposit } from './types';
 
 const now = () => new Date().toISOString();
 
@@ -44,3 +44,18 @@ export async function askFor(db: LocalDb, me: Member, r: { to_id: string; title:
 }
 export const setRequestDone = (db: LocalDb, r: Request, done: boolean) => writeLocal(db, 'requests', [{ ...r, status: done ? 'done' : 'open', done_at: done ? now() : null }]);
 export const cancelRequest = (db: LocalDb, r: Request) => writeLocal(db, 'requests', [{ ...r, status: 'cancelled' }]);
+
+// A deposit is its own row, so two phones putting money in at once both count. Until the server has
+// the deposits table, money goes into the old saved column as before.
+export async function putIn(db: LocalDb, me: Member, target: { wish: Wish } | { goal: Goal }, sum: number, ready: boolean) {
+  const amount = Math.round(sum);
+  if (!ready) return 'wish' in target ? addToWish(db, target.wish, amount) : addToGoal(db, target.goal, amount);
+  await writeLocal(db, 'deposits', [{
+    id: crypto.randomUUID(), household_id: me.household_id, member_id: me.id, amount, deleted_at: null,
+    wish_id: 'wish' in target ? target.wish.id : null, goal_id: 'goal' in target ? target.goal.id : null,
+  }]);
+}
+export const takeBack = (db: LocalDb, d: Deposit) => writeLocal(db, 'deposits', [{ ...d, deleted_at: new Date().toISOString() }]);
+// The author may take a deposit back within a day (the server allows no more).
+export const canTakeBack = (d: Deposit, me: Member, now = Date.now()) => d.member_id === me.id && !d.deleted_at && (!d.created_at || now - Date.parse(d.created_at) < 23 * 3600_000);
+

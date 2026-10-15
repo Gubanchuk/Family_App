@@ -21,3 +21,15 @@ export function parseRub(s: string): number | null {
 // An optional sum is fine when empty or valid.
 export const rubOk = (s: string) => !s.trim() || parseRub(s) !== null;
 
+// Deposits per wish or goal id; the piggy bank is the old saved column plus these.
+export function bankOf(deposits: Array<{ wish_id: string | null; goal_id: string | null; amount: number; deleted_at: string | null }>): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const d of deposits) {
+    const id = d.wish_id ?? d.goal_id;
+    if (!id || d.deleted_at) continue;
+    out.set(id, (out.get(id) ?? 0) + d.amount);
+  }
+  return out;
+}
+export const savedIn = (bank: Map<string, number>, x: { id: string; saved: number }) => x.saved + (bank.get(x.id) ?? 0);
+

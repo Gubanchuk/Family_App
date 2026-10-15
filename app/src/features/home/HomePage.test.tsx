@@ -181,4 +181,13 @@ describe('HomePage', () => {
     render(<MemoryRouter><HomePage me={son} members={[papa, mama, son]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
     expect(await screen.findByRole('link', { name: /Хотелки.*Наушники/ })).toBeInTheDocument();
   });
+
+  it('counts piggy bank deposits in the goal tile', async () => {
+    const db = await ready();
+    await db.goals.put({ id: 'g1', household_id: 'h1', owner_id: null, title: 'Море летом', target: 120000, saved: 30000, steps: [], created_by: null, updated_at: 'x', deleted_at: null });
+    await db.deposits.put({ id: 'd1', household_id: 'h1', wish_id: null, goal_id: 'g1', member_id: 'm-papa', amount: 6000, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('link', { name: /Море летом.*36\s000\s₽/ })).toBeInTheDocument();
+  });
 });
+

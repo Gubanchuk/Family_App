@@ -441,3 +441,6 @@ a.more, a.av { text-decoration: none; }
 .re-missing { margin: 0; text-align: center; }
 .leave-ask { display: grid; gap: 8px; text-align: center; font: 600 15px var(--font); }
 .field input[aria-invalid="true"]:not(:disabled):not(:focus) { border-color: color-mix(in oklab, var(--k-primary) 55%, var(--k-rule)); }
+.deposits { list-style: none; margin: 0 0 8px; padding: 0; }
+.deposits .row { padding: 8px 0; }
+.dep-h { margin-left: 0; margin-right: 0; }

@@ -5,7 +5,7 @@ import { memberColor } from '../family/colors';
 import type { Member } from '../family/useFamily';
 import Icon from '../shell/Icon';
 import { rub } from '../shop/build';
-import { giftLine, memberName, progress } from './boardMath';
+import { giftLine, memberName, progress, savedIn } from './boardMath';
 import { setGift, toggleMetoo } from './boardActions';
 import type { BoardData } from './useBoard';
 import WishSheet from './WishSheet';
@@ -33,10 +33,10 @@ export default function WishesPanel({ me, members, db, data, adding, onAdded }: 
                   {w.price ? <span className="amount">{rub(w.price)}</span> : null}
                 </div>
                 <b>{w.title}</b>
-                {w.saved ? (
+                {savedIn(data.bank, w) ? (
                   <>
-                    <span className="bar" style={{ ['--h' as string]: memberColor(owner?.color ?? '#888888') }} aria-hidden="true"><i style={{ width: `${progress(w.saved, w.price) * 100}%` }} /></span>
-                    <small>в копилке {rub(w.saved)}</small>
+                    <span className="bar" style={{ ['--h' as string]: memberColor(owner?.color ?? '#888888') }} aria-hidden="true"><i style={{ width: `${progress(savedIn(data.bank, w), w.price) * 100}%` }} /></span>
+                    <small>в копилке {rub(savedIn(data.bank, w))}</small>
                   </>
                 ) : <small>{memberName(members, w.owner_id)} хочет</small>}
                 {parent && w.owner_id !== me.id ? (
@@ -54,7 +54,9 @@ export default function WishesPanel({ me, members, db, data, adding, onAdded }: 
           })}
         </div>
       ) : <section className="card"><p className="note" style={{ margin: 0 }}>Хотелок пока нет. «Добавить» — и семья узнает, о чём вы мечтаете.</p></section>}
-      {open || adding ? <WishSheet me={me} members={members} db={db} wish={open} onClose={() => { setOpen(null); onAdded(); }} /> : null}
+      {open || adding ? <WishSheet me={me} members={members} db={db} wish={open} ready={data.depositsReady}
+        deposits={open ? data.deposits.filter((d) => d.wish_id === open.id) : []} banked={open ? savedIn(data.bank, open) : undefined}
+        onClose={() => { setOpen(null); onAdded(); }} /> : null}
     </>
   );
 }

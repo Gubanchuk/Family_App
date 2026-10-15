@@ -83,6 +83,12 @@ async function seed() {
       { id: 'pw3', household_id: h, owner_id: 'p-dima', title: 'Самокат', price: 4500, saved: 0, done_at: null, created_by: 'p-mama', updated_at: now, deleted_at: null },
     ]);
     await db.wish_metoo.put({ wish_id: 'pw2', member_id: 'p-papa', household_id: h, updated_at: now, deleted_at: null });
+    const ago = (h0: number) => new Date(Date.now() - h0 * 3600_000).toISOString();
+    await db.deposits.bulkPut([
+      { id: 'pd1', household_id: h, wish_id: 'pw1', goal_id: null, member_id: 'p-papa', amount: 2000, created_at: ago(1), updated_at: now, deleted_at: null },
+      { id: 'pd2', household_id: h, wish_id: 'pw1', goal_id: null, member_id: 'p-son', amount: 500, created_at: ago(30), updated_at: now, deleted_at: null },
+      { id: 'pd3', household_id: h, wish_id: null, goal_id: 'pg1', member_id: 'p-mama', amount: 5000, created_at: ago(50), updated_at: now, deleted_at: null },
+    ]);
     await db.wish_gifts.put({ wish_id: 'pw3', giver_id: 'p-mama', household_id: h, updated_at: now, deleted_at: null });
     await db.needs.bulkPut([
       { id: 'pn1', household_id: h, for_id: 'p-son', title: 'Зимние ботинки', note: 'размер 37', due_on: '2026-11-01', price: 6000, created_by: 'p-mama', updated_at: now, deleted_at: null },
