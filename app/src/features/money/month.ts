@@ -111,3 +111,8 @@ export function shopUnpriced(items: ShoppingItem[], marks: ShoppingMark[], month
   return out;
 }
 
+// All spending of a month: expenses plus paid payments (income is not spending).
+export function monthTotal(entries: MoneyEntry[], payments: Payment[], marks: PaymentMark[], month: string) {
+  return spendByCategory(entries, monthPayments(payments, marks, month), month).reduce((s, c) => s + c.sum, 0);
+}
+

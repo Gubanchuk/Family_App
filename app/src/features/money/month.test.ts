@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { daysTo, dueDate, dueText, installmentNo, monthPayments, nextDue, nextUnpaid, shopSpend, shopUnpriced, spendByCategory, spendByMember } from './month';
+import { daysTo, dueDate, dueText, installmentNo, monthPayments, monthTotal, nextDue, nextUnpaid, shopSpend, shopUnpriced, spendByCategory, spendByMember } from './month';
 import type { MoneyEntry, Payment, PaymentMark } from './types';
 
 const pay = (o: Partial<Payment>): Payment => ({ id: 'p', household_id: 'h', title: 'Интернет', amount: 650, day: 16, kind: 'monthly', total: null, first_month: null, note: '', created_by: null, updated_at: '', deleted_at: null, ...o });
@@ -64,5 +64,10 @@ describe('money month', () => {
       ['Сыр', 'Продукты', 280, 'mama', '2026-09-30'],
     ]);
     expect(shopUnpriced(items as never, marks as never, '2026-10')).toEqual(new Map([['Здоровье', 1]]));
+  });
+  it('adds up a month: expenses and paid payments, not income', () => {
+    const entries = [entry({ amount: 1200 }), entry({ amount: 300, category: 'Дом' }), entry({ kind: 'income', amount: 90000 }), entry({ amount: 999, on_date: '2026-09-28' })];
+    expect(monthTotal(entries, [pay({ id: 'p' })], [mark({ payment_id: 'p', amount: 650 })], '2026-10')).toBe(2150);
+    expect(monthTotal(entries, [pay({ id: 'p' })], [mark({ payment_id: 'p', amount: 650 })], '2026-09')).toBe(999);
   });
 });

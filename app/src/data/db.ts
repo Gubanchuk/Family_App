@@ -1,6 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import type { Deposit, Goal, Need, Request, Wish, WishGift, WishMetoo } from '../features/board/types';
-import type { MoneyEntry, Payment, PaymentMark } from '../features/money/types';
+import type { Budget, MoneyEntry, Payment, PaymentMark } from '../features/money/types';
 import type { Meal } from '../features/menu/week';
 
 export type Recipe = {
@@ -27,7 +27,7 @@ export type NotEat = { household_id: string; kind: 'item' | 'dish'; ref: string;
 export type SyncTable = 'weeks' | 'week_slots' | 'votes' | 'week_templates' | 'template_slots'
   | 'dish_offers' | 'shopping_items' | 'shopping_marks' | 'shop_trips' | 'not_eat'
   | 'wishes' | 'wish_metoo' | 'wish_gifts' | 'needs' | 'goals' | 'requests'
-  | 'payments' | 'payment_marks' | 'money_entries' | 'deposits';
+  | 'payments' | 'payment_marks' | 'money_entries' | 'deposits' | 'budgets';
 export type OutboxOp = { seq?: number; table: SyncTable; rpc?: 'save_week'; row: Record<string, unknown>; created_at: string; tries: number };
 export type Meta = { key: string; value: unknown };
 
@@ -52,6 +52,7 @@ export const KEY_FIELDS: Record<SyncTable, string[]> = {
   payment_marks: ['payment_id', 'month'],
   money_entries: ['id'],
   deposits: ['id'],
+  budgets: ['household_id', 'category'],
 };
 
 export const V1_STORES = {
@@ -99,6 +100,7 @@ export class LocalDb extends Dexie {
   payment_marks!: Table<PaymentMark, [string, string]>;
   money_entries!: Table<MoneyEntry, string>;
   deposits!: Table<Deposit, string>;
+  budgets!: Table<Budget, [string, string]>;
 
   constructor(name: string) {
     super(name);
@@ -125,6 +127,9 @@ export class LocalDb extends Dexie {
     });
     this.version(5).stores({
       deposits: 'id, household_id',
+    });
+    this.version(6).stores({
+      budgets: '[household_id+category], household_id',
     });
   }
 }

@@ -130,4 +130,44 @@ describe('MoneyPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Продукты' }));
     expect(screen.getByText('Покупки из списка считаются сами — вносите только то, чего в списке не было.')).toBeInTheDocument();
   });
+  it('shows a budget under its category and says when it is overspent', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.budgets.put({ household_id: 'h', category: 'Продукты', amount: 1000, updated_at: 'x', deleted_at: null });
+    await db.money_entries.put({ id: 'e1', household_id: 'h', kind: 'expense', amount: 1200, category: 'Продукты', member_id: 'mama', on_date: '2026-10-10', note: '', created_by: 'mama', updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter><MoneyPage me={mama} members={[papa, mama]} db={db} today={OCT13} /></MemoryRouter>);
+    expect(await screen.findByText(/из 1\s000\s₽/)).toBeInTheDocument();
+    expect(screen.getByText(/перерасход 200\s₽/)).toBeInTheDocument();
+  });
+
+  it('sets monthly budgets once the server has them', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.meta.put({ key: 'missing_tables', value: [] });
+    render(<MemoryRouter><MoneyPage me={mama} members={[papa, mama]} db={db} today={OCT13} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: /Бюджеты на месяц/ }));
+    const sheet = screen.getByRole('dialog', { name: 'Бюджеты' });
+    await userEvent.type(within(sheet).getByLabelText('Продукты, ₽'), '40000');
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Сохранить' }));
+    await waitFor(async () => expect(await db.budgets.get(['h', 'Продукты'])).toMatchObject({ amount: 40000, deleted_at: null }));
+  });
+
+  it('does not offer budgets before the server has them', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    render(<MemoryRouter><MoneyPage me={mama} members={[papa, mama]} db={db} today={OCT13} /></MemoryRouter>);
+    await screen.findByRole('heading', { name: 'Расходы' });
+    expect(screen.queryByRole('button', { name: /Бюджеты на месяц/ })).toBeNull();
+  });
+
+  it('charts the last six months and opens a month from its bar', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.money_entries.bulkPut([
+      { id: 'e1', household_id: 'h', kind: 'expense', amount: 1200, category: 'Продукты', member_id: 'mama', on_date: '2026-10-10', note: '', created_by: 'mama', updated_at: 'x', deleted_at: null },
+      { id: 'e2', household_id: 'h', kind: 'expense', amount: 3400, category: 'Дом', member_id: 'mama', on_date: '2026-09-03', note: '', created_by: 'mama', updated_at: 'x', deleted_at: null },
+    ]);
+    render(<MemoryRouter><MoneyPage me={mama} members={[papa, mama]} db={db} today={OCT13} /></MemoryRouter>);
+    const chart = await screen.findByRole('group', { name: 'Траты по месяцам' });
+    expect(within(chart).getAllByRole('button')).toHaveLength(6);
+    await userEvent.click(within(chart).getByRole('button', { name: /^Сентябрь:\s*3\s400\s₽/ }));
+    expect(await screen.findByRole('heading', { name: 'Деньги' })).toBeInTheDocument();
+    expect(screen.getByText(/^Сентябрь · видят только родители$/)).toBeInTheDocument();
+  });
 });

@@ -119,6 +119,12 @@ async function seed() {
       spend('pe4', 2800, 'Кафе и доставка', 'p-papa'), spend('pe5', 1700, 'Дом', 'p-mama'),
       { id: 'pe6', household_id: h, kind: 'income', amount: 185000, category: null, member_id: 'p-papa', on_date: `${month}-05`, note: '', created_by: 'p-papa', updated_at: now, deleted_at: null },
     ]);
+    await db.budgets.bulkPut([
+      { household_id: h, category: 'Продукты', amount: 15000, updated_at: now, deleted_at: null },
+      { household_id: h, category: 'Дети', amount: 10000, updated_at: now, deleted_at: null },
+    ]);
+    // Last months for the chart.
+    await db.money_entries.bulkPut([5, 4, 3, 2, 1].map((n, i) => ({ id: `ph${n}`, household_id: h, kind: 'expense' as const, amount: [61000, 74000, 58000, 69000, 80000][i], category: 'Продукты', member_id: 'p-mama', on_date: `${shiftMonthKey(-n)}-10`, note: '', created_by: 'p-mama', updated_at: now, deleted_at: null })));
     await db.meta.put({ key: 'family_portions', value: 3.5 });
     // As after a full pull from a server that has the board and money tables.
     await db.meta.put({ key: 'missing_tables', value: [] });

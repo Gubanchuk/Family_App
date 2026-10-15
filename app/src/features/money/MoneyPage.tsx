@@ -11,7 +11,8 @@ import { useToday } from '../../lib/useToday';
 import { rub } from '../shop/build';
 import { useMoney } from './useMoney';
 import { setPaid } from './moneyActions';
-import { dayTitle, daysTo, dueText, incomeOf, monthKey, monthPayments, monthTitle, nextDue, shiftMonth, shopSpend, shopUnpriced, spendByCategory, spendByMember } from './month';
+import { dayTitle, daysTo, dueText, incomeOf, monthKey, monthPayments, monthTitle, monthTotal, nextDue, shiftMonth, shopSpend, shopUnpriced, spendByCategory, spendByMember } from './month';
+import BudgetsSheet from './BudgetsSheet';
 import EntrySheet from './EntrySheet';
 import PaymentSheet from './PaymentSheet';
 import EntriesSheet from './EntriesSheet';
@@ -31,6 +32,7 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   // A category name or 'income': the list of its entries; then one entry to fix or delete.
   const [lines, setLines] = useState<string | null>(null);
   const [entry, setEntry] = useState<MoneyEntry | null>(null);
+  const [budgeting, setBudgeting] = useState(false);
   const data = useMoney(db, me.household_id);
   const go = (m: string) => setParams(m === current ? {} : { m });
   const head = (
@@ -45,7 +47,14 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   const paid = list.filter((x) => x.paid).reduce((s, x) => s + x.amount, 0);
   const entries = [...data.entries, ...shopSpend(data.items, data.shopMarks)];
   const unpriced = shopUnpriced(data.items, data.shopMarks, month);
-  const cats = spendByCategory(entries, list, month);
+  const budgetOf = new Map(data.budgets.map((b) => [b.category, b.amount]));
+  // Categories with a budget show even before anything is spent in them.
+  const spent = spendByCategory(entries, list, month);
+  const cats = [...spent, ...data.budgets.filter((b) => !spent.some((c) => c.cat === b.category)).map((b) => ({ cat: b.category, sum: 0, count: 0 }))];
+  // Six months ending with the one on screen.
+  const months = [5, 4, 3, 2, 1, 0].map((n) => shiftMonth(month, -n));
+  const totals = months.map((m) => monthTotal(entries, data.payments, data.marks, m));
+  const maxT = Math.max(1, ...totals);
   const maxC = Math.max(1, ...cats.map((c) => c.sum));
   const byMember = [...spendByMember(entries, list, month).entries()].sort((a, b) => b[1] - a[1]);
   const maxM = Math.max(1, ...byMember.map(([, s]) => s));
@@ -83,10 +92,17 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
       <section className="card">
         <div className="card-h"><h2>Расходы</h2><button type="button" className="more" onClick={() => setLines('income')}>пришло {rub(incomeOf(data.entries, month))}</button></div>
         {cats.length ? cats.map((c) => {
+          const budget = budgetOf.get(c.cat);
+          const over = budget !== undefined && c.sum > budget;
+          const share = budget ? Math.min(1, c.sum / budget) : c.sum / maxC;
           const body = (
             <>
-              <div className="cat-top"><span>{c.cat}<small> · {c.count}</small></span><span className="amount">{rub(c.sum)}</span></div>
-              <span className="bar" style={{ ['--h' as string]: 'var(--k-money)', display: 'block' }} aria-hidden="true"><i style={{ width: `${(c.sum / maxC) * 100}%` }} /></span>
+              <div className="cat-top">
+                <span>{c.cat}{c.count ? <small> · {c.count}</small> : null}</span>
+                <span className={`amount ${over ? 'over' : ''}`}>{rub(c.sum)}{budget ? <small> из {rub(budget)}</small> : null}</span>
+              </div>
+              <span className={`bar ${over ? 'over' : ''}`} style={{ ['--h' as string]: 'var(--k-money)', display: 'block' }} aria-hidden="true"><i style={{ width: `${share * 100}%` }} /></span>
+              {over ? <small className="over-note">перерасход {rub(c.sum - budget!)}</small> : null}
             </>
           );
           // Paid payments make up «Обязательные»; they are fixed in the list of payments above.
@@ -94,6 +110,19 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
             ? <div className="cat" key={c.cat}>{body}</div>
             : <button type="button" className="cat cat-btn" key={c.cat} onClick={() => setLines(c.cat)}>{body}</button>;
         }) : <p className="note" style={{ margin: 0 }}>Расходов за {monthTitle(month).toLowerCase()} пока нет. «Расход» вверху — и они появятся здесь.</p>}
+        {data.budgetsReady ? <button type="button" className="row set-row add-row" onClick={() => setBudgeting(true)}><span className="row-main"><b>Бюджеты на месяц</b><small>{data.budgets.length ? `заданы для ${data.budgets.length}` : 'по категориям, по желанию'}</small></span></button> : null}
+      </section>
+      <section className="card">
+        <div className="card-h"><h2>По месяцам</h2></div>
+        <div className="mchart" role="group" aria-label="Траты по месяцам">
+          {months.map((m, i) => (
+            <button type="button" key={m} className="mbar" aria-pressed={m === month} aria-label={`${monthTitle(m)}: ${rub(totals[i])}`} onClick={() => go(m)}>
+              <span className="mbar-v">{totals[i] ? (totals[i] >= 1000 ? `${Math.round(totals[i] / 1000)}к` : totals[i]) : ''}</span>
+              <span className="mbar-track"><i style={{ height: `${Math.max(3, (totals[i] / maxT) * 100)}%` }} /></span>
+              <small>{monthTitle(m).slice(0, 3)}</small>
+            </button>
+          ))}
+        </div>
       </section>
       {byMember.length ? (
         <section className="card">
@@ -117,6 +146,7 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
           onPick={(e) => { setLines(null); setEntry(e); }} onClose={() => setLines(null)}
           onAdd={lines === 'income' ? () => { setLines(null); setParams({ ...(month !== current ? { m: month } : {}), add: 'income' }); } : undefined} />
       ) : null}
+      {budgeting ? <BudgetsSheet me={me} db={db} budgets={data.budgets} onClose={() => setBudgeting(false)} /> : null}
       {entry ? <EntrySheet key={entry.id} kind={entry.kind} me={me} members={members} db={db} month={month} prev={entry} onClose={() => setEntry(null)} /> : null}
       {add === 'payment' || open ? <PaymentSheet me={me} db={db} item={open} month={month} onClose={() => { setOpen(null); close(); }} /> : null}
     </>
