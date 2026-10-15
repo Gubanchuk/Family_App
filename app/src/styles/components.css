@@ -201,6 +201,9 @@
 .field { display: grid; gap: 6px; margin: 10px 0; font: 600 14px var(--font); color: var(--k-ink-2); }
 .field input { min-height: 48px; padding: 0 14px; border: 1px solid var(--k-rule); border-radius: 14px; background: var(--k-card); color: var(--k-ink); font: 400 16px var(--font); }
 .field input:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 1px; }
+.field input, .field textarea { min-width: 0; }
+.field textarea { padding: 12px 14px; border: 1px solid var(--k-rule); border-radius: 14px; background: var(--k-card); color: var(--k-ink); font: 400 16px/1.4 var(--font); resize: vertical; }
+.field textarea:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 1px; }
 .form-error { margin: 6px 0; padding: 10px 12px; border-radius: 12px; background: color-mix(in oklab, var(--k-urgent) var(--k-tint), var(--k-card)); color: color-mix(in oklab, var(--k-urgent) 82%, var(--k-ink)); font-size: 14px; }
 
 /* Menu: week bar, meals, sheets for replacing a meal, a day or the week (ported from mockups/styles.css) */
@@ -401,4 +404,25 @@ a.more, a.av { text-decoration: none; }
 /* A paid payment fades instead of being struck through: it is done, not cancelled. */
 .pay-row.paid .row-main, .pay-row.paid .amount, .pay-row.paid .pay-day { opacity: 0.5; }
 .round-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* Own recipes: the add button under the collections, edit/delete in the recipe sheet, the editor rows. */
+.own-add { margin: 0 16px 12px; }
+.own-add .ic { width: 18px; height: 18px; }
+.own-actions { margin: 4px 16px 8px; align-items: center; }
+.re-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.re-pair > .field, .re-row > .field { min-width: 0; }
+.re-h { margin: 20px 0 8px; }
+.re-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: end; }
+.re-check { display: flex; align-items: center; gap: 6px; padding-bottom: 14px; font-size: 14px; color: var(--k-ink-2); white-space: nowrap; }
+.re-check input { width: 20px; height: 20px; accent-color: var(--k-ink); }
+.re-row .more { padding-bottom: 14px; }
+.re-row .field { margin-bottom: 0; }
+.re-note { grid-column: 1 / -1; min-width: 0; min-height: 40px; margin-bottom: 10px; padding: 0 14px; border: 1px dashed var(--k-rule); border-radius: 12px; background: transparent; color: var(--k-ink); font: 400 15px var(--font); }
+.re-note:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 1px; }
+.re-found { margin: -4px 0 12px; }
+.re-step { margin: 10px 0; }
+.re-step-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; font: 600 14px var(--font); color: var(--k-ink-2); }
+.re-step-head .btns { gap: 14px; }
+.re-step textarea { width: 100%; }
+.re-found { scroll-margin-bottom: 96px; }
 

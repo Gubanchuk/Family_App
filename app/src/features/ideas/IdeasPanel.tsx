@@ -10,6 +10,9 @@ import { lineOf } from '../menu/SlotSheet';
 import { blockedBy, recipeMatches } from './search';
 import { COLLECTIONS, MEAL_FOR, createOffer, declineOffer, offerDate, takeOffer, whenText } from './offerActions';
 import RecipeSheet from './RecipeSheet';
+import RecipeEditor from './RecipeEditor';
+import { draftFrom, type Draft } from './recipeDraft';
+import { deleteRecipe } from './recipeApi';
 
 const DIMA = { ok: 'Диме можно', adapt: 'Диме с поправкой', skip: 'Диме нельзя' } as const;
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -43,6 +46,7 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
   const [params] = useSearchParams();
   // Home links straight to a recipe with ?recipe=<id>.
   const [open, setOpen] = useState<string | null>(params.get('recipe'));
+  const [editing, setEditing] = useState<Draft | 'new' | null>(null);
   const list = useMemo(() => {
     if (!data) return [];
     const ok = (r: Recipe) => !blockedBy(r, data.itemsOf.get(r.id) ?? [], data.notEat);
@@ -57,6 +61,8 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
   const weekend = data.recipes.filter((r) => r.collections.includes('weekend'));
   const tip = weekend.length ? weekend[Math.floor(today.getTime() / (7 * 86400000)) % weekend.length] : undefined;
   const recipe = open ? data.recipes.find((r) => r.id === open) : undefined;
+  const hasOwn = data.recipes.some((r) => r.household_id);
+  const inMenu = (id: string) => data.slots.some((s) => s.dish_id === id || s.side_id === id);
 
   return (
     <>
@@ -80,9 +86,10 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
         <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Блюдо или продукт: курица, яйца" autoComplete="off" /></label>
       {q.trim() ? null : (
         <div className="col-chips" role="group" aria-label="Подборки">
-          {[{ id: 'all', name: 'Все' }, ...COLLECTIONS].map((c) => <button key={c.id} type="button" aria-pressed={col === c.id} onClick={() => setCol(c.id)}>{c.name}</button>)}
+          {[{ id: 'all', name: 'Все' }, ...(hasOwn ? [{ id: 'ours', name: 'Наши рецепты' }] : []), ...COLLECTIONS].map((c) => <button key={c.id} type="button" aria-pressed={col === c.id} onClick={() => setCol(c.id)}>{c.name}</button>)}
         </div>
       )}
+      <button type="button" className="btn soft sm own-add" onClick={() => setEditing('new')}><Icon name="plus" />Свой рецепт</button>
       <div className="idea-grid">
         {list.map((r, i) => (
           <button key={r.id} type="button" className={`idea ${i === 0 && !q.trim() ? 'wide' : ''}`} onClick={() => setOpen(r.id)}>
@@ -96,6 +103,19 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
       {recipe ? (
         <RecipeSheet recipe={recipe} rows={data.rows.filter((r) => r.recipe_id === recipe.id).sort((a, b) => a.pos - b.pos)} vocab={data.vocab} prices={data.prices}
           portions={data.portions} me={me} members={members} onClose={() => setOpen(null)}
+          {...(recipe.household_id ? {
+            inMenu: inMenu(recipe.id),
+            onEdit: () => { setEditing(draftFrom(recipe, data.rows.filter((r) => r.recipe_id === recipe.id))); setOpen(null); },
+            onDelete: async () => {
+              try {
+                await deleteRecipe(recipe);
+                toast({ text: `Рецепт «${recipe.name}» удалён` });
+                setOpen(null);
+              } catch (err) {
+                toast({ text: (err as Error).message === 'offline' ? 'Нет интернета. Удалить получится, когда появится сеть.' : 'Не получилось удалить. Попробуйте ещё раз.' });
+              }
+            },
+          } : {})}
           insteadOf={(d) => {
             const date = offerDate(d.when, today);
             const [y, m, dd] = date.split('-').map(Number);
@@ -114,6 +134,7 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
             toast({ text: `${who}: ${lower(recipe.name)}, ${when}.` });
           }} />
       ) : null}
+      {editing ? <RecipeEditor me={me} db={db} draft={editing === 'new' ? undefined : editing} onClose={() => setEditing(null)} /> : null}
     </>
   );
 }

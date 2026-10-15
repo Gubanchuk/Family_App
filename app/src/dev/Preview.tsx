@@ -12,6 +12,8 @@ import MenuPage from '../features/menu/MenuPage';
 import ShopPage from '../features/shop/ShopPage';
 import BoardPage from '../features/board/BoardPage';
 import MoneyPage from '../features/money/MoneyPage';
+import RecipeEditor from '../features/ideas/RecipeEditor';
+import { emptyDraft } from '../features/ideas/recipeDraft';
 import TabBar from '../features/shell/TabBar';
 import { mondayOf, addDaysIso, dayOfWeek } from '../features/menu/week';
 import { regenerateWeekList } from '../features/shop/menuList';
@@ -171,6 +173,12 @@ export default function Preview() {
           <Route path="/dev/shop" element={<ShopPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
           <Route path="/dev/board" element={<BoardPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
           <Route path="/dev/money" element={<MoneyPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
+          <Route path="/dev/recipe-new" element={<RecipeEditor me={me} db={db} onClose={() => {}} />} />
+          <Route path="/dev/recipe-edit" element={<RecipeEditor me={me} db={db} onClose={() => {}} draft={{
+            ...emptyDraft(), id: 'own-x', name: 'Мамины сырники', about: 'С изюмом, как в детстве', category: 'breakfast', time: '25', servings: '4', dima: 'adapt', dimaNote: 'Без изюма',
+            rows: [{ item: 'творог', qty: '500', toTaste: false, note: '' }, { item: 'яйца', qty: '2', toTaste: false, note: '' }, { item: 'соль', qty: '', toTaste: true, note: '' }],
+            steps: ['Размять творог с яйцами и сахаром.', 'Слепить сырники, обвалять в муке.', 'Обжарить по 3 минуты с каждой стороны.'],
+          }} />} />
         </Routes>
       </div>
       <TabBar tabs={['home', 'menu', 'shop']} />

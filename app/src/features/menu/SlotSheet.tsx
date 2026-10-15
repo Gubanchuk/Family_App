@@ -35,7 +35,7 @@ export default function SlotSheet({ db, week, day, meal, currentSlot, recipes, t
     return { notEat, itemsOf };
   }, [db, week.household_id]);
   const all = useMemo(() => [...recipes.values()]
-    .filter((r) => fitsMeal(r, meal) && !(blockers && blockedBy(r, blockers.itemsOf.get(r.id) ?? [], blockers.notEat)))
+    .filter((r) => !r.deleted_at && fitsMeal(r, meal) && !(blockers && blockedBy(r, blockers.itemsOf.get(r.id) ?? [], blockers.notEat)))
     .sort((a, b) => a.name.localeCompare(b.name, 'ru')), [recipes, meal, blockers]);
   const title = `${MEAL_LABEL[meal]} ${DAY_ACC[day]}`;
 

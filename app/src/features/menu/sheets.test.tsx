@@ -34,6 +34,21 @@ describe('replace sheets', () => {
     expect(screen.queryByRole('button', { name: /^Овсяная каша/ })).toBeNull();
   });
 
+  it('offers the family own recipes but not deleted ones', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    const base = (await db.recipes.toArray()).find((r) => r.name.startsWith('Сырники'))!;
+    await db.recipes.bulkPut([
+      { ...base, id: 'own-1', household_id: 'h1', name: 'Бабушкины блины', collections: ['ours'] },
+      { ...base, id: 'own-2', household_id: 'h1', name: 'Старые оладьи', collections: ['ours'], deleted_at: '2026-10-12T10:00:00Z' },
+    ]);
+    render(<MemoryRouter><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Заменить завтрак' }));
+    await userEvent.click(screen.getByRole('tab', { name: 'Все рецепты' }));
+    expect(await screen.findByRole('button', { name: /^Бабушкины блины/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Старые оладьи/ })).toBeNull();
+  });
+
   it('does not offer a dish the family does not eat as a replacement', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db, { currentWeek: true });

@@ -8,12 +8,15 @@ import RecipeBody, { DimaLine } from './RecipeBody';
 export type OfferDraft = { to: string | null; when: 'today' | 'tomorrow' | 'weekend'; meal: Meal; how: 'over' | 'instead' };
 const defaultMeal = (r: Recipe): Meal => (r.category === 'breakfast' ? 'breakfast' : r.category === 'soup' ? 'lunch' : ['snack', 'dessert', 'drink'].includes(r.category) ? 'snack' : r.meals.includes('dinner') ? 'dinner' : (r.meals[0] as Meal) ?? 'dinner');
 
-export default function RecipeSheet({ recipe, rows, vocab, prices, portions, me, members, onOffer, onClose, insteadOf = () => null }: {
+export default function RecipeSheet({ recipe, rows, vocab, prices, portions, me, members, onOffer, onClose, insteadOf = () => null, onEdit, onDelete, inMenu = false }: {
   recipe: Recipe; rows: RecipeIngredient[]; vocab: Map<string, Ingredient>; prices: Map<string, number>; portions: number;
   me: Member; members: Member[]; onOffer: (d: OfferDraft, cookMyself: boolean) => Promise<void>; onClose: () => void;
   insteadOf?: (d: OfferDraft) => string | null;
+  // Only the family's own recipes can be changed; base recipes come without these.
+  onEdit?: () => void; onDelete?: () => Promise<void>; inMenu?: boolean;
 }) {
   const [d, setD] = useState<OfferDraft>({ to: null, when: 'today', meal: defaultMeal(recipe), how: 'over' });
+  const [sure, setSure] = useState(false);
   const factor = portions / recipe.servings;
   let cost = 0; let missing = false;
   for (const r of rows) {
@@ -33,6 +36,14 @@ export default function RecipeSheet({ recipe, rows, vocab, prices, portions, me,
       actions={<div className="btns fill"><button type="button" className="btn" onClick={() => send(false)}>Предложить</button><button type="button" className="btn soft" onClick={() => send(true)}>Приготовлю я</button></div>}>
       <p className="meta-line"><span>{recipe.time_total} минут</span><span>{recipe.servings} {recipe.servings < 5 ? 'порции' : 'порций'}</span>{cost ? <span>≈&nbsp;{rub(cost)}{missing ? ' без части продуктов' : ''}</span> : null}</p>
       <DimaLine recipe={recipe} />
+      {onEdit && onDelete ? (
+        <div className="btns own-actions">
+          <button type="button" className="btn soft sm" onClick={onEdit}>Изменить</button>
+          <button type="button" className="more" onClick={() => (sure ? onDelete() : setSure(true))}>
+            {sure ? (inMenu ? 'Блюдо есть в меню на неделю. Удалить всё равно?' : 'Точно удалить рецепт?') : 'Удалить'}
+          </button>
+        </div>
+      ) : null}
       <h3 className="sh-h">Кому и когда</h3>
       <div className="offer-picks">
         <div className="pick-g"><span>Кого просим</span><div className="picks">{pick('to', null, 'Всем')}{others.map((m) => <span key={m.id}>{pick('to', m.id, m.name)}</span>)}</div></div>

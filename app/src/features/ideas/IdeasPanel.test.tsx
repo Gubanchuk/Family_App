@@ -2,12 +2,15 @@ import 'fake-indexeddb/auto';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createLocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { seedMenu } from '../menu/testData';
 import MenuPage from '../menu/MenuPage';
 import ToastProvider from '../shell/Toast';
+import { deleteRecipe } from './recipeApi';
+
+vi.mock('./recipeApi', () => ({ saveRecipe: vi.fn(async () => 'own-1'), deleteRecipe: vi.fn(async () => {}) }));
 
 const papa: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: 'Папа', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1 };
 const mama: Member = { ...papa, id: 'm-mama', user_id: 'u2', name: 'Мама', is_owner: false };
@@ -91,5 +94,34 @@ describe('Что покушать', () => {
     await userEvent.click(within(sheet).getByRole('button', { name: 'Предложить' }));
     expect(await screen.findByText('Мама получит просьбу: сырники, сегодня на завтрак.')).toBeInTheDocument();
   });
-});
 
+  it('lets the family add its own recipe and edit only its own', async () => {
+    const db = await open();
+    await userEvent.click(await screen.findByRole('button', { name: 'Свой рецепт' }));
+    expect(screen.getByRole('dialog', { name: 'Свой рецепт' })).toBeInTheDocument();
+    await userEvent.click(within(screen.getByRole('dialog', { name: 'Свой рецепт' })).getByRole('button', { name: 'Закрыть' }));
+    const base = (await db.recipes.toArray()).find((r) => r.collections.includes('sweet'))!;
+    await db.recipes.put({ ...base, id: 'own-1', household_id: 'h1', name: 'Бабушкин пирог', collections: ['ours'] });
+    await userEvent.click(await screen.findByRole('button', { name: 'Наши рецепты' }));
+    await userEvent.click(screen.getByRole('button', { name: /Бабушкин пирог/ }));
+    expect(screen.getByRole('button', { name: 'Изменить' })).toBeInTheDocument();
+    await userEvent.click(within(screen.getByRole('dialog', { name: 'Бабушкин пирог' })).getByRole('button', { name: 'Закрыть' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Все' }));
+    await userEvent.click(screen.getByRole('button', { name: new RegExp(base.name) }));
+    expect(screen.queryByRole('button', { name: 'Изменить' })).toBeNull();
+  });
+
+  it('warns before deleting an own recipe that is in the menu of the week', async () => {
+    const db = await open();
+    const base = (await db.recipes.toArray()).find((r) => r.collections.includes('sweet'))!;
+    await db.recipes.put({ ...base, id: 'own-1', household_id: 'h1', name: 'Бабушкин пирог', collections: ['ours'] });
+    const slot = (await db.week_slots.toArray())[0];
+    await db.week_slots.put({ ...slot, dish_id: 'own-1' });
+    await userEvent.click(await screen.findByRole('button', { name: 'Наши рецепты' }));
+    await userEvent.click(screen.getByRole('button', { name: /Бабушкин пирог/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Удалить' }));
+    expect(deleteRecipe).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: 'Блюдо есть в меню на неделю. Удалить всё равно?' }));
+    expect(deleteRecipe).toHaveBeenCalledWith(expect.objectContaining({ id: 'own-1' }));
+  });
+});
