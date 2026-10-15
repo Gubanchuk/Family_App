@@ -40,7 +40,10 @@ export default function WishesPanel({ me, members, db, data, adding, onAdded }: 
                   </>
                 ) : <small>{memberName(members, w.owner_id)} хочет</small>}
                 {parent && w.owner_id !== me.id ? (
-                  gift ? <button type="button" className="secret" onClick={() => setGift(db, w, me, false)}><Icon name="gift" />{giftLine(giver)}</button>
+                  // Only the parent who took it as a present can take the mark back.
+                  gift ? (gift.giver_id === me.id
+                    ? <button type="button" className="secret" aria-label={`${giftLine(giver)}: снять`} onClick={() => setGift(db, w, me, false)}><Icon name="gift" />{giftLine(giver)}</button>
+                    : <span className="secret"><Icon name="gift" />{giftLine(giver)}</span>)
                     : <button type="button" className="gift-ask" onClick={() => setGift(db, w, me, true)}><Icon name="gift" />Беру в подарок</button>
                 ) : null}
                 {w.owner_id !== me.id ? (

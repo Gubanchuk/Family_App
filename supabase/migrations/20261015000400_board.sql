@@ -115,8 +115,12 @@ end $$;
 create trigger wish_metoo_guard before insert or update on public.wish_metoo for each row execute function public.guard_metoo();
 
 create function public.guard_gift() returns trigger language plpgsql security definer set search_path = public as $$
+declare existing public.wish_gifts;
 begin
   if not public.is_parent(new.household_id) or new.giver_id not in (select public.my_member_ids()) then raise exception 'not_yours'; end if;
+  if tg_op = 'INSERT' then select * into existing from public.wish_gifts where wish_id = new.wish_id; else existing := old; end if;
+  -- Another parent's live mark stays theirs: only the giver takes it back; a taken-back mark is free again.
+  if existing.wish_id is not null and existing.deleted_at is null and existing.giver_id not in (select public.my_member_ids()) then raise exception 'not_yours'; end if;
   if not exists (select 1 from public.wishes where id = new.wish_id and household_id = new.household_id and owner_id not in (select public.my_member_ids())) then raise exception 'not_yours'; end if;
   return new;
 end $$;
@@ -159,8 +163,8 @@ begin
   recipient := existing.to_id in (select public.my_member_ids());
   if new.from_id <> existing.from_id or new.household_id <> existing.household_id then raise exception 'not_yours'; end if;
   if not author then
-    -- The recipient only ticks a request done or back to open.
-    if not recipient or new.title <> existing.title or new.to_id <> existing.to_id or new.due_on is distinct from existing.due_on
+    -- The recipient only ticks an open request done or back to open; a cancelled one stays cancelled.
+    if not recipient or existing.status not in ('open', 'done') or new.title <> existing.title or new.to_id <> existing.to_id or new.due_on is distinct from existing.due_on
        or new.urgent <> existing.urgent or new.status not in ('open', 'done') or new.deleted_at is distinct from existing.deleted_at then
       raise exception 'not_yours';
     end if;

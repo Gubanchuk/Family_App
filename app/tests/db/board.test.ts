@@ -88,4 +88,25 @@ describe('board', { timeout: 60_000 }, () => {
     expect(await rows(SON, 'select note from public.needs')).toEqual([{ note: 'размер 38' }]);
     expect(await rows(STRANGER, 'select * from public.needs')).toEqual([]);
   });
+
+  it('lets only the parent who took a wish as a present take the mark back', async () => {
+    await upsertWish(SON, m['Тёма'], m['Тёма']);
+    // Full-row upserts, the way the phone sends them.
+    const gift = (u: string, giver: string, deleted: string | null) => asUser(db, u,
+      'insert into public.wish_gifts (wish_id, giver_id, household_id, deleted_at) values ($1, $2, $3, $4) on conflict (wish_id) do update set wish_id = excluded.wish_id, giver_id = excluded.giver_id, household_id = excluded.household_id, deleted_at = excluded.deleted_at',
+      [W, giver, hh, deleted]);
+    await gift(MAMA, m['Оля'], null);
+    await expect(gift(PAPA, m['Андрей'], '2026-10-15T00:00:00Z')).rejects.toThrow(/not_yours/);
+    await gift(MAMA, m['Оля'], '2026-10-15T00:00:00Z');
+    await gift(PAPA, m['Андрей'], null);
+    expect(await rows(MAMA, 'select giver_id, deleted_at from public.wish_gifts')).toEqual([{ giver_id: m['Андрей'], deleted_at: null }]);
+  });
+
+  it('does not let a recipient tick a request the author has cancelled', async () => {
+    await upsertRequest(MAMA, 'Вынести мусор', 'open');
+    await upsertRequest(MAMA, 'Вынести мусор', 'cancelled');
+    await expect(upsertRequest(SON, 'Вынести мусор', 'done')).rejects.toThrow(/not_yours/);
+    expect(await rows(MAMA, 'select status from public.requests')).toEqual([{ status: 'cancelled' }]);
+  });
 });
+
