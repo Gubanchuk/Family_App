@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import Header from '../shell/Header';
 import Icon from '../shell/Icon';
 import ThemePicker from './ThemePicker';
+import AppCard from './AppCard';
 import SyncStatus from './SyncStatus';
 import { signOutHere } from './signOut';
 import { localDb } from '../../data/db';
@@ -129,6 +130,7 @@ export default function Settings({ me, members, reload }: { me: Member; members:
       <FoodCard me={me} />
       <NotifyCard me={me} push={<PushRow me={me} />} />
       <SyncStatus />
+      <AppCard />
       <section className="card">
         <div className="card-h"><h2>Вход</h2></div>
         <button type="button" className="btn danger" onClick={signOut}><Icon name="logout" />{outWarn ? 'Выйти всё равно' : 'Выйти'}</button>

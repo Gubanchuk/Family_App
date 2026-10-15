@@ -4,7 +4,14 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { manifest } from './pwa.config.ts';
 
+// Shown in Settings so a phone can tell which version it runs: build time (Moscow) and commit.
+const BUILD = [
+  new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', ''),
+  (process.env.VERCEL_GIT_COMMIT_SHA ?? '').slice(0, 7),
+].filter(Boolean).join(' · ');
+
 export default defineConfig({
+  define: { __BUILD__: JSON.stringify(BUILD) },
   plugins: [
     react(),
     VitePWA({
