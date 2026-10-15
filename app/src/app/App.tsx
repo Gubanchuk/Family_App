@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import TabBar from '../features/shell/TabBar';
 import Header from '../features/shell/Header';
 import ProbePage from '../features/probe/ProbePage';
+import PrivacyPage from '../features/privacy/PrivacyPage';
 import SignIn from '../features/auth/SignIn';
 import { useSession } from '../features/auth/useSession';
 import { useFamily } from '../features/family/useFamily';
@@ -62,6 +63,7 @@ function MemberShell() {
   const invite = storedInvite(loc.search);
   const g = gate({ path: loc.pathname, loadingSession: loading, session: !!session, loadingFamily: fam.loading, hasMember: !!fam.me, inviteCode: invite, familyError: fam.error });
   if (g === 'probe') return <ProbePage />;
+  if (g === 'privacy') return <PrivacyPage />;
   if (g === 'loading') return <main className="screen"><p className="note" style={{ margin: 16 }}>Загружаем…</p></main>;
   if (g === 'sign-in') return <SignIn invite={invite} />;
   if (g === 'family-error') {

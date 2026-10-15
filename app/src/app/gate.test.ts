@@ -5,6 +5,7 @@ const base = { path: '/', loadingSession: false, session: true, loadingFamily: f
 
 describe('gate', () => {
   it('lets the probe open without sign-in', () => expect(gate({ ...base, path: '/probe', session: false })).toBe('probe'));
+  it('lets the privacy page open without sign-in', () => expect(gate({ ...base, path: '/privacy', session: false, loadingSession: true })).toBe('privacy'));
   it('asks to sign in first', () => expect(gate({ ...base, session: false })).toBe('sign-in'));
   it('waits while the session loads', () => expect(gate({ ...base, loadingSession: true })).toBe('loading'));
   it('accepts an invite before creating a family', () => expect(gate({ ...base, hasMember: false, inviteCode: 'ABCD234XYZ' })).toBe('accept-invite'));
