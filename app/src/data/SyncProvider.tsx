@@ -14,6 +14,9 @@ export const SyncContext = createContext<Ctx>({ syncing: false, offline: false, 
 export const useSync = () => useContext(SyncContext);
 
 const REALTIME = ['weeks', 'week_slots', 'votes', 'dish_offers', 'shopping_items', 'shopping_marks', 'shop_trips', 'not_eat'];
+// Tables that came later get their own channel, opened once a pull has shown the server has them:
+// before their migration an unknown table could break the family channel above.
+const LATER = ['wishes', 'wish_metoo', 'wish_gifts', 'needs', 'goals', 'requests', 'payments', 'payment_marks', 'money_entries'];
 
 export function SyncProvider({ householdId, portions = 3.5, isParent = false, now, children, client = supabase, db = localDb, onSynced }: { householdId: string; portions?: number; isParent?: boolean; now?: Date; children: ReactNode; client?: SupabaseClient; db?: LocalDb; onSynced?: () => void }) {
   const [state, setState] = useState<SyncState>({ syncing: false, offline: false, syncedAt: null, message: '' });
@@ -80,6 +83,18 @@ export function SyncProvider({ householdId, portions = 3.5, isParent = false, no
       client.removeChannel(channel);
     };
   }, [client, householdId, run]);
+
+  const missing = useLiveQuery(async () => (await db.meta.get('missing_tables'))?.value as string[] | undefined, [db]);
+  const later = Array.isArray(missing) ? LATER.filter((t) => !missing.includes(t)).join(',') : '';
+  useEffect(() => {
+    if (!later) return;
+    const channel = client.channel(`family-more-${householdId}`);
+    for (const table of later.split(',')) {
+      channel.on('postgres_changes' as never, { event: '*', schema: 'public', table, filter: `household_id=eq.${householdId}` } as never, () => { run(); });
+    }
+    channel.subscribe();
+    return () => { client.removeChannel(channel); };
+  }, [client, householdId, later, run]);
 
   const dismiss = useCallback(() => setState((s) => ({ ...s, message: '' })), []);
   return <SyncContext.Provider value={{ ...state, pending, syncNow: run, dismiss }}>{children}</SyncContext.Provider>;

@@ -118,4 +118,22 @@ describe('SyncProvider', () => {
     await waitFor(() => expect(screen.getByText('online · 0')).toBeInTheDocument());
     expect(await db.shopping_items.count()).toBe(0);
   });
+
+  it('listens live to the board tables once a pull has confirmed the server has them', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    const channels = new Map<string, string[]>();
+    const client = Object.assign(fake.client as object, {
+      channel: (name: string) => {
+        const tables: string[] = [];
+        channels.set(name, tables);
+        return { on(_e: unknown, f: { table: string }) { tables.push(f.table); return this; }, subscribe() { return this; } };
+      },
+      removeChannel() {},
+    });
+    render(<SyncProvider householdId="h1" client={client as never} db={db}><Probe /></SyncProvider>);
+    await waitFor(() => expect(channels.get('family-more-h1')).toEqual(expect.arrayContaining(['wishes', 'requests', 'goals'])));
+    expect(channels.get('family-h1')).not.toContain('requests');
+  });
 });
+
