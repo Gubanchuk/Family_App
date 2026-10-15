@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useToday } from '../../lib/useToday';
 import { useLiveQuery } from 'dexie-react-hooks';
 import Header from '../shell/Header';
@@ -26,7 +27,9 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const sync = useSync();
   const vocab = useLiveQuery(async () => new Map((await db.ingredients.toArray()).map((v) => [v.item, v])), [db]);
   const [weekPick, setWeekPick] = useState<string | null>(null);
-  const [sheet, setSheet] = useState<'add' | ShoppingItem | null>(null);
+  // Home's «Добавить» → «В покупки» opens the list with the add form (?add=1).
+  const [params, setParams] = useSearchParams();
+  const [sheet, setSheet] = useState<'add' | ShoppingItem | null>(params.get('add') === '1' ? 'add' : null);
   const [note, setNote] = useState('');
   const toast = useToast();
   const weekId = weekPick ?? data?.weeks[0]?.id ?? null;
@@ -107,14 +110,14 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
             </section>
           ) : null}
           {groupByDept(shown.filter((i) => !urgentIds.has(i.id)), marks).map((g) => (
-            <section className="card" key={g.dept} aria-labelledby={`dept-${g.dept}`}>
-              <div className="card-h"><h2 id={`dept-${g.dept}`}>{g.dept}</h2><span className="note" style={{ margin: 0 }}>{g.items.filter((i) => marks.get(i.id)?.bought).length} из {g.items.length}</span></div>
+            <section className="card" key={g.dept} aria-labelledby={`dept-${g.dept.replace(/\s+/g, '-')}`}>
+              <div className="card-h"><h2 id={`dept-${g.dept.replace(/\s+/g, '-')}`}>{g.dept}</h2><span className="note" style={{ margin: 0 }}>{g.items.filter((i) => marks.get(i.id)?.bought).length} из {g.items.length}</span></div>
               {g.items.map(row)}
             </section>
           ))}
         </>
       )}
-      {sheet === 'add' && vocab ? <AddItemSheet vocab={vocab} onClose={() => setSheet(null)} onAdd={async (a) => {
+      {sheet === 'add' && vocab ? <AddItemSheet vocab={vocab} onClose={() => { setSheet(null); if (params.get('add')) setParams({}, { replace: true }); }} onAdd={async (a) => {
         const dept = await addManualItem(db, me, { ...a, vocab });
         const title = capitalize(a.title.trim());
         toast({ text: a.urgent ? `«${title}» — в «Срочно» наверху списка` : `«${title}» в списке, отдел «${dept}»` });

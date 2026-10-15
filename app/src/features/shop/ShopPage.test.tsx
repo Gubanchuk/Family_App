@@ -52,6 +52,24 @@ describe('ShopPage', () => {
     expect(await screen.findByRole('button', { name: /Молоко, 2 л/ })).toHaveTextContent('срочно');
   });
 
+  it('opens the add form straight from a link', async () => {
+    const db = await ready();
+    render(<MemoryRouter initialEntries={['/shop?add=1']}><ShopPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></MemoryRouter>);
+    expect(await screen.findByRole('dialog', { name: 'Добавить в список' })).toBeInTheDocument();
+  });
+
+  it('shows where a non-food line goes and lets you change it', async () => {
+    const db = await ready();
+    show(db);
+    await userEvent.click(await screen.findByRole('button', { name: 'Добавить' }));
+    await userEvent.type(screen.getByLabelText('Что купить'), 'Пластырь');
+    const depts = screen.getByRole('group', { name: 'Отдел' });
+    expect(within(depts).getByRole('button', { name: 'Аптека' })).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(within(depts).getByRole('button', { name: 'Для дома' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Добавить в список' }));
+    expect(await screen.findByRole('region', { name: 'Для дома' })).toBeInTheDocument();
+  });
+
   it('keeps urgent lines in their own card on top of the departments', async () => {
     const db = await ready();
     show(db);

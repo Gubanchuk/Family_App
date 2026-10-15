@@ -26,13 +26,31 @@ export function guessIngredient(title: string, vocab: Map<string, Ingredient>): 
   return near ? { exact: false, dept: near.dept, item: null } : null;
 }
 
-export async function addManualItem(db: LocalDb, me: Member, a: { title: string; qtyText: string; urgent: boolean; vocab: Map<string, Ingredient> }): Promise<string> {
+// Words that mark a line as not food; a stem matches the start of any word («порош» → «порошок»).
+const NON_FOOD: Array<[string, RegExp]> = [
+  ['Аптека', /(^|\s)(таблет|лекарс|сироп|пластыр|бинт|витамин|капли|мазь|мази|градусник|термометр|аспирин|парацетам|ибупроф|нурофен|йод|зел[её]нк|антисепт|спрей от|спрей в нос)/],
+  ['Одежда и обувь', /(^|\s)(носк|колгот|футболк|майк|трус|куртк|штан|брюк|джинс|шапк|шарф|варежк|перчатк|кроссовк|ботин|сапог|туфл|кеды|тапк|тапоч|плать|юбк|свитер|кофт|пижам|шорт|рубаш|комбинезон|обувь|одежд)/],
+  ['Для дома', /(^|\s)(средств|порош|мыл|шампун|бумаг|салфет|губк|пакет|мешк|лампоч|батарейк|зубн|щ[её]тк|гель|кондиционер|отбелив|освежит|фольг|пл[её]нк|подгуз|пел[её]нк|тряпк|полотенц|свеч|спичк|ватн|прокладк|туалетн|бытов|для посуды|для стирки)/],
+];
+export const NON_FOOD_DEPTS = ['Для дома', 'Аптека', 'Одежда и обувь', 'Другое'];
+
+// The department a hand-written line goes to: an exact product first, then non-food words, then a near product.
+export function guessDept(title: string, vocab: Map<string, Ingredient>): string {
+  const g = guessIngredient(title, vocab);
+  if (g?.exact) return g.dept;
+  const t = title.trim().toLowerCase();
+  const nonFood = NON_FOOD.find(([, re]) => re.test(t));
+  if (nonFood) return nonFood[0];
+  return g?.dept ?? 'Другое';
+}
+
+export async function addManualItem(db: LocalDb, me: Member, a: { title: string; qtyText: string; urgent: boolean; vocab: Map<string, Ingredient>; dept?: string }): Promise<string> {
   const title = a.title.trim();
   const g = guessIngredient(title, a.vocab);
-  const dept = g?.dept ?? 'Другое';
+  const dept = a.dept ?? guessDept(title, a.vocab);
   await writeLocal(db, 'shopping_items', [{
     id: `u:${crypto.randomUUID()}`, household_id: me.household_id, week_id: null, offer_id: null, source: 'manual',
-    item: g?.item ?? null, title: capitalize(title), qty: null, unit: null, qty_text: a.qtyText.trim(), dept,
+    item: g?.item && g.dept === dept ? g.item : null, title: capitalize(title), qty: null, unit: null, qty_text: a.qtyText.trim(), dept,
     urgent: a.urgent, est_price: null, added_by: me.id, deleted_at: null,
   }]);
   return dept;

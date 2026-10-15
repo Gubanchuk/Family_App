@@ -1,15 +1,21 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import Sheet from '../menu/Sheet';
 import type { Ingredient } from '../../data/db';
+import { NON_FOOD_DEPTS, guessDept } from './shopActions';
 
-export default function AddItemSheet({ vocab, onAdd, onClose }: { vocab: Map<string, Ingredient>; onAdd: (a: { title: string; qtyText: string; urgent: boolean }) => Promise<unknown>; onClose: () => void }) {
+export default function AddItemSheet({ vocab, onAdd, onClose }: { vocab: Map<string, Ingredient>; onAdd: (a: { title: string; qtyText: string; urgent: boolean; dept: string }) => Promise<unknown>; onClose: () => void }) {
   const [title, setTitle] = useState('');
   const [qtyText, setQty] = useState('');
   const [urgent, setUrgent] = useState(false);
+  // The department follows the title until someone picks one by hand.
+  const [picked, setPicked] = useState<string | null>(null);
+  const guessed = guessDept(title, vocab);
+  const dept = picked ?? guessed;
+  const depts = NON_FOOD_DEPTS.includes(guessed) ? NON_FOOD_DEPTS : [guessed, ...NON_FOOD_DEPTS];
   const add = async (e: FormEvent | KeyboardEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-    await onAdd({ title, qtyText, urgent });
+    await onAdd({ title, qtyText, urgent, dept });
     onClose();
   };
   return (
@@ -18,9 +24,14 @@ export default function AddItemSheet({ vocab, onAdd, onClose }: { vocab: Map<str
       {/* Enter in any field adds the line: the button sits outside the form, in the sheet's bottom bar. */}
       <form id="add-item" style={{ display: 'grid', gap: 12, margin: '0 16px' }} onSubmit={add}
         onKeyDown={(e) => { if (e.key === 'Enter' && e.target instanceof HTMLInputElement && !e.nativeEvent.isComposing) add(e); }}>
-        <label className="field">Что купить<input value={title} onChange={(e) => setTitle(e.target.value)} list="vocab" maxLength={80} autoComplete="off" autoFocus placeholder="Например, хлеб" enterKeyHint="done" /></label>
+        <label className="field">Что купить<input value={title} onChange={(e) => setTitle(e.target.value)} list="vocab" maxLength={80} autoComplete="off" autoFocus placeholder="Например, хлеб или порошок" enterKeyHint="done" /></label>
         <datalist id="vocab">{[...vocab.keys()].map((v) => <option key={v} value={v} />)}</datalist>
         <label className="field">Сколько<input value={qtyText} onChange={(e) => setQty(e.target.value)} maxLength={40} placeholder="Например, 2 л" /></label>
+        {title.trim() ? (
+          <fieldset className="kin-pick"><legend>Отдел</legend><div className="picks">
+            {depts.map((d) => <button key={d} type="button" className="pick" aria-pressed={dept === d} onClick={() => setPicked(d)}>{d}</button>)}
+          </div></fieldset>
+        ) : null}
         <div className="row"><span className="row-main"><b>Срочно</b><small>нужно сегодня</small></span>
           <button type="button" className="switch" role="switch" aria-checked={urgent} aria-label="Срочно" onClick={() => setUrgent(!urgent)}><i /></button></div>
       </form>

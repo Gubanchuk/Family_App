@@ -114,6 +114,8 @@ async function seed() {
       { id: 'pe6', household_id: h, kind: 'income', amount: 185000, category: null, member_id: 'p-papa', on_date: `${month}-05`, note: '', created_by: 'p-papa', updated_at: now, deleted_at: null },
     ]);
     await db.meta.put({ key: 'family_portions', value: 3.5 });
+    // As after a full pull from a server that has the board and money tables.
+    await db.meta.put({ key: 'missing_tables', value: [] });
     await db.meta.put({ key: 'content_loaded_at', value: new Date().toISOString() });
   });
   await regenerateWeekList(db, 'p-week');

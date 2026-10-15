@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Ingredient } from '../../data/db';
-import { guessIngredient } from './shopActions';
+import { guessDept, guessIngredient } from './shopActions';
 
 const ing = (item: string, dept: string): Ingredient => ({ item, unit: 'г', dept, grp: 'x', piece_weight: null, piece_name: null, pantry: false });
 const vocab = new Map([ing('хлеб белый', 'Хлеб'), ing('хлеб ржаной', 'Хлеб'), ing('сыр твёрдый', 'Молочное и яйца'), ing('помидоры', 'Овощи и фрукты'), ing('молоко', 'Молочное и яйца')].map((v) => [v.item, v]));
@@ -16,5 +16,20 @@ describe('guessIngredient', () => {
   });
   it('leaves things that are not food to «Другое»', () => {
     expect(guessIngredient('Салфетки', vocab)).toBeNull();
+  });
+});
+
+describe('guessDept', () => {
+  it('puts household, pharmacy and clothes where they belong, food by the vocabulary', () => {
+    expect(guessDept('Стиральный порошок', vocab)).toBe('Для дома');
+    expect(guessDept('Туалетная бумага', vocab)).toBe('Для дома');
+    expect(guessDept('Влажные салфетки для Димы', vocab)).toBe('Для дома');
+    expect(guessDept('Парацетамол в таблетках', vocab)).toBe('Аптека');
+    expect(guessDept('Пластырь', vocab)).toBe('Аптека');
+    expect(guessDept('Носки Диме', vocab)).toBe('Одежда и обувь');
+    expect(guessDept('Кроссовки', vocab)).toBe('Одежда и обувь');
+    expect(guessDept('Молоко', vocab)).toBe('Молочное и яйца');
+    expect(guessDept('Хлеб', vocab)).toBe('Хлеб');
+    expect(guessDept('Подарок учителю', vocab)).toBe('Другое');
   });
 });

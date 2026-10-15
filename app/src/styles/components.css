@@ -431,4 +431,6 @@ a.more, a.av { text-decoration: none; }
 .re-found { scroll-margin-bottom: 96px; }
 .cat-btn { display: block; width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .pay-row:disabled { cursor: default; }
-
+.tile .bar { margin-top: 2px; background: color-mix(in oklab, var(--h) 22%, var(--k-card)); }
+.quick-row { display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 10px 0; }
+.add-btn .ic { width: 22px; height: 22px; }

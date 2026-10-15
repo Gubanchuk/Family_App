@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, within, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
@@ -12,6 +12,7 @@ import HomePage from './HomePage';
 const papa: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: 'Папа', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1 };
 const mama: Member = { ...papa, id: 'm-mama', user_id: 'u2', name: 'Мама', is_owner: false };
 const dima: Member = { ...papa, id: 'm-dima', user_id: null, name: 'Дима', role: 'child', is_owner: false, portion: 0.5 };
+const son: Member = { ...papa, id: 'm-son', user_id: 'u3', name: 'Сын', role: 'child', is_owner: false };
 const TUESDAY_MORNING = new Date(2026, 9, 13, 11, 40);
 
 async function ready() {
@@ -73,14 +74,14 @@ describe('HomePage', () => {
     const db = await ready();
     await db.goals.put({ id: 'g1', household_id: 'h1', owner_id: null, title: 'Море летом', target: 120000, saved: 30000, steps: [], created_by: null, updated_at: 'x', deleted_at: null });
     render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
-    expect(await screen.findByRole('link', { name: /Цель.*25%.*Море летом/ })).toHaveAttribute('href', '/board?tab=goals');
+    expect(await screen.findByRole('link', { name: /Море летом.*30\s000\s₽.*из 120\s000\s₽/ })).toHaveAttribute('href', '/board?tab=goals');
   });
 
   it('tells a parent about a payment due within a week', async () => {
     const db = await ready();
     await db.payments.put({ id: 'p1', household_id: 'h1', title: 'Интернет и ТВ', amount: 650, day: 16, kind: 'monthly', total: null, first_month: null, note: '', created_by: null, updated_at: 'x', deleted_at: null });
     render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
-    expect(await screen.findByRole('link', { name: /Скоро платить.*650\s₽.*Интернет и ТВ · через 3 дня/ })).toHaveAttribute('href', '/money');
+    expect(await screen.findByRole('link', { name: /Скоро платить.*Интернет и ТВ · 650\s₽.*через 3 дня/ })).toHaveAttribute('href', '/money');
   });
 
   it('keeps the tiles in full rows when a goal and a payment both show', async () => {
@@ -90,7 +91,7 @@ describe('HomePage', () => {
     render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
     await screen.findByRole('link', { name: /Скоро платить/ });
     const tiles = document.querySelectorAll('.tile');
-    const cells = [...tiles].reduce((n, t) => n + (t.classList.contains('wide') ? 2 : 1), 0);
+    const cells = [...tiles].reduce((n, t) => n + (t.classList.contains('wide') || t.classList.contains('tall') ? 2 : 1), 0);
     expect(cells % 2).toBe(0);
   });
 
@@ -136,6 +137,42 @@ describe('HomePage', () => {
     await db.payments.put({ id: 'p1', household_id: 'h1', title: 'Аренда', amount: 45000, day: 1, kind: 'monthly', total: null, first_month: null, note: '', created_by: null, updated_at: 'x', deleted_at: null });
     await db.payment_marks.put({ payment_id: 'p1', month: '2026-10', household_id: 'h1', paid: true, amount: 45000, paid_by: 'papa', paid_on: '2026-10-01', updated_at: 'x' });
     render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={new Date(2026, 9, 29, 9, 0)} /></MemoryRouter>);
-    expect(await screen.findByRole('link', { name: /Скоро платить.*45\s000\s₽.*Аренда · через 3 дня/ })).toHaveAttribute('href', '/money');
+    expect(await screen.findByRole('link', { name: /Скоро платить.*Аренда · 45\s000\s₽.*через 3 дня/ })).toHaveAttribute('href', '/money');
+  });
+
+  it('shows a child the own wish as a tile', async () => {
+    const db = await ready();
+    await db.wishes.put({ id: 'w1', household_id: 'h1', owner_id: 'm-son', title: 'Велосипед', price: 25000, saved: 8000, gift_from: null, done_at: null, created_by: 'm-son', updated_at: 'x', deleted_at: null } as never);
+    render(<MemoryRouter><HomePage me={son} members={[papa, mama, son]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('link', { name: /Хотелки.*Велосипед.*в копилке 8\s000\s₽/ })).toHaveAttribute('href', '/board?tab=wishes');
+  });
+
+  const openAdd = async (me: Member, boardAndMoney: boolean) => {
+    const db = await ready();
+    if (boardAndMoney) await db.meta.put({ key: 'missing_tables', value: [] });
+    render(<MemoryRouter><HomePage me={me} members={[papa, mama, son]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    await screen.findByRole('heading', { name: 'Сегодня едим' });
+    await userEvent.click(screen.getByRole('button', { name: 'Добавить' }));
+    return screen.getByRole('dialog', { name: 'Что добавить' });
+  };
+
+  it('offers only shopping in quick add until the server has the board', async () => {
+    const sheet = await openAdd(papa, false);
+    expect(within(sheet).getByRole('link', { name: /^В покупки/ })).toHaveAttribute('href', '/shop?add=1');
+    expect(within(sheet).queryByRole('link', { name: /^Попросить/ })).toBeNull();
+  });
+
+  it('offers a parent requests, wishes and an expense in quick add', async () => {
+    const sheet = await openAdd(papa, true);
+    expect(await within(sheet).findByRole('link', { name: /^Попросить/ })).toHaveAttribute('href', '/board?tab=requests&add=1');
+    expect(within(sheet).getByRole('link', { name: /^Хотелку/ })).toHaveAttribute('href', '/board?tab=wishes&add=1');
+    expect(await within(sheet).findByRole('link', { name: /^Расход/ })).toHaveAttribute('href', '/money?add=expense');
+  });
+
+  it('keeps the expense out of a child quick add', async () => {
+    const sheet = await openAdd(son, true);
+    expect(await within(sheet).findByRole('link', { name: /^Хотелку/ })).toBeInTheDocument();
+    expect(within(sheet).queryByRole('link', { name: /^Расход/ })).toBeNull();
   });
 });
+

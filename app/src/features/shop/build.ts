@@ -14,7 +14,7 @@ export type BuildInput = {
   isSoup?: (id: string) => boolean;
 };
 
-export const DEPT_ORDER = ['Овощи и фрукты', 'Хлеб', 'Молочное и яйца', 'Мясо и птица', 'Рыба', 'Заморозка', 'Бакалея', 'Консервы и соусы', 'Специи', 'Одежда и обувь', 'Для дома', 'Другое'];
+export const DEPT_ORDER = ['Овощи и фрукты', 'Хлеб', 'Молочное и яйца', 'Мясо и птица', 'Рыба', 'Заморозка', 'Бакалея', 'Консервы и соусы', 'Специи', 'Одежда и обувь', 'Для дома', 'Аптека', 'Другое'];
 export const deptRank = (d: string) => { const i = DEPT_ORDER.indexOf(d); return i < 0 ? DEPT_ORDER.length : i; };
 
 // Mirrors content/tools/week_cost.py so the list and the template prices agree.

@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useToday } from '../../lib/useToday';
 import Header from '../shell/Header';
+import QuickAddSheet from './QuickAddSheet';
+import { useBoardReady } from '../board/useBoard';
+import { useMoneyReady } from '../money/useMoney';
 import Icon from '../shell/Icon';
 import { localDb, type LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
@@ -31,8 +34,23 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const times = getMealTimes();
   const navigate = useNavigate();
   const [open, setOpen] = useState<Meal | null>(null);
+  const [adding, setAdding] = useState(false);
+  // Read ahead so the quick-add sheet opens with all its rows at once.
+  const boardReady = useBoardReady(db);
+  const moneyReady = useMoneyReady(db);
   const avatar = <NavLink to="/settings" className="av" style={{ ['--c' as string]: memberColor(me.color) }} aria-label="Настройки и профиль"><AvatarFace member={me} /></NavLink>;
-  const head = <Header title={`${greeting(today)}, ${me.name}`} subtitle={dateLine(today)} action={avatar} />;
+  const actions = (
+    <>
+      <button type="button" className="round-btn add-btn" aria-label="Добавить" onClick={() => setAdding(true)}><Icon name="plus" /></button>
+      {avatar}
+    </>
+  );
+  const head = (
+    <>
+      <Header title={`${greeting(today)}, ${me.name}`} subtitle={dateLine(today)} action={actions} />
+      {adding ? <QuickAddSheet me={me} board={boardReady} money={moneyReady} onClose={() => setAdding(false)} /> : null}
+    </>
+  );
   if (!data) return head;
 
   const d = dayOfWeek(today);
@@ -148,27 +166,28 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
         <MealSheet key={open} db={db} parts={partsOf(open)} recipes={data.recipes} onClose={() => setOpen(null)}
           onReplace={canEditWeek(me, data.week) ? () => navigate(`/menu?replace=${open}`) : null} />
       ) : null}
+      {/* As in the mockup: the goal stands tall on the left when two tiles share the right; no holes in two columns. */}
       <div className="bento">
-        {/* Two columns: shopping takes a full row unless exactly one more tile shares it. */}
-        <Link className={`tile ${[pay, myWish || goal].filter(Boolean).length === 1 ? '' : 'wide'}`} to="/shop" style={{ ['--h' as string]: 'var(--k-shop)' }}>
+        {goal ? (
+          <Link className={`tile ${pay || myWish ? 'tall' : ''}`} to="/board?tab=goals" style={{ ['--h' as string]: 'var(--k-goal)' }}>
+            <span className="t-k"><Icon name="board" />{goal.title}</span><span className="t-v num">{rub(goal.saved)}</span>
+            <span className="bar" aria-hidden="true"><i style={{ width: `${Math.round(progress(goal.saved, goal.target) * 100)}%` }} /></span>
+            <span className="t-s">из {rub(goal.target)}</span>
+          </Link>
+        ) : null}
+        <Link className={`tile ${goal || pay || myWish ? '' : 'wide'}`} to="/shop" style={{ ['--h' as string]: 'var(--k-shop)' }}>
           <span className="t-k"><Icon name="cart" />Покупки</span><span className="t-v num">{totals.count - totals.doneCount}</span>
-          <span className="t-s">осталось купить{totals.left ? ` · ≈ ${rub(totals.left)}` : ''}</span>
+          <span className="t-s">осталось купить{totals.left ? ` · ≈ ${rub(totals.left)}` : ''}</span>
         </Link>
         {pay ? (
           <Link className="tile" to="/money" style={{ ['--h' as string]: 'var(--k-money)' }}>
-            <span className="t-k"><Icon name="wallet" />Скоро платить</span><span className="t-v num">{rub(pay.p.amount)}</span>
-            <span className="t-s">{pay.p.title} · {dueText(daysTo(data.todayIso, pay.due))}</span>
+            <span className="t-k"><Icon name="wallet" />Скоро платить</span><span className="t-v">{pay.p.title} · {rub(pay.p.amount)}</span>
+            <span className="t-s">{dueText(daysTo(data.todayIso, pay.due))}</span>
           </Link>
-        ) : null}
-        {myWish ? (
+        ) : myWish ? (
           <Link className="tile" to="/board?tab=wishes" style={{ ['--h' as string]: 'var(--k-money)' }}>
-            <span className="t-k"><Icon name="metoo" />Хотелки</span><span className="t-v num">{rub(myWish.saved)}</span>
-            <span className="t-s">в копилке · {myWish.title}</span>
-          </Link>
-        ) : goal ? (
-          <Link className="tile" to="/board?tab=goals" style={{ ['--h' as string]: 'var(--k-goal)' }}>
-            <span className="t-k"><Icon name="board" />Цель</span><span className="t-v num">{Math.round(progress(goal.saved, goal.target) * 100)}%</span>
-            <span className="t-s">{goal.title}</span>
+            <span className="t-k"><Icon name="gift" />Хотелки</span><span className="t-v">{myWish.title}</span>
+            <span className="t-s">в копилке {rub(myWish.saved)}</span>
           </Link>
         ) : null}
       </div>
