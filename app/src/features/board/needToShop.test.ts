@@ -13,6 +13,12 @@ describe('things to buy → shopping list', () => {
     expect(needLine(need, 'Тёма')).toEqual({ id: 'n:n1', dept: 'Одежда и обувь', title: 'Зимние ботинки', qty_text: 'размер 37 · для Тёма', est_price: 6000 });
     expect(needLine({ ...need, for_id: null, note: '' }, null)).toMatchObject({ dept: 'Для дома', qty_text: '' });
   });
+  it('keeps the shopping line within its 40 characters even with a long note and name', () => {
+    const line = needLine({ ...need, note: 'рост 98, цвет тёмно-синий, без капюшона' }, 'Константин');
+    expect(line.qty_text.length).toBeLessThanOrEqual(40);
+    expect(line.qty_text.endsWith('для Константин')).toBe(true);
+  });
+
   it('adds the line once even if tapped twice', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     expect(await sendNeedToShop(db, me, need, 'Тёма')).toBe('added');
