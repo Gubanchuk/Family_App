@@ -52,6 +52,21 @@ describe('ShopPage', () => {
     expect(await screen.findByRole('button', { name: /Молоко, 2 л/ })).toHaveTextContent('срочно');
   });
 
+  it('lets a wrong department be changed to any other', async () => {
+    const db = await ready();
+    show(db);
+    await userEvent.click(await screen.findByRole('button', { name: 'Добавить' }));
+    await userEvent.type(screen.getByLabelText('Что купить'), 'Пластырь');
+    const depts = screen.getByRole('group', { name: 'Отдел' });
+    await userEvent.click(within(depts).getByRole('button', { name: 'Все отделы' }));
+    await userEvent.click(within(depts).getByRole('button', { name: 'Молочное и яйца' }));
+    await userEvent.type(screen.getByLabelText('Что купить'), ' детский');
+    expect(within(screen.getByRole('group', { name: 'Отдел' })).getByRole('button', { name: 'Молочное и яйца' })).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(screen.getByRole('button', { name: 'Добавить в список' }));
+    const region = await screen.findByRole('region', { name: 'Молочное и яйца' });
+    expect(await within(region).findByRole('button', { name: 'Пластырь детский' })).toBeInTheDocument();
+  });
+
   it('opens the add form straight from a link', async () => {
     const db = await ready();
     render(<MemoryRouter initialEntries={['/shop?add=1']}><ShopPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></MemoryRouter>);

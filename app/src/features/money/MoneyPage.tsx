@@ -47,7 +47,7 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   const maxC = Math.max(1, ...cats.map((c) => c.sum));
   const byMember = [...spendByMember(data.entries, list, month).entries()].sort((a, b) => b[1] - a[1]);
   const maxM = Math.max(1, ...byMember.map(([, s]) => s));
-  const close = () => setParams(month === current ? {} : { m: month });
+  const close = () => setParams(month === current ? {} : { m: month }, { replace: true });
   return (
     <>
       {head}

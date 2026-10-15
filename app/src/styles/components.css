@@ -434,3 +434,4 @@ a.more, a.av { text-decoration: none; }
 .tile .bar { margin-top: 2px; background: color-mix(in oklab, var(--h) 22%, var(--k-card)); }
 .quick-row { display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 10px 0; }
 .add-btn .ic { width: 22px; height: 22px; }
+.more-pick { background: none; box-shadow: inset 0 0 0 1px var(--k-rule); color: var(--k-ink-2); }

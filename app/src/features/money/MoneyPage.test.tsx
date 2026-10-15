@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { createLocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
@@ -10,6 +10,7 @@ import MoneyPage from './MoneyPage';
 const papa: Member = { id: 'papa', household_id: 'h', user_id: 'u1', name: 'Андрей', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1 };
 const mama: Member = { ...papa, id: 'mama', user_id: 'u2', name: 'Оля', color: '#E0457B', is_owner: false };
 const OCT13 = new Date(2026, 9, 13, 12, 0);
+function Back() { const nav = useNavigate(); return <button type="button" onClick={() => nav(-1)}>Назад</button>; }
 
 describe('MoneyPage', () => {
   it('shows the next payment and marks it paid', async () => {
@@ -94,5 +95,21 @@ describe('MoneyPage', () => {
     expect((await db.payments.get('p1'))?.deleted_at).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: /Точно удалить/ }));
     await waitFor(async () => expect((await db.payments.get('p1'))?.deleted_at).toBeTruthy());
+  });
+
+  it('goes back where the person came from after saving an expense', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    render(<MemoryRouter initialEntries={['/', '/money?add=expense']} initialIndex={1}>
+      <Routes>
+        <Route path="/" element={<p>Главная</p>} />
+        <Route path="/money" element={<><MoneyPage me={mama} members={[papa, mama]} db={db} today={OCT13} /><Back /></>} />
+      </Routes>
+    </MemoryRouter>);
+    await userEvent.type(await screen.findByLabelText('Сумма, ₽'), '500');
+    await userEvent.click(screen.getByRole('button', { name: 'Продукты' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    await waitFor(() => expect(screen.queryByLabelText('Сумма, ₽')).toBeNull());
+    await userEvent.click(screen.getByRole('button', { name: 'Назад' }));
+    expect(await screen.findByText('Главная')).toBeInTheDocument();
   });
 });

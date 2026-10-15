@@ -3,7 +3,7 @@ import type { Ingredient } from '../../data/db';
 import { guessDept, guessIngredient } from './shopActions';
 
 const ing = (item: string, dept: string): Ingredient => ({ item, unit: 'г', dept, grp: 'x', piece_weight: null, piece_name: null, pantry: false });
-const vocab = new Map([ing('хлеб белый', 'Хлеб'), ing('хлеб ржаной', 'Хлеб'), ing('сыр твёрдый', 'Молочное и яйца'), ing('помидоры', 'Овощи и фрукты'), ing('молоко', 'Молочное и яйца')].map((v) => [v.item, v]));
+const vocab = new Map([ing('хлеб белый', 'Хлеб'), ing('хлеб ржаной', 'Хлеб'), ing('сыр твёрдый', 'Молочное и яйца'), ing('помидоры', 'Овощи и фрукты'), ing('молоко', 'Молочное и яйца'), ing('соль', 'Бакалея'), ing('мука пшеничная', 'Бакалея')].map((v) => [v.item, v]));
 
 describe('guessIngredient', () => {
   it('finds the exact product first', () => {
@@ -31,5 +31,13 @@ describe('guessDept', () => {
     expect(guessDept('Молоко', vocab)).toBe('Молочное и яйца');
     expect(guessDept('Хлеб', vocab)).toBe('Хлеб');
     expect(guessDept('Подарок учителю', vocab)).toBe('Другое');
+  });
+  it('keeps food lines that mention a bag or iodine in their food department', () => {
+    expect(guessDept('Молоко 2 пакета', vocab)).toBe('Молочное и яйца');
+    expect(guessDept('Мука 2 пакета', vocab)).toBe('Бакалея');
+    expect(guessDept('Соль йодированная', vocab)).toBe('Бакалея');
+    expect(guessDept('Таблетки для посудомоечной машины', vocab)).toBe('Для дома');
+    expect(guessDept('Перчатки резиновые', vocab)).toBe('Для дома');
+    expect(guessDept('Брюква', vocab)).toBe('Другое');
   });
 });
