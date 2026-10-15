@@ -379,3 +379,4 @@ a.more, a.av { text-decoration: none; }
 .w-top { display: flex; justify-content: space-between; align-items: center; }
 .secret { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 10px; border: 1px dashed color-mix(in oklab, var(--k-primary) 60%, var(--k-card)); border-radius: 10px; background: none; color: color-mix(in oklab, var(--k-primary) 80%, var(--k-ink)); font: 600 13px var(--font); cursor: pointer; }
 .secret .ic { width: 16px; height: 16px; }
+.bought summary { padding: 12px 0 4px; font: 600 14px var(--font); color: var(--k-ink-2); cursor: pointer; }

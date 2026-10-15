@@ -1,0 +1,28 @@
+import { writeLocal } from '../../data/sync';
+import type { LocalDb, ShoppingItem, ShoppingMark } from '../../data/db';
+import type { Member } from '../family/useFamily';
+import type { Need } from './types';
+
+// One shopping line per need, keyed by the need, so a second tap finds it instead of adding another.
+export function needLine(n: Need, forName: string | null) {
+  const qty = [n.note.trim(), forName ? `для ${forName}` : ''].filter(Boolean).join(' · ');
+  return { id: `n:${n.id}`, dept: n.for_id ? 'Одежда и обувь' : 'Для дома', title: n.title, qty_text: qty, est_price: n.price };
+}
+
+export async function sendNeedToShop(db: LocalDb, me: Member, n: Need, forName: string | null): Promise<'added' | 'already'> {
+  const line = needLine(n, forName);
+  const existing = await db.shopping_items.get(line.id);
+  if (existing && !existing.deleted_at) return 'already';
+  await writeLocal(db, 'shopping_items', [{
+    ...line, household_id: me.household_id, week_id: null, offer_id: null, source: 'manual', item: null, qty: null, unit: null,
+    urgent: false, added_by: me.id, deleted_at: null,
+  }]);
+  return 'added';
+}
+
+export function needState(n: Need, items: Map<string, ShoppingItem>, marks: Map<string, ShoppingMark>): 'todo' | 'in-shop' | 'bought' {
+  const id = `n:${n.id}`;
+  const item = items.get(id);
+  if (!item || item.deleted_at) return 'todo';
+  return marks.get(id)?.bought ? 'bought' : 'in-shop';
+}
