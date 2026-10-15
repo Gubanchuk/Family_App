@@ -398,4 +398,7 @@ a.more, a.av { text-decoration: none; }
 .pay-day b { font-size: 15px; }
 .cat { padding: 8px 0; }
 .cat-top small { color: var(--k-ink-2); font-weight: 500; }
+/* A paid payment fades instead of being struck through: it is done, not cancelled. */
+.pay-row.paid .row-main, .pay-row.paid .amount, .pay-row.paid .pay-day { opacity: 0.5; }
+.round-btn:disabled { opacity: 0.35; cursor: default; }
 

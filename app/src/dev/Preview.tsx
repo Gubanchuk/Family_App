@@ -11,6 +11,7 @@ import HomePage from '../features/home/HomePage';
 import MenuPage from '../features/menu/MenuPage';
 import ShopPage from '../features/shop/ShopPage';
 import BoardPage from '../features/board/BoardPage';
+import MoneyPage from '../features/money/MoneyPage';
 import TabBar from '../features/shell/TabBar';
 import { mondayOf, addDaysIso, dayOfWeek } from '../features/menu/week';
 import { regenerateWeekList } from '../features/shop/menuList';
@@ -29,6 +30,8 @@ export const PREVIEW_MEMBERS: Member[] = [
   { id: 'p-dima', household_id: 'p-home', user_id: null, name: 'Дима', color: '#F2A900', role: 'child', is_owner: false, portion: 0.5 },
 ];
 const db = createLocalDb('family-app-preview');
+
+const shiftMonthKey = (n: number) => { const d = new Date(); d.setMonth(d.getMonth() + n, 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
 
 async function seed() {
   const now = '2026-10-13T00:00:00Z';
@@ -93,6 +96,21 @@ async function seed() {
       { id: 'pr2', household_id: h, from_id: 'p-son', to_id: 'p-papa', title: 'Помочь с проектом по физике', due_on: addDaysIso(todayIso, 2), urgent: false, status: 'open', done_at: null, updated_at: now, deleted_at: null },
       { id: 'pr3', household_id: h, from_id: 'p-papa', to_id: 'p-son', title: 'Выучить стих к пятнице', due_on: addDaysIso(todayIso, 1), urgent: false, status: 'open', done_at: null, updated_at: now, deleted_at: null },
     ]);
+    // Money for parents, from the mockup's October.
+    const pay = (id: string, title: string, amount: number, day: number, extra: Record<string, unknown> = {}) =>
+      ({ id, household_id: h, title, amount, day, kind: 'monthly' as const, total: null, first_month: null, note: '', created_by: 'p-papa', updated_at: now, deleted_at: null, ...extra });
+    await db.payments.bulkPut([
+      pay('pp1', 'Аренда квартиры', 45000, 1), pay('pp2', 'Рассрочка: стиральная машина', 6200, 5, { kind: 'installment', total: 12, first_month: shiftMonthKey(-2) }),
+      pay('pp3', 'Коммуналка', 7800, 10), pay('pp4', 'Интернет и ТВ', 650, 16), pay('pp5', 'Плавание, Сын', 4500, 20), pay('pp6', 'Мобильная связь', 1200, 28),
+    ]);
+    const month = todayIso.slice(0, 7);
+    await db.payment_marks.bulkPut(['pp1', 'pp2', 'pp3'].map((id, i) => ({ payment_id: id, month, household_id: h, paid: true, amount: [45000, 6200, 7800][i], paid_by: i ? 'p-mama' : 'p-papa', paid_on: `${month}-0${i + 1}`, updated_at: now })));
+    const spend = (id: string, amount: number, category: string, who: string) => ({ id, household_id: h, kind: 'expense' as const, amount, category, member_id: who, on_date: `${month}-0${(Number(id.slice(2)) % 9) + 1}`, note: '', created_by: who, updated_at: now, deleted_at: null });
+    await db.money_entries.bulkPut([
+      spend('pe1', 18400, 'Продукты', 'p-mama'), spend('pe2', 6300, 'Дети', 'p-mama'), spend('pe3', 3900, 'Транспорт', 'p-papa'),
+      spend('pe4', 2800, 'Кафе и доставка', 'p-papa'), spend('pe5', 1700, 'Дом', 'p-mama'),
+      { id: 'pe6', household_id: h, kind: 'income', amount: 185000, category: null, member_id: 'p-papa', on_date: `${month}-05`, note: '', created_by: 'p-papa', updated_at: now, deleted_at: null },
+    ]);
     await db.meta.put({ key: 'family_portions', value: 3.5 });
     await db.meta.put({ key: 'content_loaded_at', value: new Date().toISOString() });
   });
@@ -152,6 +170,7 @@ export default function Preview() {
           <Route path="/dev/menu" element={<MenuPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
           <Route path="/dev/shop" element={<ShopPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
           <Route path="/dev/board" element={<BoardPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
+          <Route path="/dev/money" element={<MoneyPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
         </Routes>
       </div>
       <TabBar tabs={['home', 'menu', 'shop']} />

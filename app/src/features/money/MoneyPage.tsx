@@ -65,8 +65,8 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
       <section className="card">
         <div className="card-h"><h2>Платежи</h2><span className="note" style={{ margin: 0 }}>осталось {rub(total - paid)}</span></div>
         {list.map((x) => (
-          <button type="button" className={`row meal-row ${x.paid ? 'done' : ''}`} key={x.p.id} onClick={() => setOpen(x)}>
-            <span className="ico pay-day" aria-hidden="true"><b>{Number(x.due.slice(8, 10))}</b></span>
+          <button type="button" className={`row meal-row pay-row ${x.paid ? 'paid' : ''}`} key={x.p.id} onClick={() => setOpen(x)}>
+            <span className="ico pay-day" style={{ ['--h' as string]: 'var(--k-money)' }} aria-hidden="true"><b>{Number(x.due.slice(8, 10))}</b></span>
             <span className="row-main"><b>{x.p.title}</b><small>{x.paid ? 'оплачено' : [x.no ? `${x.no} из ${x.p.total}` : '', month === current ? dueText(daysTo(todayIso, x.due)) : dayTitle(x.due)].filter(Boolean).join(' · ')}</small></span>
             <span className="amount">{rub(x.amount)}</span>
           </button>
