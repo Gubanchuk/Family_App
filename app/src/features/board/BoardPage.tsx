@@ -4,6 +4,7 @@ import Icon from '../shell/Icon';
 import { localDb, type LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { useBoard } from './useBoard';
+import WishesPanel from './WishesPanel';
 
 export type BoardTab = 'wishes' | 'needs' | 'goals' | 'requests';
 const TABS: Array<[BoardTab, string]> = [['wishes', 'Хотелки'], ['needs', 'Надо купить'], ['goals', 'Цели'], ['requests', 'Просьбы']];
@@ -27,6 +28,7 @@ export default function BoardPage({ me, members, db = localDb }: { me: Member; m
   );
 }
 
-function BoardPanel(_p: { tab: BoardTab; me: Member; members: Member[]; db: LocalDb; data: NonNullable<ReturnType<typeof useBoard>>; adding: boolean; onAdded: () => void }) {
+function BoardPanel({ tab, ...p }: { tab: BoardTab; me: Member; members: Member[]; db: LocalDb; data: NonNullable<ReturnType<typeof useBoard>>; adding: boolean; onAdded: () => void }) {
+  if (tab === 'wishes') return <WishesPanel {...p} />;
   return <p className="note" style={{ margin: 16 }}>Скоро здесь будет раздел.</p>;
 }
