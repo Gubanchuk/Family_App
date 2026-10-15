@@ -21,5 +21,8 @@ export default defineConfig({
     hookTimeout: 60_000,
     // The first import of a screen compiles a large module graph; under the parallel PGlite load it can pass 5 s.
     testTimeout: 20_000,
+    // Each PGlite is a whole Postgres in memory; on an 8 GB machine more than three at once starts swapping
+    // and DB tests time out at random.
+    maxWorkers: 3,
   },
 });
