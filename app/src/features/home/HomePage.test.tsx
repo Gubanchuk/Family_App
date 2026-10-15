@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
@@ -58,6 +58,22 @@ describe('HomePage', () => {
     expect(await screen.findByText('Фарш')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Заменить' }));
     expect(await screen.findByText('Меню?replace=dinner')).toBeInTheDocument();
+  });
+
+  it('puts a request for me on top and ticks it from Home', async () => {
+    const db = await ready();
+    await db.requests.put({ id: 'r1', household_id: 'h1', from_id: 'm-mama', to_id: 'm-papa', title: 'Забрать посылку', due_on: '2026-10-13', urgent: false, status: 'open', done_at: null, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('heading', { name: 'Мама просит: Забрать посылку' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Сделано' }));
+    await waitFor(async () => expect((await db.requests.get('r1'))?.status).toBe('done'));
+  });
+
+  it('shows the closest family goal as a tile', async () => {
+    const db = await ready();
+    await db.goals.put({ id: 'g1', household_id: 'h1', owner_id: null, title: 'Море летом', target: 120000, saved: 30000, steps: [], created_by: null, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('link', { name: /Цель.*25%.*Море летом/ })).toHaveAttribute('href', '/board?tab=goals');
   });
 
   it('asks to choose a week when there is none', async () => {

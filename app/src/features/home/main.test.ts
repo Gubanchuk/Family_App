@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { DishOffer, ShoppingItem } from '../../data/db';
 import type { Member } from '../family/useFamily';
+import type { Request } from '../board/types';
 import { dateLine, greeting, mainThing } from './main';
 
 const papa = { id: 'm-papa' } as Member;
@@ -15,6 +16,17 @@ describe('home main thing', () => {
     expect(mainThing(base)).toEqual({ kind: 'dinner', text: 'котлеты' });
     expect(mainThing({ ...base, hasWeek: false, dinner: null })).toEqual({ kind: 'no-week' });
   });
+  it('puts a request for me due today or urgent after an offered dish and before an urgent purchase', () => {
+    const base = { me: papa, today: '2026-10-13', offers: [] as DishOffer[], urgent: [milk], dinner: 'котлеты', hasWeek: true };
+    const req = (o: Partial<Request>) => ({ id: 'r', household_id: 'h', from_id: 'm-mama', to_id: 'm-papa', title: 'Забрать посылку', due_on: '2026-10-13', urgent: false, status: 'open', done_at: null, updated_at: '', deleted_at: null, ...o }) as Request;
+    expect(mainThing({ ...base, requests: [req({})] })).toEqual({ kind: 'request', request: req({}) });
+    expect(mainThing({ ...base, offers: [offer], requests: [req({})] })).toEqual({ kind: 'offer', offer });
+    expect(mainThing({ ...base, requests: [req({ due_on: '2026-10-14' })] })).toEqual({ kind: 'urgent', item: milk });
+    expect(mainThing({ ...base, requests: [req({ due_on: null, urgent: true })] }).kind).toBe('request');
+    expect(mainThing({ ...base, requests: [req({ to_id: 'm-son' })] }).kind).toBe('urgent');
+    expect(mainThing({ ...base, requests: [req({ status: 'done' })] }).kind).toBe('urgent');
+  });
+
   it('greets by the time of day and names the date', () => {
     expect(greeting(new Date(2026, 9, 13, 7, 0))).toBe('Доброе утро');
     expect(greeting(new Date(2026, 9, 13, 14, 0))).toBe('Добрый день');

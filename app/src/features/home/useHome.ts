@@ -16,6 +16,12 @@ export function useHome(db: LocalDb, householdId: string, today: Date) {
     const marks = new Map((await db.shopping_marks.bulkGet(all.map((i) => i.id))).filter((m): m is ShoppingMark => !!m).map((m) => [m.item_id, m]));
     const offerMap = new Map((await db.dish_offers.where('household_id').equals(householdId).toArray()).map((o) => [o.id, o]));
     const items = visibleItems(all, week?.status === 'approved' ? week.id : null, { weekStart: start, marks, offers: offerMap });
-    return { week, slots, recipes, offers, items, marks, todayIso };
+    // The board: requests and goals live there, Home shows what needs attention.
+    const [requests, goals, wishes] = await Promise.all([
+      db.requests.where('household_id').equals(householdId).filter((r) => !r.deleted_at).toArray(),
+      db.goals.where('household_id').equals(householdId).filter((g) => !g.deleted_at).toArray(),
+      db.wishes.where('household_id').equals(householdId).filter((w) => !w.deleted_at && !w.done_at).toArray(),
+    ]);
+    return { week, slots, recipes, offers, items, marks, todayIso, requests, goals, wishes };
   }, [db, householdId, start, todayIso]);
 }

@@ -14,6 +14,9 @@ import { MEAL_FOR, takeOffer } from '../ideas/offerActions';
 import { listTotals, rub } from '../shop/build';
 import { useHome } from './useHome';
 import { dateLine, greeting, mainThing } from './main';
+import { setRequestDone } from '../board/boardActions';
+import { mineToDo, whenText } from '../board/requestText';
+import { progress } from '../board/boardMath';
 import { memberColor } from '../family/colors';
 import AvatarFace from '../family/AvatarFace';
 import FamilyRow from './FamilyRow';
@@ -54,7 +57,12 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   // Today's meals open their recipe; an empty one goes to the menu to be chosen.
   const openMeal = (m: Meal) => { const p = partsOf(m); if (p.dish_id || p.simple) setOpen(m); else navigate(`/menu?replace=${m}`); };
   const dinner = name(swap?.dish_id ?? slot('dinner')?.dish_id);
-  const main = mainThing({ me, today: data.todayIso, offers: data.offers, urgent, dinner: data.week && dinner ? lower(dinner) : null, hasWeek: !!data.week });
+  const main = mainThing({ me, today: data.todayIso, offers: data.offers, urgent, dinner: data.week && dinner ? lower(dinner) : null, hasWeek: !!data.week, requests: data.requests });
+  // Open requests to me beyond the one on top, for the «Просьбы мне» card.
+  const heroRequest = main.kind === 'request' ? main.request.id : null;
+  const moreRequests = mineToDo(data.requests, me.id).filter((r) => r.status === 'open' && r.id !== heroRequest).slice(0, 3);
+  const goal = data.goals.filter((g) => !g.owner_id && progress(g.saved, g.target) < 1).sort((x, y) => progress(y.saved, y.target) - progress(x.saved, x.target))[0];
+  const myWish = me.role === 'child' ? data.wishes.find((w) => w.owner_id === me.id) : undefined;
   const nowMin = today.getHours() * 60 + today.getMinutes();
   const next = MEALS.find((m) => mins(times[m]) > nowMin);
   const totals = listTotals(data.items.map((i) => ({ est: i.est_price, real: data.marks.get(i.id)?.price_real ?? null, bought: !!data.marks.get(i.id)?.bought })));
@@ -72,6 +80,15 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
             <div className="hero-chips">
               <button type="button" className="hero-chip primary" onClick={() => takeOffer(db, main.offer, me)}><Icon name="check" />Сделаю</button>
               <Link className="hero-chip" to={`/menu?panel=ideas&recipe=${main.offer.dish_id}`}>Рецепт</Link>
+            </div>
+          </>
+        ) : main.kind === 'request' ? (
+          <>
+            <h2>{who(main.request.from_id)} просит: {main.request.title}</h2>
+            <p>{[main.request.urgent ? 'Срочно' : '', whenText(main.request.due_on, data.todayIso)].filter(Boolean).join(' · ')}</p>
+            <div className="hero-chips">
+              <button type="button" className="hero-chip primary" onClick={() => setRequestDone(db, main.request, true)}><Icon name="check" />Сделано</button>
+              <Link className="hero-chip" to="/board?tab=requests">Все просьбы</Link>
             </div>
           </>
         ) : main.kind === 'urgent' ? (
@@ -109,15 +126,40 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
           </section>
         </>
       ) : null}
+      {moreRequests.length ? (
+        <>
+          <div className="sec-h"><h2>Просьбы мне</h2><Link className="more" to="/board?tab=requests">Все</Link></div>
+          <section className="card">
+            {moreRequests.map((r) => (
+              <div className="row" key={r.id}>
+                <span className="row-main"><b>{r.title}</b><small>{who(r.from_id)} · {whenText(r.due_on, data.todayIso)}</small></span>
+                {r.urgent ? <span className="pill">срочно</span> : null}
+                <button type="button" className="btn soft sm" aria-label={`${r.title}: сделано`} onClick={() => setRequestDone(db, r, true)}><Icon name="check" /></button>
+              </div>
+            ))}
+          </section>
+        </>
+      ) : null}
       {open && data.week ? (
         <MealSheet key={open} db={db} parts={partsOf(open)} recipes={data.recipes} onClose={() => setOpen(null)}
           onReplace={canEditWeek(me, data.week) ? () => navigate(`/menu?replace=${open}`) : null} />
       ) : null}
       <div className="bento">
-        <Link className="tile wide" to="/shop" style={{ ['--h' as string]: 'var(--k-shop)' }}>
+        <Link className={`tile ${goal || myWish ? '' : 'wide'}`} to="/shop" style={{ ['--h' as string]: 'var(--k-shop)' }}>
           <span className="t-k"><Icon name="cart" />Покупки</span><span className="t-v num">{totals.count - totals.doneCount}</span>
           <span className="t-s">осталось купить{totals.left ? ` · ≈ ${rub(totals.left)}` : ''}</span>
         </Link>
+        {myWish ? (
+          <Link className="tile" to="/board?tab=wishes" style={{ ['--h' as string]: 'var(--k-money)' }}>
+            <span className="t-k"><Icon name="metoo" />Хотелки</span><span className="t-v num">{rub(myWish.saved)}</span>
+            <span className="t-s">в копилке · {myWish.title}</span>
+          </Link>
+        ) : goal ? (
+          <Link className="tile" to="/board?tab=goals" style={{ ['--h' as string]: 'var(--k-goal)' }}>
+            <span className="t-k"><Icon name="board" />Цель</span><span className="t-v num">{Math.round(progress(goal.saved, goal.target) * 100)}%</span>
+            <span className="t-s">{goal.title}</span>
+          </Link>
+        ) : null}
       </div>
     </>
   );
