@@ -104,7 +104,8 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
       {recipe ? (
         <RecipeSheet recipe={recipe} rows={data.rows.filter((r) => r.recipe_id === recipe.id).sort((a, b) => a.pos - b.pos)} vocab={data.vocab} prices={data.prices}
           portions={data.portions} me={me} members={members} onClose={() => setOpen(null)}
-          {...(recipe.household_id ? {
+          // Anyone in the family adds a recipe; changing or deleting one is for parents.
+          {...(recipe.household_id && me.role === 'parent' ? {
             inMenu: inMenu(recipe.id),
             onEdit: () => { setEditing(draftFrom(recipe, data.rows.filter((r) => r.recipe_id === recipe.id))); setOpen(null); },
             onDelete: async () => {

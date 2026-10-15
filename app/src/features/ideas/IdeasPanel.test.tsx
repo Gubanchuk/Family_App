@@ -16,11 +16,13 @@ const papa: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: '�
 const mama: Member = { ...papa, id: 'm-mama', user_id: 'u2', name: 'Мама', is_owner: false };
 const TUESDAY = new Date(2026, 9, 13, 11, 40);
 
-async function open() {
+const son: Member = { ...papa, id: 'm-son', user_id: 'u3', name: 'Сын', role: 'child', is_owner: false };
+
+async function open(me: Member = papa) {
   const db = createLocalDb(`t-${Math.random()}`);
   await seedMenu(db, { currentWeek: true });
   await db.meta.put({ key: 'family_portions', value: 3.5 });
-  render(<MemoryRouter initialEntries={['/menu?panel=ideas']}><MenuPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></MemoryRouter>);
+  render(<MemoryRouter initialEntries={['/menu?panel=ideas']}><MenuPage me={me} members={[papa, mama, son]} db={db} today={TUESDAY} /></MemoryRouter>);
   return db;
 }
 
@@ -130,5 +132,17 @@ describe('Что покушать', () => {
     await db.recipes.put({ ...base, id: 'own-side', household_id: 'h1', name: 'Бабушкино пюре', category: 'side', collections: ['ours'] });
     await userEvent.click(await screen.findByRole('button', { name: 'Наши рецепты' }));
     expect(screen.getByRole('button', { name: /Бабушкино пюре/ })).toBeInTheDocument();
+  });
+
+  it('lets a child add a recipe but leaves changing family recipes to parents', async () => {
+    const db = await open(son);
+    expect(await screen.findByRole('button', { name: 'Свой рецепт' })).toBeInTheDocument();
+    const base = (await db.recipes.toArray()).find((r) => r.collections.includes('sweet'))!;
+    await db.recipes.put({ ...base, id: 'own-1', household_id: 'h1', name: 'Бабушкин пирог', collections: ['ours'] });
+    await userEvent.click(await screen.findByRole('button', { name: 'Наши рецепты' }));
+    await userEvent.click(screen.getByRole('button', { name: /Бабушкин пирог/ }));
+    expect(screen.getByRole('dialog', { name: 'Бабушкин пирог' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Изменить' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Удалить' })).toBeNull();
   });
 });
