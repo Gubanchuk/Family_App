@@ -5,7 +5,8 @@ type Row = Record<string, unknown>;
 type Client = Pick<SupabaseClient, 'from' | 'rpc'> & { auth?: Pick<SupabaseClient['auth'], 'getSession'> };
 type ServerError = { message: string; code?: string };
 const PAGE = 1000;
-const TABLES: SyncTable[] = ['week_templates', 'template_slots', 'weeks', 'week_slots', 'votes', 'dish_offers', 'shopping_items', 'shopping_marks', 'shop_trips', 'not_eat'];
+const TABLES: SyncTable[] = ['week_templates', 'template_slots', 'weeks', 'week_slots', 'votes', 'dish_offers', 'shopping_items', 'shopping_marks', 'shop_trips', 'not_eat',
+  'wishes', 'wish_metoo', 'wish_gifts', 'needs', 'goals', 'requests'];
 
 // Only the family's own rules refuse a change: our triggers (P0001), row level security (42501),
 // constraints (23xxx). Everything else — no network, an expired token, a 5xx page, a sleeping

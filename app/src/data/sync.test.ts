@@ -36,6 +36,14 @@ describe('sync', () => {
     expect(await missingTables(db)).toEqual(['shop_trips']);
   });
 
+  it('keeps board rows on the phone and sends them like any other change', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    await writeLocal(db, 'requests', [{ id: 'r1', household_id: 'h1', from_id: 'm1', to_id: 'm2', title: 'Вынести мусор', due_on: null, urgent: false, status: 'open', done_at: null, deleted_at: null }]);
+    expect((await db.requests.get('r1'))?.title).toBe('Вынести мусор');
+    expect((await syncNow(db, fake.client as never)).pushed).toBe(1);
+  });
+
   it('pulls rows changed on another phone and moves the cursor', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     const fake = fakeSupabase({}, KEY_FIELDS);

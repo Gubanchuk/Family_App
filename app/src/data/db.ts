@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import type { Goal, Need, Request, Wish, WishGift, WishMetoo } from '../features/board/types';
 import type { Meal } from '../features/menu/week';
 
 export type Recipe = {
@@ -23,7 +24,8 @@ export type ShoppingMark = { item_id: string; household_id: string; bought: bool
 export type ShopTrip = { id: string; household_id: string; member_id: string; started_at: string; updated_at: string };
 export type NotEat = { household_id: string; kind: 'item' | 'dish'; ref: string; updated_at: string; deleted_at: string | null };
 export type SyncTable = 'weeks' | 'week_slots' | 'votes' | 'week_templates' | 'template_slots'
-  | 'dish_offers' | 'shopping_items' | 'shopping_marks' | 'shop_trips' | 'not_eat';
+  | 'dish_offers' | 'shopping_items' | 'shopping_marks' | 'shop_trips' | 'not_eat'
+  | 'wishes' | 'wish_metoo' | 'wish_gifts' | 'needs' | 'goals' | 'requests';
 export type OutboxOp = { seq?: number; table: SyncTable; rpc?: 'save_week'; row: Record<string, unknown>; created_at: string; tries: number };
 export type Meta = { key: string; value: unknown };
 
@@ -38,6 +40,12 @@ export const KEY_FIELDS: Record<SyncTable, string[]> = {
   shopping_marks: ['item_id'],
   shop_trips: ['id'],
   not_eat: ['household_id', 'kind', 'ref'],
+  wishes: ['id'],
+  wish_metoo: ['wish_id', 'member_id'],
+  wish_gifts: ['wish_id'],
+  needs: ['id'],
+  goals: ['id'],
+  requests: ['id'],
 };
 
 export const V1_STORES = {
@@ -75,6 +83,12 @@ export class LocalDb extends Dexie {
   shopping_marks!: Table<ShoppingMark, string>;
   shop_trips!: Table<ShopTrip, string>;
   not_eat!: Table<NotEat, [string, string, string]>;
+  wishes!: Table<Wish, string>;
+  wish_metoo!: Table<WishMetoo, [string, string]>;
+  wish_gifts!: Table<WishGift, string>;
+  needs!: Table<Need, string>;
+  goals!: Table<Goal, string>;
+  requests!: Table<Request, string>;
 
   constructor(name: string) {
     super(name);
@@ -85,6 +99,14 @@ export class LocalDb extends Dexie {
       shopping_marks: 'item_id',
       shop_trips: 'id, household_id',
       not_eat: '[household_id+kind+ref], household_id',
+    });
+    this.version(3).stores({
+      wishes: 'id, household_id',
+      wish_metoo: '[wish_id+member_id], wish_id, household_id',
+      wish_gifts: 'wish_id, household_id',
+      needs: 'id, household_id',
+      goals: 'id, household_id',
+      requests: 'id, household_id, to_id, from_id',
     });
   }
 }
