@@ -14,6 +14,9 @@ import Settings from '../features/settings/Settings';
 import MenuPage from '../features/menu/MenuPage';
 import ShopPage from '../features/shop/ShopPage';
 import HomePage from '../features/home/HomePage';
+import BoardPage from '../features/board/BoardPage';
+import { useBoardReady } from '../features/board/useBoard';
+import { localDb } from '../data/db';
 import { gate } from './gate';
 import { SyncProvider } from '../data/SyncProvider';
 import ToastProvider from '../features/shell/Toast';
@@ -48,6 +51,7 @@ function MemberShell() {
   const loc = useLocation();
   const { session, loading } = useSession();
   const fam = useFamily(session);
+  const boardReady = useBoardReady(localDb);
   const meId = fam.me?.id;
   // Re-register this phone's push address on start in case the push service rotated it.
   useEffect(() => { if (fam.me) refreshPush(fam.me).catch(() => {}); }, [meId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -77,10 +81,11 @@ function MemberShell() {
           <Route path="/menu" element={<MenuPage me={me} members={fam.members} />} />
           <Route path="/shop" element={<ShopPage me={me} members={fam.members} />} />
           <Route path="/settings" element={<Settings me={me} members={fam.members} reload={fam.reload} />} />
+          <Route path="/board" element={<BoardPage me={me} members={fam.members} />} />
           <Route path="/join" element={<Header title="Вы уже в семье" />} />
         </Routes>
       </div>
-      <TabBar tabs={['home', 'menu', 'shop']} />
+      <TabBar tabs={boardReady ? ['home', 'menu', 'shop', 'board'] : ['home', 'menu', 'shop']} />
       </StoriesProvider>
     </SyncProvider>
   );

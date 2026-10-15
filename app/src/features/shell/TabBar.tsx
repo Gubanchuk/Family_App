@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
 import Icon from './Icon';
 
-export type TabId = 'home' | 'menu' | 'shop';
+export type TabId = 'home' | 'menu' | 'shop' | 'board';
 const TABS: Record<TabId, { to: string; label: string; icon: string }> = {
   home: { to: '/', label: 'Главная', icon: 'home' },
   menu: { to: '/menu', label: 'Меню', icon: 'menu' },
   shop: { to: '/shop', label: 'Покупки', icon: 'cart' },
+  board: { to: '/board', label: 'Доска', icon: 'board' },
 };
 
 export default function TabBar({ tabs }: { tabs: TabId[] }) {
