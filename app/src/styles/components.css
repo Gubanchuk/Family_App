@@ -391,3 +391,11 @@ a.more, a.av { text-decoration: none; }
 .cat-top .amount { font: 800 22px var(--font); }
 .row.step { cursor: pointer; }
 .row.step input { width: 22px; height: 22px; accent-color: var(--k-primary); }
+
+/* Money: month switcher, payment day circles, category rows. */
+.month-switch { display: flex; align-items: center; justify-content: space-between; margin: 0 16px 12px; }
+.month-switch b { font: 700 17px var(--font); }
+.pay-day b { font-size: 15px; }
+.cat { padding: 8px 0; }
+.cat-top small { color: var(--k-ink-2); font-weight: 500; }
+
