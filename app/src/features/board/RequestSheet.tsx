@@ -38,7 +38,8 @@ function RequestSheet({ me, members, db, onClose }: { me: Member; members: Membe
           {pick('today', when, setWhen, 'Сегодня')}{pick('tomorrow', when, setWhen, 'Завтра')}{pick('date', when, setWhen, 'К дате')}{pick('none', when, setWhen, 'Без срока')}
         </div></fieldset>
         {when === 'date' ? <label className="field">Дата<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label> : null}
-        <label className="row set-row" style={{ cursor: 'pointer' }}><span className="row-main"><b>Срочно</b></span><input type="checkbox" checked={urgent} onChange={(e) => setUrgent(e.target.checked)} /></label>
+        <div className="row"><span className="row-main"><b>Срочно</b><small>поднимется наверх у получателя</small></span>
+          <button type="button" className="switch" role="switch" aria-checked={urgent} aria-label="Срочно" onClick={() => setUrgent(!urgent)}><i /></button></div>
       </form>
     </Sheet>
   );

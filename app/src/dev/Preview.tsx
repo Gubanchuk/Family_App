@@ -10,6 +10,7 @@ import type { Member } from '../features/family/useFamily';
 import HomePage from '../features/home/HomePage';
 import MenuPage from '../features/menu/MenuPage';
 import ShopPage from '../features/shop/ShopPage';
+import BoardPage from '../features/board/BoardPage';
 import TabBar from '../features/shell/TabBar';
 import { mondayOf, addDaysIso, dayOfWeek } from '../features/menu/week';
 import { regenerateWeekList } from '../features/shop/menuList';
@@ -69,6 +70,29 @@ async function seed() {
     const today = addDaysIso(start, dayOfWeek(new Date()));
     await db.dish_offers.put({ id: 'p-offer', household_id: 'p-home', from_member: 'p-mama', to_member: 'p-papa', dish_id: 'ex-shakshuka', on_date: today, meal: 'dinner', how: 'over', status: 'open', taken_by: null, updated_at: now, deleted_at: null });
     await db.shopping_items.put({ id: 'u:p-milk', household_id: 'p-home', week_id: null, offer_id: null, source: 'manual', item: 'молоко', title: 'Молоко', qty: null, unit: null, qty_text: '2 л', dept: 'Молочное и яйца', urgent: true, est_price: null, added_by: 'p-mama', updated_at: now, deleted_at: null });
+    // The board, as in the chosen mockups.
+    const h = 'p-home';
+    await db.wishes.bulkPut([
+      { id: 'pw1', household_id: h, owner_id: 'p-son', title: 'Велосипед', price: 25000, saved: 8000, done_at: null, created_by: 'p-son', updated_at: now, deleted_at: null },
+      { id: 'pw2', household_id: h, owner_id: 'p-mama', title: 'Роллы в пятницу', price: 2800, saved: 0, done_at: null, created_by: 'p-mama', updated_at: now, deleted_at: null },
+      { id: 'pw3', household_id: h, owner_id: 'p-dima', title: 'Самокат', price: 4500, saved: 0, done_at: null, created_by: 'p-mama', updated_at: now, deleted_at: null },
+    ]);
+    await db.wish_metoo.put({ wish_id: 'pw2', member_id: 'p-papa', household_id: h, updated_at: now, deleted_at: null });
+    await db.wish_gifts.put({ wish_id: 'pw3', giver_id: 'p-mama', household_id: h, updated_at: now, deleted_at: null });
+    await db.needs.bulkPut([
+      { id: 'pn1', household_id: h, for_id: 'p-son', title: 'Зимние ботинки', note: 'размер 37', due_on: '2026-11-01', price: 6000, created_by: 'p-mama', updated_at: now, deleted_at: null },
+      { id: 'pn2', household_id: h, for_id: null, title: 'Лампа в коридор', note: '', due_on: null, price: 1200, created_by: 'p-papa', updated_at: now, deleted_at: null },
+    ]);
+    await db.goals.bulkPut([
+      { id: 'pg1', household_id: h, owner_id: null, title: 'Море летом', target: 120000, saved: 40000, steps: [{ id: 'a', t: 'Выбрать место', done: true }, { id: 'b', t: 'Накопить на билеты', done: false }, { id: 'c', t: 'Забронировать жильё', done: false }], created_by: 'p-papa', updated_at: now, deleted_at: null },
+      { id: 'pg2', household_id: h, owner_id: 'p-son', title: 'Новый велосипед', target: 25000, saved: 8000, steps: [], created_by: 'p-son', updated_at: now, deleted_at: null },
+    ]);
+    const todayIso = addDaysIso(start, dayOfWeek(new Date()));
+    await db.requests.bulkPut([
+      { id: 'pr1', household_id: h, from_id: 'p-mama', to_id: 'p-papa', title: 'Купить молоко и хлеб', due_on: todayIso, urgent: true, status: 'open', done_at: null, updated_at: now, deleted_at: null },
+      { id: 'pr2', household_id: h, from_id: 'p-son', to_id: 'p-papa', title: 'Помочь с проектом по физике', due_on: addDaysIso(todayIso, 2), urgent: false, status: 'open', done_at: null, updated_at: now, deleted_at: null },
+      { id: 'pr3', household_id: h, from_id: 'p-papa', to_id: 'p-son', title: 'Выучить стих к пятнице', due_on: addDaysIso(todayIso, 1), urgent: false, status: 'open', done_at: null, updated_at: now, deleted_at: null },
+    ]);
     await db.meta.put({ key: 'family_portions', value: 3.5 });
     await db.meta.put({ key: 'content_loaded_at', value: new Date().toISOString() });
   });
@@ -127,6 +151,7 @@ export default function Preview() {
           <Route path="/dev/story-edit" element={<StoriesPreview edit />} />
           <Route path="/dev/menu" element={<MenuPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
           <Route path="/dev/shop" element={<ShopPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
+          <Route path="/dev/board" element={<BoardPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
         </Routes>
       </div>
       <TabBar tabs={['home', 'menu', 'shop']} />

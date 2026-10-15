@@ -41,7 +41,7 @@ export default function WishesPanel({ me, members, db, data, adding, onAdded }: 
                 ) : <small>{memberName(members, w.owner_id)} хочет</small>}
                 {parent && w.owner_id !== me.id ? (
                   gift ? <button type="button" className="secret" onClick={() => setGift(db, w, me, false)}><Icon name="gift" />{giftLine(giver)}</button>
-                    : <button type="button" className="btn soft sm" onClick={() => setGift(db, w, me, true)}><Icon name="gift" />Беру в подарок</button>
+                    : <button type="button" className="gift-ask" onClick={() => setGift(db, w, me, true)}><Icon name="gift" />Беру в подарок</button>
                 ) : null}
                 {w.owner_id !== me.id ? (
                   <button type="button" className="btn soft sm" aria-pressed={mine} onClick={() => toggleMetoo(db, w, me, !mine)}><Icon name="metoo" />Я тоже · {metoo.length}</button>
