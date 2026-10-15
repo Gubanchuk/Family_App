@@ -42,4 +42,10 @@ describe('push texts', () => {
     expect(isStale('stories', { created_at: '2026-10-15T18:30:00Z' }, now)).toBe(true);
     expect(isStale('stories', { created_at: '2026-10-15T19:30:00Z' }, now)).toBe(false);
   });
+  it('tells the recipient about a request and the author when it is done', () => {
+    expect(compose({ kind: 'requests', author: 'Оля', title: 'Вынести мусор', status: 'open', verb: null }, '2026-10-15')).toMatchObject({ title: 'Оля просит: Вынести мусор', pref: 'requests', url: '/board?tab=requests' });
+    expect(compose({ kind: 'requests', author: 'Тёма', title: 'Вынести мусор', status: 'done', verb: 'сделал' }, '2026-10-15').title).toBe('Тёма сделал: Вынести мусор');
+    expect(compose({ kind: 'requests', author: 'Тёма', title: 'Вынести мусор', status: 'done', verb: null }, '2026-10-15').title).toBe('Готово: Вынести мусор (Тёма)');
+    expect(eventVersion('requests', { status: 'done' })).toBe('done');
+  });
 });

@@ -2,7 +2,8 @@ export type Ev =
   | { kind: 'weeks'; author: string; template: string; startsOn: string }
   | { kind: 'dish_offers'; author: string; dish: string; meal: 'breakfast' | 'lunch' | 'snack' | 'dinner'; onDate: string; toAll: boolean }
   | { kind: 'shop_trips'; author: string }
-  | { kind: 'stories'; author: string; verb: 'выложила' | 'выложил' | null };
+  | { kind: 'stories'; author: string; verb: 'выложила' | 'выложил' | null }
+  | { kind: 'requests'; author: string; title: string; status: 'open' | 'done'; verb: 'сделала' | 'сделал' | null };
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const MEAL_FOR = { breakfast: 'на завтрак', lunch: 'на обед', snack: 'на полдник', dinner: 'на ужин' };
@@ -23,6 +24,9 @@ const MALE = ['father', 'son', 'grandfather'];
 export const verbFor = (kin: string | null | undefined): 'выложила' | 'выложил' | null =>
   FEMALE.includes(kin ?? '') ? 'выложила' : MALE.includes(kin ?? '') ? 'выложил' : null;
 
+export const doneVerbFor = (kin: string | null | undefined): 'сделала' | 'сделал' | null =>
+  FEMALE.includes(kin ?? '') ? 'сделала' : MALE.includes(kin ?? '') ? 'сделал' : null;
+
 export function compose(e: Ev, today: string) {
   if (e.kind === 'weeks') {
     return { title: `${e.author} предлагает меню на ${weekLabel(e.startsOn)}`, body: `Неделя «${e.template}». Проголосуйте в приложении.`, url: '/menu', pref: 'votes', tag: `week-${e.startsOn}` };
@@ -31,6 +35,10 @@ export function compose(e: Ev, today: string) {
     const d = days(today, e.onDate);
     const when = d === 0 ? 'Сегодня' : d === 1 ? 'Завтра' : `${parse(e.onDate).getUTCDate()} ${MONTHS[parse(e.onDate).getUTCMonth()]}`;
     return { title: `${e.author} просит: ${e.dish}`, body: `${when} ${MEAL_FOR[e.meal]}.${e.toAll ? ' Предложено всем.' : ''}`, url: '/menu?panel=ideas', pref: 'offers', tag: `offer-${e.onDate}` };
+  }
+  if (e.kind === 'requests') {
+    const title = e.status === 'open' ? `${e.author} просит: ${e.title}` : e.verb ? `${e.author} ${e.verb}: ${e.title}` : `Готово: ${e.title} (${e.author})`;
+    return { title, body: e.status === 'open' ? 'Откройте Доску, чтобы отметить, когда сделаете.' : 'Просьба выполнена.', url: '/board?tab=requests', pref: 'requests', tag: `request-${e.title}` };
   }
   if (e.kind === 'stories') {
     return { title: e.verb ? `${e.author} ${e.verb} сторис` : `Новая сторис от ${e.author}`, body: 'Она исчезнет через сутки.', url: '/', pref: 'stories', tag: `story-${e.author}` };
@@ -42,6 +50,7 @@ type Row = Record<string, unknown>;
 
 // One push per version of an event: a week re-proposed with another template or by someone else is news again.
 export function eventVersion(table: string, row: Row): string {
+  if (table === 'requests') return String(row.status);
   return table === 'weeks' ? `${row.template_id}:${row.proposed_by}` : '';
 }
 

@@ -1,10 +1,10 @@
-// Sends Web Push for a week proposal, a dish offer, a shop trip or a new story. Called by a database trigger
+// Sends Web Push for a week proposal, a dish offer, a shop trip, a new story or a request. Called by a database trigger
 // with { table, id }; re-reads the row itself, so a forged call can only repeat a real event once.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { compose, eventVersion, isStale, verbFor, type Ev } from '../_shared/messages.ts';
+import { compose, doneVerbFor, eventVersion, isStale, verbFor, type Ev } from '../_shared/messages.ts';
 import { sendPush } from '../_shared/webpush.ts';
 
-const TABLES = ['weeks', 'dish_offers', 'shop_trips', 'stories'];
+const TABLES = ['weeks', 'dish_offers', 'shop_trips', 'stories', 'requests'];
 
 // The new secret key when the project has one, the legacy service role key otherwise.
 function serverKey(): string {
@@ -27,7 +27,9 @@ Deno.serve(async (req) => {
   if (isStale(table, row)) return Response.json({ skipped: 'stale' });
   const { error: claimed } = await db.from('push_log').insert({ kind: table, ref_id: id, version: eventVersion(table, row) });
   if (claimed) return Response.json({ skipped: 'already sent' });
-  const authorId: string = table === 'weeks' ? row.proposed_by : table === 'dish_offers' ? row.from_member : row.member_id;
+  // The person the push is about: who asked for a new request, who did it for a done one.
+  const authorId: string = table === 'weeks' ? row.proposed_by : table === 'dish_offers' ? row.from_member
+    : table === 'requests' ? (row.status === 'done' ? row.to_id : row.from_id) : row.member_id;
   const { data: members } = await db.from('members').select('id, name, user_id, kin').eq('household_id', row.household_id).is('deleted_at', null);
   const author = members?.find((m) => m.id === authorId)?.name ?? 'Кто-то';
   let ev: Ev;
@@ -38,6 +40,9 @@ Deno.serve(async (req) => {
     if (row.status !== 'open') return Response.json({ skipped: 'not open' });
     const { data: r } = await db.from('recipes').select('name').eq('id', row.dish_id).maybeSingle();
     ev = { kind: 'dish_offers', author, dish: r?.name ?? 'блюдо', meal: row.meal, onDate: row.on_date, toAll: !row.to_member };
+  } else if (table === 'requests') {
+    if (row.status === 'cancelled') return Response.json({ skipped: 'cancelled' });
+    ev = { kind: 'requests', author, title: row.title, status: row.status, verb: doneVerbFor(members?.find((m) => m.id === authorId)?.kin) };
   } else if (table === 'stories') {
     ev = { kind: 'stories', author, verb: verbFor(members?.find((m) => m.id === authorId)?.kin) };
   } else {
@@ -45,7 +50,8 @@ Deno.serve(async (req) => {
   }
   const today = new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 10);
   const msg = compose(ev, today);
-  const targets = (members ?? []).filter((m) => m.user_id && m.id !== authorId && (table !== 'dish_offers' || !row.to_member || row.to_member === m.id)).map((m) => m.id);
+  const targets = (members ?? []).filter((m) => m.user_id && m.id !== authorId && (table !== 'dish_offers' || !row.to_member || row.to_member === m.id)
+    && (table !== 'requests' || m.id === (row.status === 'done' ? row.from_id : row.to_id))).map((m) => m.id);
   if (!targets.length) return Response.json({ sent: 0 });
   const { data: settings } = await db.from('member_settings').select('member_id, notify').in('member_id', targets);
   const quiet = new Map((settings ?? []).map((s) => [s.member_id, s.notify?.quiet !== false]));
