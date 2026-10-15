@@ -89,15 +89,15 @@
 .fam-add b { color: color-mix(in oklab, var(--k-primary) 82%, var(--k-ink)); }
 
 /* Bento tiles: different sizes, each carries live data. */
-.bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 16px 12px; }
-.tile { position: relative; display: flex; flex-direction: column; gap: 6px; min-height: 120px; padding: 14px; border-radius: 22px; border: 0; text-align: left; cursor: pointer; background: color-mix(in oklab, var(--h) var(--k-tint), var(--k-card)); color: var(--k-ink); font: inherit; transition: transform 160ms var(--ease); }
+.bento { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin: 0 16px 12px; }
+.tile { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; overflow-wrap: anywhere; container-type: inline-size; min-height: 120px; padding: 14px; border-radius: 22px; border: 0; text-align: left; cursor: pointer; background: color-mix(in oklab, var(--h) var(--k-tint), var(--k-card)); color: var(--k-ink); font: inherit; transition: transform 160ms var(--ease); }
 .tile:active { transform: scale(0.98); }
 .tile.wide { grid-column: 1 / -1; min-height: 0; }
 .tile.tall { grid-row: span 2; }
 .tile .t-k { display: flex; align-items: center; gap: 6px; font: 600 13px var(--font); color: color-mix(in oklab, var(--h) 82%, var(--k-ink)); }
 .tile .t-k .ic { width: 18px; height: 18px; }
 .tile .t-v { font: 800 19px/1.2 var(--font); letter-spacing: -0.015em; }
-.tile .t-v.num { font: 800 32px/1 var(--font); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.tile .t-v.num { font: 800 32px/1 var(--font); font-size: clamp(20px, 20cqi, 32px); white-space: nowrap; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .tile .t-s { font-size: 13px; color: var(--k-ink-2); margin-top: auto; }
 .tile .bar { margin-top: 2px; background: color-mix(in oklab, var(--h) 22%, var(--k-card)); }
 
