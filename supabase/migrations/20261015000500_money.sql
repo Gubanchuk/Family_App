@@ -96,7 +96,8 @@ begin
         select net.http_post(
           url := 'https://pbipnjlsxkbhdyfebdeo.supabase.co/functions/v1/notify',
           body := '{"table": "payments_due"}'::jsonb,
-          headers := '{"Content-Type": "application/json"}'::jsonb)
+          headers := '{"Content-Type": "application/json"}'::jsonb,
+          timeout_milliseconds := 30000)
       $cron$);
     exception when others then
       raise notice 'payment reminders not scheduled: %', sqlerrm;

@@ -3,7 +3,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { compose, doneVerbFor, eventVersion, isStale, verbFor, type Ev } from '../_shared/messages.ts';
 import { sendPush } from '../_shared/webpush.ts';
-import { dueReminders } from '../_shared/due.ts';
+import { dueReminders, inSendWindow, reminderMonths } from '../_shared/due.ts';
 
 const TABLES = ['weeks', 'dish_offers', 'shop_trips', 'stories', 'requests'];
 
@@ -21,9 +21,10 @@ function serverKey(): string {
 // Called once a day by pg_cron: every family's payments due today or in three days, to its parents.
 async function paymentsDue(): Promise<Response> {
   const db = createClient(Deno.env.get('SUPABASE_URL')!, serverKey(), { auth: { persistSession: false } });
+  if (!inSendWindow(Date.now())) return Response.json({ skipped: 'night' });
   const today = new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 10);
   const { data: payments } = await db.from('payments').select('*').is('deleted_at', null);
-  const { data: marks } = await db.from('payment_marks').select('payment_id, month, paid');
+  const { data: marks } = await db.from('payment_marks').select('payment_id, month, paid').in('month', reminderMonths(today));
   const vapid = { subject: Deno.env.get('VAPID_SUBJECT')!, publicKey: Deno.env.get('VAPID_PUBLIC_KEY')!, privateJwk: JSON.parse(Deno.env.get('VAPID_PRIVATE_JWK')!) };
   let sent = 0;
   for (const r of dueReminders(payments ?? [], marks ?? [], today)) {

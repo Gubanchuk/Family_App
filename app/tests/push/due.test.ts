@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { dueReminders } from '../../../supabase/functions/_shared/due';
+import { dueReminders, inSendWindow, reminderMonths } from '../../../supabase/functions/_shared/due';
 
 const pay = (o: Record<string, unknown>) => ({ id: 'p', household_id: 'h', title: 'Интернет', amount: 650, day: 16, kind: 'monthly', total: null, first_month: null, deleted_at: null, ...o });
 
@@ -17,5 +17,19 @@ describe('payment reminders', () => {
   });
   it('looks into next month for a «soon» reminder at the end of this one', () => {
     expect(dueReminders([pay({ day: 1 })] as never, [], '2026-10-29').map((r) => [r.kind, r.month])).toEqual([['soon', '2026-11']]);
+  });
+
+  it('does not remind about a monthly payment before the month it was added', () => {
+    expect(dueReminders([pay({ first_month: '2026-11' })] as never, [], '2026-10-16')).toEqual([]);
+    expect(dueReminders([pay({ first_month: '2026-10' })] as never, [], '2026-10-16')).toHaveLength(1);
+  });
+  it('reads only the months a run can remind about', () => {
+    expect(reminderMonths('2026-10-15')).toEqual(['2026-10']);
+    expect(reminderMonths('2026-10-29')).toEqual(['2026-10', '2026-11']);
+  });
+  it('sends only in the daytime, Moscow time', () => {
+    expect(inSendWindow(Date.UTC(2026, 9, 15, 7, 0))).toBe(true);
+    expect(inSendWindow(Date.UTC(2026, 9, 15, 23, 0))).toBe(false);
+    expect(inSendWindow(Date.UTC(2026, 9, 15, 4, 0))).toBe(false);
   });
 });
