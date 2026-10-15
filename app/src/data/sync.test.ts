@@ -52,6 +52,19 @@ describe('sync', () => {
     expect((await syncNow(db, fake.client as never)).pushed).toBe(1);
   });
 
+  it('keeps a change for a table the server lacks queued and still sends everything else', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    fake.missing('requests');
+    await writeLocal(db, 'requests', [{ id: 'r1', household_id: 'h1', from_id: 'm1', to_id: 'm2', title: 'Мусор', due_on: null, urgent: false, status: 'open', done_at: null, deleted_at: null }]);
+    await writeLocal(db, 'week_slots', [slot('mn-plov')]);
+    const r = await syncNow(db, fake.client as never);
+    expect(r.offline).toBe(false);
+    expect(r.pushed).toBe(1);
+    expect(await pendingCount(db)).toBe(1);
+    expect(await missingTables(db)).toContain('requests');
+  });
+
   it('pulls rows changed on another phone and moves the cursor', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     const fake = fakeSupabase({}, KEY_FIELDS);

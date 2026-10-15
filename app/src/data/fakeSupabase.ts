@@ -52,6 +52,7 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
 
   function writeFail(name: string) {
     if (state.offline) return failNet;
+    if (state.missing.has(name)) return { data: null, error: { message: `Could not find the table 'public.${name}' in the schema cache`, code: 'PGRST205' } };
     const once = state.writeFails.get(name);
     if (once) { state.writeFails.delete(name); return { data: null, error: once }; }
     const reject = state.rejects.get(name);

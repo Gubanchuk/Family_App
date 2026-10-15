@@ -125,6 +125,8 @@ export async function pushOutbox(db: LocalDb, client: Client) {
       ? await client.rpc(op.rpc, op.row)
       : await client.from(op.table).upsert(op.row, { onConflict: KEY_FIELDS[op.table].join(',') });
     if (!error) { await db.outbox.delete(op.seq!); pushed += 1; continue; }
+    // A table the server does not have yet: this change waits for the migration, the rest go on.
+    if (isMissingTable(error)) continue;
     const week = weekOf(op);
     // A refusal is only final once the phone holds the server's version again; otherwise retry later.
     const restored = isRefusal(error) && (week ? await restoreWeek(db, client, week) : await restoreRow(db, client, op.table, op.row));

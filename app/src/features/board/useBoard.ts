@@ -20,11 +20,11 @@ export function useBoard(db: LocalDb, householdId: string): BoardData | undefine
   }, [db, householdId]);
 }
 
-// The board shows once the server has its tables; before the migration sync reports them missing.
+// The board shows once a full pull confirmed the server has its tables. An install from before the
+// board has synced_at but no missing_tables yet, and must not show the tab on that alone.
 export function useBoardReady(db: LocalDb): boolean {
   return useLiveQuery(async () => {
-    const synced = await db.meta.get('synced_at');
-    const missing = ((await db.meta.get('missing_tables'))?.value as string[] | undefined) ?? [];
-    return !!synced && !BOARD_TABLES.some((t) => missing.includes(t));
+    const missing = (await db.meta.get('missing_tables'))?.value as string[] | undefined;
+    return Array.isArray(missing) && !BOARD_TABLES.some((t) => missing.includes(t));
   }, [db]) ?? false;
 }
