@@ -136,6 +136,16 @@ describe('sync: weeks and server trouble', () => {
     expect((await pushOutbox(db, fake.client as never)).pushed).toBe(1);
   });
 
+  it('drops a change with data the server can never accept instead of stalling every later change', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    fake.failWrite('week_slots', { message: 'invalid input syntax for type date: ""', code: '22007' });
+    await writeLocal(db, 'week_slots', [slot('mn-plov')]);
+    const r = await pushOutbox(db, fake.client as never);
+    expect(r.stopped).not.toBe('network');
+    expect(await pendingCount(db)).toBe(0);
+  });
+
   it('keeps a refused change when the server copy cannot be read back', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     const fake = fakeSupabase({}, KEY_FIELDS);

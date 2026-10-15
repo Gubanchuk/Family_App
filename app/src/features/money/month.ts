@@ -22,13 +22,16 @@ export function installmentNo(p: Payment, month: string): number | null {
   return n >= 1 && n <= p.total ? n : null;
 }
 
+// A monthly payment counts from the month it was added; a deleted one stays only in months it was paid,
+// so the history of what the family paid does not change.
+const startOf = (p: Payment) => p.first_month ?? p.created_at?.slice(0, 7) ?? null;
+const livesIn = (p: Payment, month: string) => (p.kind === 'monthly' ? !startOf(p) || startOf(p)! <= month : installmentNo(p, month) !== null);
+
 export function monthPayments(payments: Payment[], marks: PaymentMark[], month: string) {
   return payments
-    .filter((p) => !p.deleted_at && (p.kind === 'monthly' || installmentNo(p, month) !== null))
-    .map((p) => {
-      const mark = marks.find((x) => x.payment_id === p.id && x.month === month);
-      return { p, due: dueDate(p, month), no: installmentNo(p, month), mark, paid: !!mark?.paid, amount: mark?.paid ? mark.amount : p.amount };
-    })
+    .map((p) => ({ p, mark: marks.find((x) => x.payment_id === p.id && x.month === month) }))
+    .filter(({ p, mark }) => livesIn(p, month) && (!p.deleted_at || !!mark?.paid))
+    .map(({ p, mark }) => ({ p, month, due: dueDate(p, month), no: installmentNo(p, month), mark, paid: !!mark?.paid, amount: mark?.paid ? mark.amount : p.amount }))
     .sort((a, b) => a.due.localeCompare(b.due) || a.p.title.localeCompare(b.p.title, 'ru'));
 }
 export type MonthPayment = ReturnType<typeof monthPayments>[number];
@@ -36,6 +39,15 @@ export type MonthPayment = ReturnType<typeof monthPayments>[number];
 export function nextUnpaid(list: MonthPayment[], today: string) {
   const open = list.filter((x) => !x.paid);
   return open.find((x) => x.due >= today) ?? open[0];
+}
+
+// What to pay next: an overdue payment of this month first, then the nearest one, including next month's
+// within a week (the reminder for the 1st comes on the 29th).
+export function nextDue(payments: Payment[], marks: PaymentMark[], today: string) {
+  const cur = today.slice(0, 7);
+  const open = [...monthPayments(payments, marks, cur), ...monthPayments(payments, marks, shiftMonth(cur, 1))]
+    .filter((x) => !x.paid && !x.p.deleted_at && (x.month === cur || daysTo(today, x.due) <= 7));
+  return open.find((x) => x.due < today) ?? open.find((x) => x.due >= today);
 }
 
 const dayNum = (iso: string) => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10))) / 86_400_000;

@@ -400,6 +400,10 @@ a.more, a.av { text-decoration: none; }
 .month-switch b { font: 700 17px var(--font); }
 .pay-day b { font-size: 15px; }
 .cat { padding: 8px 0; }
+/* Money rows: name on the left, sum on the right (the goal cards use .cat-top with a large sum instead). */
+.cat .cat-top { justify-content: space-between; margin: 0; font-size: 16px; }
+.cat .cat-top .amount { font: 600 16px var(--font); font-variant-numeric: tabular-nums; }
+.cat .bar { margin-top: 6px; height: 8px; }
 .cat-top small { color: var(--k-ink-2); font-weight: 500; }
 /* A paid payment fades instead of being struck through: it is done, not cancelled. */
 .pay-row.paid .row-main, .pay-row.paid .amount, .pay-row.paid .pay-day { opacity: 0.5; }
@@ -425,4 +429,6 @@ a.more, a.av { text-decoration: none; }
 .re-step-head .btns { gap: 14px; }
 .re-step textarea { width: 100%; }
 .re-found { scroll-margin-bottom: 96px; }
+.cat-btn { display: block; width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.pay-row:disabled { cursor: default; }
 

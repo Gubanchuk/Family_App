@@ -20,6 +20,7 @@ export default function PaymentSheet({ me, db, item, month, onClose }: { me: Mem
   const [total, setTotal] = useState(p?.total ? String(p.total) : '');
   const [first, setFirst] = useState(p?.first_month ?? month);
   const [paidSum, setPaidSum] = useState(item ? String(item.amount) : '');
+  const [sure, setSure] = useState(false);
   if (item && !editing) {
     return (
       <Sheet title={item.p.title} sub={`${rub(item.p.amount)} · ${item.paid ? 'оплачено' : 'не оплачено'}`} onClose={onClose}
@@ -28,7 +29,10 @@ export default function PaymentSheet({ me, db, item, month, onClose }: { me: Mem
           <button type="button" className="btn" onClick={async () => { await setPaid(db, me, item, month, !item.paid, parseRub(paidSum) ?? item.p.amount); toast({ text: item.paid ? 'Отметка снята' : `«${item.p.title}» оплачен` }); onClose(); }}>{item.paid ? 'Не оплачено' : 'Оплачено'}</button>
         </div>}>
         {!item.paid ? <label className="field" style={{ margin: '0 16px' }}>Сумма в этот раз, ₽<input inputMode="numeric" value={paidSum} onChange={(e) => setPaidSum(e.target.value)} /></label> : null}
-        <button type="button" className="more" style={{ margin: '8px 16px 16px' }} onClick={async () => { await removePayment(db, item.p); toast({ text: 'Платёж удалён' }); onClose(); }}>Удалить платёж</button>
+        <button type="button" className="more" style={{ margin: '8px 16px 16px' }} onClick={async () => {
+          if (!sure) { setSure(true); return; }
+          await removePayment(db, item.p); toast({ text: 'Платёж удалён' }); onClose();
+        }}>{sure ? 'Точно удалить? Оплаты прошлых месяцев останутся' : 'Удалить платёж'}</button>
       </Sheet>
     );
   }
@@ -36,7 +40,7 @@ export default function PaymentSheet({ me, db, item, month, onClose }: { me: Mem
   const save = async (e: FormEvent) => {
     e.preventDefault();
     if (!ok) return;
-    await savePayment(db, me, { id: p?.id, title, amount: parseRub(amount)!, day: Number(day), kind, total: kind === 'installment' ? parseRub(total) : null, first_month: kind === 'installment' ? first : null, note: '' }, p);
+    await savePayment(db, me, { id: p?.id, title, amount: parseRub(amount)!, day: Number(day), kind, total: kind === 'installment' ? parseRub(total) : null, first_month: kind === 'installment' ? first : p ? p.first_month : month, note: '' }, p);
     toast({ text: p ? 'Платёж сохранён' : `Платёж «${title.trim()}» добавлен` });
     onClose();
   };

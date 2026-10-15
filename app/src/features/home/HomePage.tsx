@@ -17,7 +17,7 @@ import { dateLine, greeting, mainThing } from './main';
 import { setRequestDone } from '../board/boardActions';
 import { mineToDo, whenText } from '../board/requestText';
 import { progress } from '../board/boardMath';
-import { daysTo, dueText, monthPayments, nextUnpaid } from '../money/month';
+import { daysTo, dueText, nextDue } from '../money/month';
 import { memberColor } from '../family/colors';
 import AvatarFace from '../family/AvatarFace';
 import FamilyRow from './FamilyRow';
@@ -65,7 +65,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const goal = data.goals.filter((g) => !g.owner_id && progress(g.saved, g.target) < 1).sort((x, y) => progress(y.saved, y.target) - progress(x.saved, x.target))[0];
   const myWish = me.role === 'child' ? data.wishes.find((w) => w.owner_id === me.id) : undefined;
   // A parent sees the next unpaid payment of the month when it is a week away or less (or overdue).
-  const nextPay = me.role === 'parent' ? nextUnpaid(monthPayments(data.payments, data.paymentMarks, data.todayIso.slice(0, 7)), data.todayIso) : undefined;
+  const nextPay = me.role === 'parent' ? nextDue(data.payments, data.paymentMarks, data.todayIso) : undefined;
   const pay = nextPay && daysTo(data.todayIso, nextPay.due) <= 7 ? nextPay : undefined;
   const nowMin = today.getHours() * 60 + today.getMinutes();
   const next = MEALS.find((m) => mins(times[m]) > nowMin);
@@ -149,7 +149,8 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
           onReplace={canEditWeek(me, data.week) ? () => navigate(`/menu?replace=${open}`) : null} />
       ) : null}
       <div className="bento">
-        <Link className={`tile ${goal || myWish || pay ? '' : 'wide'}`} to="/shop" style={{ ['--h' as string]: 'var(--k-shop)' }}>
+        {/* Two columns: shopping takes a full row unless exactly one more tile shares it. */}
+        <Link className={`tile ${[pay, myWish || goal].filter(Boolean).length === 1 ? '' : 'wide'}`} to="/shop" style={{ ['--h' as string]: 'var(--k-shop)' }}>
           <span className="t-k"><Icon name="cart" />Покупки</span><span className="t-v num">{totals.count - totals.doneCount}</span>
           <span className="t-s">осталось купить{totals.left ? ` · ≈ ${rub(totals.left)}` : ''}</span>
         </Link>

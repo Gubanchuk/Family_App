@@ -12,7 +12,8 @@ const TABLES: SyncTable[] = ['week_templates', 'template_slots', 'weeks', 'week_
 // constraints (23xxx). Everything else — no network, an expired token, a 5xx page, a sleeping
 // database, and also a malformed value or a schema the app does not match yet — keeps the change
 // queued: an app bug must never turn into deleted family data.
-const isRefusal = (e: ServerError) => /^(P0001|42501|23\w{3})$/.test(e.code ?? '');
+// 22xxx is bad data (an empty date, a number out of range): a retry can never succeed either.
+const isRefusal = (e: ServerError) => /^(P0001|42501|2[23]\w{3})$/.test(e.code ?? '');
 
 // A table the app knows but the server does not have yet (its migration is not applied):
 // PostgREST answers PGRST205, Postgres 42P01. Sync passes it by instead of calling the server lost.

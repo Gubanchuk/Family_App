@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { daysTo, dueDate, dueText, installmentNo, monthPayments, nextUnpaid, spendByCategory, spendByMember } from './month';
+import { daysTo, dueDate, dueText, installmentNo, monthPayments, nextDue, nextUnpaid, spendByCategory, spendByMember } from './month';
 import type { MoneyEntry, Payment, PaymentMark } from './types';
 
 const pay = (o: Partial<Payment>): Payment => ({ id: 'p', household_id: 'h', title: 'Интернет', amount: 650, day: 16, kind: 'monthly', total: null, first_month: null, note: '', created_by: null, updated_at: '', deleted_at: null, ...o });
@@ -36,5 +36,20 @@ describe('money month', () => {
     const entries = [entry({ amount: 1200 }), entry({ amount: 800, category: 'Дети', member_id: 'papa' }), entry({ amount: 5000, on_date: '2026-09-30' }), entry({ kind: 'income', amount: 185000, category: null })];
     expect(spendByCategory(entries, list, '2026-10')).toEqual([{ cat: 'Обязательные', sum: 45000, count: 1 }, { cat: 'Продукты', sum: 1200, count: 1 }, { cat: 'Дети', sum: 800, count: 1 }]);
     expect(spendByMember(entries, list, '2026-10')).toEqual(new Map([['mama', 1200], ['papa', 45800]]));
+  });
+  it('brings the payment of next month forward within a week and puts an overdue one first', () => {
+    const rent = pay({ id: 'rent', day: 1, amount: 45000, title: 'Аренда' });
+    expect(nextDue([rent], [mark({ payment_id: 'rent' })], '2026-10-29')).toMatchObject({ month: '2026-11', due: '2026-11-01' });
+    expect(nextDue([rent], [mark({ payment_id: 'rent' })], '2026-10-15')).toBeUndefined();
+    const overdue = pay({ id: 'late', day: 10 });
+    expect(nextDue([overdue, pay({ id: 'soon', day: 25 })], [], '2026-10-20')?.p.id).toBe('late');
+  });
+  it('shows a monthly payment from the month it started, and a deleted one only where it was paid', () => {
+    expect(monthPayments([pay({ first_month: '2026-10' })], [], '2026-09')).toEqual([]);
+    expect(monthPayments([pay({ created_at: '2026-10-05T09:00:00Z' })], [], '2026-09')).toEqual([]);
+    expect(monthPayments([pay({ created_at: '2026-10-05T09:00:00Z' })], [], '2026-10')).toHaveLength(1);
+    const gone = pay({ first_month: '2026-08', deleted_at: '2026-10-02T09:00:00Z' });
+    expect(monthPayments([gone], [mark({ month: '2026-09' })], '2026-09')).toMatchObject([{ paid: true }]);
+    expect(monthPayments([gone], [mark({ month: '2026-09' })], '2026-10')).toEqual([]);
   });
 });

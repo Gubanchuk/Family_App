@@ -83,6 +83,17 @@ describe('HomePage', () => {
     expect(await screen.findByRole('link', { name: /Скоро платить.*650\s₽.*Интернет и ТВ · через 3 дня/ })).toHaveAttribute('href', '/money');
   });
 
+  it('keeps the tiles in full rows when a goal and a payment both show', async () => {
+    const db = await ready();
+    await db.goals.put({ id: 'g1', household_id: 'h1', owner_id: null, title: 'Море летом', target: 120000, saved: 30000, steps: [], created_by: null, updated_at: 'x', deleted_at: null });
+    await db.payments.put({ id: 'p1', household_id: 'h1', title: 'Интернет и ТВ', amount: 650, day: 16, kind: 'monthly', total: null, first_month: null, note: '', created_by: null, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    await screen.findByRole('link', { name: /Скоро платить/ });
+    const tiles = document.querySelectorAll('.tile');
+    const cells = [...tiles].reduce((n, t) => n + (t.classList.contains('wide') ? 2 : 1), 0);
+    expect(cells % 2).toBe(0);
+  });
+
   it('asks to choose a week when there is none', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db);
@@ -119,5 +130,12 @@ describe('HomePage', () => {
     render(<MemoryRouter><HomePage me={son} members={[papa, son]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
     expect(await screen.findByRole('link', { name: 'Предложить неделю' })).toBeInTheDocument();
   });
-});
 
+  it('tells a parent about the payment of next month at the end of the month', async () => {
+    const db = await ready();
+    await db.payments.put({ id: 'p1', household_id: 'h1', title: 'Аренда', amount: 45000, day: 1, kind: 'monthly', total: null, first_month: null, note: '', created_by: null, updated_at: 'x', deleted_at: null });
+    await db.payment_marks.put({ payment_id: 'p1', month: '2026-10', household_id: 'h1', paid: true, amount: 45000, paid_by: 'papa', paid_on: '2026-10-01', updated_at: 'x' });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={new Date(2026, 9, 29, 9, 0)} /></MemoryRouter>);
+    expect(await screen.findByRole('link', { name: /Скоро платить.*45\s000\s₽.*Аренда · через 3 дня/ })).toHaveAttribute('href', '/money');
+  });
+});

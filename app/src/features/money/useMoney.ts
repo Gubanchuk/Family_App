@@ -6,7 +6,8 @@ import { MONEY_TABLES } from './types';
 export function useMoney(db: LocalDb, h: string) {
   return useLiveQuery(async () => {
     const [payments, marks, entries] = await Promise.all([
-      db.payments.where('household_id').equals(h).filter((p) => !p.deleted_at).toArray(),
+      // Deleted payments too: past months keep what was paid for them.
+      db.payments.where('household_id').equals(h).toArray(),
       db.payment_marks.where('household_id').equals(h).toArray(),
       db.money_entries.where('household_id').equals(h).filter((e) => !e.deleted_at).toArray(),
     ]);
