@@ -81,7 +81,11 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const heroRequest = main.kind === 'request' ? main.request.id : null;
   const moreRequests = mineToDo(data.requests, me.id).filter((r) => r.status === 'open' && r.id !== heroRequest).slice(0, 3);
   const goal = data.goals.filter((g) => !g.owner_id && progress(g.saved, g.target) < 1).sort((x, y) => progress(y.saved, y.target) - progress(x.saved, x.target))[0];
-  const myWish = me.role === 'child' ? data.wishes.find((w) => w.owner_id === me.id) : undefined;
+  // A child sees the wish closest to its price; without prices, the newest.
+  const left = (w: { price: number | null; saved: number }) => (w.price ? Math.max(0, w.price - w.saved) : Number.MAX_SAFE_INTEGER);
+  const myWish = me.role === 'child'
+    ? data.wishes.filter((w) => w.owner_id === me.id).sort((a, b) => left(a) - left(b) || String(b.updated_at).localeCompare(String(a.updated_at)))[0]
+    : undefined;
   // A parent sees the next unpaid payment of the month when it is a week away or less (or overdue).
   const nextPay = me.role === 'parent' ? nextDue(data.payments, data.paymentMarks, data.todayIso) : undefined;
   const pay = nextPay && daysTo(data.todayIso, nextPay.due) <= 7 ? nextPay : undefined;

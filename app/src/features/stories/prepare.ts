@@ -24,7 +24,7 @@ const even = (n: number) => Math.max(2, Math.round(n / 2) * 2);
 
 // Mediabunny (WebCodecs) re-encodes on the phone: 720p on the short side, low bitrate, first 30 s.
 // Loaded only when a video is picked, so the app itself stays light.
-export async function prepareVideo(file: File, onProgress: (p: number) => void): Promise<Prepared> {
+export async function prepareVideo(file: File, onProgress: (p: number) => void, signal?: AbortSignal): Promise<Prepared> {
   const mb = await import('mediabunny');
   const input = new mb.Input({ formats: mb.ALL_FORMATS, source: new mb.BlobSource(file) });
   const durationS = await input.computeDuration();
@@ -54,6 +54,8 @@ export async function prepareVideo(file: File, onProgress: (p: number) => void):
     return { blob: file, kind: 'video', width: w0, height: h0, durationMs: Math.round(durationS * 1000), trimmed: false };
   }
   conversion.onProgress = (p: number) => onProgress(Math.min(0.99, p));
+  signal?.throwIfAborted();
+  signal?.addEventListener('abort', () => { void conversion.cancel(); }, { once: true });
   await conversion.execute();
   onProgress(1);
   const buffer = (output.target as { buffer: ArrayBuffer | null }).buffer;

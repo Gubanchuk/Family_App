@@ -134,12 +134,14 @@ function ComposerHost({ me, file, onDone }: { me: Member; file: File; onDone: ()
   const [progress, setProgress] = useState(0);
   const [failed, setFailed] = useState('');
   const [sendError, setSendError] = useState('');
+  // Closing the editor stops the video conversion and an upload in flight.
+  const [ctrl] = useState(() => new AbortController());
   useEffect(() => () => { if (src) URL.revokeObjectURL(src); }, [src]);
   // The file is shrunk while captions are being added.
   const [job] = useState<Promise<Prepared> | null>(() => {
     if (!kind) return null;
-    const p = kind === 'photo' ? preparePhoto(file) : prepareVideo(file, setProgress);
-    p.catch((e: Error) => setFailed(e.message === 'refuse' ? 'Этот телефон не может сжать видео. Снимите до 30 секунд.' : kind === 'photo' ? 'Не получилось открыть фото.' : 'Не получилось подготовить видео.'));
+    const p = kind === 'photo' ? preparePhoto(file) : prepareVideo(file, setProgress, ctrl.signal);
+    p.catch((e: Error) => !ctrl.signal.aborted && setFailed(e.message === 'refuse' ? 'Этот телефон не может сжать видео. Снимите до 30 секунд.' : kind === 'photo' ? 'Не получилось открыть фото.' : 'Не получилось подготовить видео.'));
     return p;
   });
   const publish = async (items: Overlay[]) => {
@@ -147,16 +149,16 @@ function ComposerHost({ me, file, onDone }: { me: Member; file: File; onDone: ()
     setSendError('');
     try {
       const p = await job!;
-      await postStory(me, p, items);
+      await postStory(me, p, items, ctrl.signal);
       toast({ text: p.trimmed ? 'Сторис выложена. Видео обрезано до 30 секунд.' : 'Сторис выложена' });
       onDone();
     } catch {
-      if (!failed) setSendError('Не получилось отправить. Проверьте интернет и нажмите «Опубликовать» снова.');
+      if (!failed && !ctrl.signal.aborted) setSendError('Не получилось отправить. Проверьте интернет и нажмите «Опубликовать» снова.');
     }
   };
   const error = kind ? failed : 'Этот файл не фото и не видео.';
   const status = kind === 'video' && progress < 1 ? `Готовим видео… ${Math.round(progress * 100)}%` : 'Отправляем…';
-  return <StoryEditor kind={kind ?? 'photo'} src={src} initial={[]} status={status} publishLabel="Опубликовать" error={error || sendError} onPublish={publish} onClose={onDone} />;
+  return <StoryEditor kind={kind ?? 'photo'} src={src} initial={[]} status={status} publishLabel="Опубликовать" error={error || sendError} onPublish={publish} onClose={() => { ctrl.abort(); onDone(); }} />;
 }
 
 function CaptionHost({ story, onDone }: { story: Story; onDone: () => void }) {

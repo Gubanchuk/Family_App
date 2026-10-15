@@ -93,4 +93,25 @@ describe('RecipeEditor', () => {
     expect(screen.getByLabelText('Творог, г')).toBeInTheDocument();
     expect(saveRecipe).not.toHaveBeenCalled();
   });
+  it('says under Save what is still missing', async () => {
+    const db = await vocab();
+    render(<RecipeEditor me={mama} db={db} onClose={vi.fn()} />);
+    expect(screen.getByText('Нужно: название, что это, порции, продукт, шаг')).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText('Название'), 'Омлет');
+    expect(screen.getByText('Нужно: что это, порции, продукт, шаг')).toBeInTheDocument();
+  });
+
+  it('asks before closing a recipe with something typed in it', async () => {
+    const db = await vocab();
+    const onClose = vi.fn();
+    render(<RecipeEditor me={mama} db={db} onClose={onClose} />);
+    await userEvent.type(screen.getByLabelText('Название'), 'Омлет');
+    await userEvent.click(screen.getByRole('button', { name: 'Закрыть' }));
+    expect(onClose).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: 'Остаться' }));
+    expect(screen.getByLabelText('Название')).toHaveValue('Омлет');
+    await userEvent.click(screen.getByRole('button', { name: 'Закрыть' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Выйти' }));
+    expect(onClose).toHaveBeenCalled();
+  });
 });

@@ -17,6 +17,12 @@ export default function RecipeSheet({ recipe, rows, vocab, prices, portions, me,
 }) {
   const [d, setD] = useState<OfferDraft>({ to: null, when: 'today', meal: defaultMeal(recipe), how: 'over' });
   const [sure, setSure] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const remove = async () => {
+    if (!onDelete || deleting) return;
+    setDeleting(true);
+    try { await onDelete(); } finally { setDeleting(false); }
+  };
   const factor = portions / recipe.servings;
   let cost = 0; let missing = false;
   for (const r of rows) {
@@ -39,8 +45,8 @@ export default function RecipeSheet({ recipe, rows, vocab, prices, portions, me,
       {onEdit && onDelete ? (
         <div className="btns own-actions">
           <button type="button" className="btn soft sm" onClick={onEdit}>Изменить</button>
-          <button type="button" className="more" onClick={() => (sure ? onDelete() : setSure(true))}>
-            {sure ? (inMenu ? 'Блюдо есть в меню на неделю. Удалить всё равно?' : 'Точно удалить рецепт?') : 'Удалить'}
+          <button type="button" className="more" disabled={deleting} onClick={() => (sure ? remove() : setSure(true))}>
+            {deleting ? 'Удаляем…' : sure ? (inMenu ? 'Блюдо есть в меню на неделю. Удалить всё равно?' : 'Точно удалить рецепт?') : 'Удалить'}
           </button>
         </div>
       ) : null}

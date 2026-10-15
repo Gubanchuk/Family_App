@@ -28,10 +28,21 @@ export function draftFrom(r: Recipe, rows: RecipeIngredient[]): Draft {
   };
 }
 
-export function canSave(d: Draft): boolean {
-  return !!d.name.trim() && !!d.category && Number.isInteger(num(d.servings)) && num(d.servings) >= 1
-    && d.rows.length > 0 && d.rows.every(rowOk) && d.steps.some((s) => s.trim());
+export const rowReady = rowOk;
+
+// What still keeps «Сохранить» off, in the order the form asks for it.
+export function missingOf(d: Draft): string[] {
+  const out: string[] = [];
+  if (!d.name.trim()) out.push('название');
+  if (!d.category) out.push('что это');
+  if (!(Number.isInteger(num(d.servings)) && num(d.servings) >= 1)) out.push('порции');
+  if (!d.rows.length) out.push('продукт');
+  for (const r of d.rows) if (r.item && !rowOk(r)) out.push(`количество: ${r.item}`);
+  if (!d.steps.some((s) => s.trim())) out.push('шаг');
+  return out;
 }
+
+export const canSave = (d: Draft): boolean => missingOf(d).length === 0;
 
 const siteOf = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return null; } };
 

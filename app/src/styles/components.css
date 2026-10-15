@@ -437,3 +437,7 @@ a.more, a.av { text-decoration: none; }
 .more-pick { background: none; box-shadow: inset 0 0 0 1px var(--k-rule); color: var(--k-ink-2); }
 .privacy h2 { margin: 18px 0 4px; font: 700 17px var(--font); }
 .privacy p { margin: 0 0 8px; line-height: 1.45; }
+.re-actions { display: grid; gap: 6px; }
+.re-missing { margin: 0; text-align: center; }
+.leave-ask { display: grid; gap: 8px; text-align: center; font: 600 15px var(--font); }
+.field input[aria-invalid="true"]:not(:disabled):not(:focus) { border-color: color-mix(in oklab, var(--k-primary) 55%, var(--k-rule)); }

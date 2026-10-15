@@ -11,6 +11,7 @@ import ToastProvider from '../shell/Toast';
 import { deleteRecipe } from './recipeApi';
 
 vi.mock('./recipeApi', () => ({ saveRecipe: vi.fn(async () => 'own-1'), deleteRecipe: vi.fn(async () => {}) }));
+const never = () => new Promise<void>(() => {});
 
 const papa: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: 'Папа', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1 };
 const mama: Member = { ...papa, id: 'm-mama', user_id: 'u2', name: 'Мама', is_owner: false };
@@ -144,5 +145,20 @@ describe('Что покушать', () => {
     expect(screen.getByRole('dialog', { name: 'Бабушкин пирог' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Изменить' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Удалить' })).toBeNull();
+  });
+  it('deletes once and shows it is busy while the server answers', async () => {
+    vi.mocked(deleteRecipe).mockClear();
+    vi.mocked(deleteRecipe).mockImplementationOnce(never);
+    const db = await open();
+    const base = (await db.recipes.toArray()).find((r) => r.collections.includes('sweet'))!;
+    await db.recipes.put({ ...base, id: 'own-2', household_id: 'h1', name: 'Мамин кекс', collections: ['ours'] });
+    await userEvent.click(await screen.findByRole('button', { name: 'Наши рецепты' }));
+    await userEvent.click(screen.getByRole('button', { name: /Мамин кекс/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Удалить' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Точно удалить рецепт?' }));
+    const busy = screen.getByRole('button', { name: 'Удаляем…' });
+    expect(busy).toBeDisabled();
+    await userEvent.click(busy);
+    expect(deleteRecipe).toHaveBeenCalledTimes(1);
   });
 });

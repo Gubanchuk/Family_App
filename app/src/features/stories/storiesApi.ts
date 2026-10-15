@@ -18,10 +18,16 @@ export async function loadStories(householdId: string): Promise<{ stories: Story
   return { stories: (s.data ?? []) as Story[], views: (v.data ?? []) as StoryView[] };
 }
 
-export async function postStory(me: Member, p: Prepared, overlays: Overlay[]): Promise<Story> {
+export async function postStory(me: Member, p: Prepared, overlays: Overlay[], signal?: AbortSignal): Promise<Story> {
   const id = crypto.randomUUID();
   const path = `${me.household_id}/stories/${id}.${p.kind === 'photo' ? 'jpg' : 'mp4'}`;
+  signal?.throwIfAborted();
   await uploadFile(path, p.blob, p.kind === 'photo' ? 'image/jpeg' : 'video/mp4');
+  // Closed while the file was going up: the story is not posted, and its file must not linger.
+  if (signal?.aborted) {
+    await removeFiles([path]).catch(() => {});
+    signal.throwIfAborted();
+  }
   const { data, error } = await supabase.from('stories').insert({
     id, household_id: me.household_id, member_id: me.id, kind: p.kind, path, width: p.width, height: p.height, duration_ms: p.durationMs, overlays,
   }).select('*').single();

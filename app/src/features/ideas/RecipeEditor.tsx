@@ -4,7 +4,7 @@ import Sheet from '../menu/Sheet';
 import type { LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { useToast } from '../shell/toastContext';
-import { CATEGORY_NAME, canSave, emptyDraft, type Category, type Draft, type DraftRow } from './recipeDraft';
+import { CATEGORY_NAME, emptyDraft, missingOf, rowReady, type Category, type Draft, type DraftRow } from './recipeDraft';
 import { saveRecipe } from './recipeApi';
 import { norm } from './search';
 
@@ -15,6 +15,11 @@ const DIMA: Array<[Draft['dima'], string]> = [['ok', 'Можно'], ['adapt', '�
 export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Member; db: LocalDb; draft?: Draft; onClose: () => void }) {
   const toast = useToast();
   const [d, setD] = useState<Draft>(start ?? emptyDraft());
+  const [first] = useState(() => JSON.stringify(start ?? emptyDraft()));
+  // Closing a recipe with something typed in it asks first: a whole recipe is a lot to lose to one tap.
+  const [asking, setAsking] = useState(false);
+  const tryClose = () => (JSON.stringify(d) !== first && !asking ? setAsking(true) : onClose());
+  const missing = missingOf(d);
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -35,7 +40,7 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
-    if (!canSave(d)) return;
+    if (missing.length) return;
     setBusy(true);
     setError('');
     try {
@@ -50,8 +55,21 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
   };
 
   return (
-    <Sheet title={d.id ? 'Изменить рецепт' : 'Свой рецепт'} onClose={onClose} keepOnBackdrop
-      actions={<button type="submit" form="recipe-form" className="btn" disabled={!canSave(d) || busy}>{busy ? 'Сохраняем…' : 'Сохранить'}</button>}>
+    <Sheet title={d.id ? 'Изменить рецепт' : 'Свой рецепт'} onClose={tryClose} keepOnBackdrop
+      actions={asking ? (
+        <div className="leave-ask" role="group" aria-label="Выйти без сохранения?">
+          <span>Выйти без сохранения?</span>
+          <div className="btns fill">
+            <button type="button" className="btn soft" onClick={() => setAsking(false)}>Остаться</button>
+            <button type="button" className="btn" onClick={onClose}>Выйти</button>
+          </div>
+        </div>
+      ) : (
+        <div className="re-actions">
+          {missing.length ? <p className="note re-missing">Нужно: {missing.join(', ')}</p> : null}
+          <button type="submit" form="recipe-form" className="btn" disabled={missing.length > 0 || busy}>{busy ? 'Сохраняем…' : 'Сохранить'}</button>
+        </div>
+      )}>
       {/* Enter on a phone keyboard never saves this long form: in the product search it adds the first match. */}
       <form id="recipe-form" style={{ margin: '0 16px' }} onSubmit={save}
         onKeyDown={(e) => { if (e.key === 'Enter' && e.target instanceof HTMLInputElement && !e.nativeEvent.isComposing) e.preventDefault(); }}>
@@ -73,7 +91,7 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
         {d.rows.map((r, i) => (
           <div className="re-row" key={r.item}>
             <label className="field">{cap(r.item)}, {unit.get(r.item) ?? 'г'}
-              <input inputMode="decimal" value={r.qty} disabled={r.toTaste} onChange={(e) => setRow(i, { qty: e.target.value })} placeholder={r.toTaste ? 'по вкусу' : '0'} />
+              <input inputMode="decimal" value={r.qty} disabled={r.toTaste} aria-invalid={!rowReady(r)} onChange={(e) => setRow(i, { qty: e.target.value })} placeholder={r.toTaste ? 'по вкусу' : '0'} />
             </label>
             <label className="re-check"><input type="checkbox" checked={r.toTaste} aria-label={`${cap(r.item)}: по вкусу`} onChange={(e) => setRow(i, { toTaste: e.target.checked })} />по вкусу</label>
             <button type="button" className="more" aria-label={`Убрать: ${r.item}`} onClick={() => set({ rows: d.rows.filter((_, j) => j !== i) })}>Убрать</button>

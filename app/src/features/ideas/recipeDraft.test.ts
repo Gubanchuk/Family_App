@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canSave, emptyDraft, toRows } from './recipeDraft';
+import { canSave, emptyDraft, missingOf, toRows } from './recipeDraft';
 
 const full = () => ({ ...emptyDraft(), name: ' Мамины сырники ', category: 'breakfast' as const, time: '25', servings: '4', rows: [{ item: 'творог', qty: '500', toTaste: false, note: '' }, { item: 'соль', qty: '', toTaste: true, note: '' }], steps: ['Смешать', ' ', 'Обжарить'] });
 
@@ -20,5 +20,10 @@ describe('own recipe draft', () => {
       { pos: 0, item: 'творог', qty: 500, to_taste: false, note: '', optional: false },
       { pos: 1, item: 'соль', qty: null, to_taste: true, note: '', optional: false },
     ]);
+  });
+  it('names what is still missing before the recipe can be saved', () => {
+    expect(missingOf(emptyDraft())).toEqual(['название', 'что это', 'порции', 'продукт', 'шаг']);
+    expect(missingOf({ ...full(), rows: [{ item: 'творог', qty: '', toTaste: false, note: '' }] })).toEqual(['количество: творог']);
+    expect(missingOf(full())).toEqual([]);
   });
 });

@@ -174,5 +174,11 @@ describe('HomePage', () => {
     expect(await within(sheet).findByRole('link', { name: /^Хотелку/ })).toBeInTheDocument();
     expect(within(sheet).queryByRole('link', { name: /^Расход/ })).toBeNull();
   });
+  it('shows a child the wish closest to its price', async () => {
+    const db = await ready();
+    const wish = (id: string, title: string, price: number, saved: number) => ({ id, household_id: 'h1', owner_id: 'm-son', title, price, saved, done_at: null, created_by: 'm-son', updated_at: 'x', deleted_at: null });
+    await db.wishes.bulkPut([wish('a', 'Самокат', 30000, 1000), wish('b', 'Наушники', 4000, 3500), wish('c', 'Лего', 9000, 2000)]);
+    render(<MemoryRouter><HomePage me={son} members={[papa, mama, son]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('link', { name: /Хотелки.*Наушники/ })).toBeInTheDocument();
+  });
 });
-
