@@ -17,3 +17,7 @@ where exists (select 1 from public.members m where m.household_id = h.id and m.u
 delete from public.members where user_id in (select id from auth.users where email like '%@example.com');
 
 delete from auth.users where email like '%@example.com';
+
+-- Story and avatar files of the removed test families stay in Storage (bucket «family», one folder per
+-- family id): Supabase does not let SQL delete stored files. They are a few kilobytes; to remove them,
+-- open Storage → family in the dashboard and delete the folders whose family no longer exists.
