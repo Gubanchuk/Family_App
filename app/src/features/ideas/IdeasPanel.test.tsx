@@ -124,4 +124,11 @@ describe('Что покушать', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Блюдо есть в меню на неделю. Удалить всё равно?' }));
     expect(deleteRecipe).toHaveBeenCalledWith(expect.objectContaining({ id: 'own-1' }));
   });
+  it('shows the family own side dish under its recipes', async () => {
+    const db = await open();
+    const base = (await db.recipes.toArray()).find((r) => r.collections.includes('sweet'))!;
+    await db.recipes.put({ ...base, id: 'own-side', household_id: 'h1', name: 'Бабушкино пюре', category: 'side', collections: ['ours'] });
+    await userEvent.click(await screen.findByRole('button', { name: 'Наши рецепты' }));
+    expect(screen.getByRole('button', { name: /Бабушкино пюре/ })).toBeInTheDocument();
+  });
 });

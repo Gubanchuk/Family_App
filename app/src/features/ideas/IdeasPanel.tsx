@@ -25,7 +25,8 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
       .filter((w) => !w.deleted_at && (w.starts_on === weekStart || w.starts_on === addDaysIso(weekStart, 7)));
     const slots = weeks.length ? await db.week_slots.where('week_id').anyOf(weeks.map((w) => w.id)).toArray() : [];
     const [recipes, rows, offers, notEat, vocab, prices, portions] = await Promise.all([
-      db.recipes.filter((r) => !r.deleted_at && r.category !== 'side').toArray(),
+      // Base sides come with their main dish; a family's own side has no other way to be found.
+      db.recipes.filter((r) => !r.deleted_at && (r.category !== 'side' || !!r.household_id)).toArray(),
       db.recipe_ingredients.toArray(),
       db.dish_offers.where('household_id').equals(me.household_id).toArray(),
       db.not_eat.where('household_id').equals(me.household_id).toArray(),

@@ -1,6 +1,6 @@
 import type { NotEat, Recipe } from '../../data/db';
 
-const norm = (s: string) => s.toLowerCase().replace(/ё/g, 'е').trim();
+export const norm = (s: string) => s.toLowerCase().replace(/ё/g, 'е').trim();
 
 export function recipeMatches(q: string, r: Pick<Recipe, 'name' | 'about'>, items: string[]): boolean {
   const words = norm(q).split(/\s+/).filter(Boolean);

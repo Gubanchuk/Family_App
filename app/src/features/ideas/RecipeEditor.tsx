@@ -6,6 +6,7 @@ import type { Member } from '../family/useFamily';
 import { useToast } from '../shell/toastContext';
 import { CATEGORY_NAME, canSave, emptyDraft, type Category, type Draft, type DraftRow } from './recipeDraft';
 import { saveRecipe } from './recipeApi';
+import { norm } from './search';
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const DIMA: Array<[Draft['dima'], string]> = [['ok', 'Можно'], ['adapt', 'С поправкой'], ['skip', 'Нельзя']];
@@ -18,12 +19,15 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const uid = useId();
+  // One id for the whole session: a retry after a failed save updates the same recipe instead of adding a twin.
+  const [id] = useState(() => start?.id ?? `own-${crypto.randomUUID()}`);
   const set = (patch: Partial<Draft>) => setD((x) => ({ ...x, ...patch }));
   const setRow = (i: number, patch: Partial<DraftRow>) => set({ rows: d.rows.map((r, j) => (j === i ? { ...r, ...patch } : r)) });
   const vocab = useLiveQuery(() => db.ingredients.toArray(), [db]) ?? [];
   const unit = new Map(vocab.map((v) => [v.item, v.unit]));
-  const query = q.trim().toLowerCase();
-  const found = query ? vocab.filter((v) => v.item.includes(query) && !d.rows.some((r) => r.item === v.item)).slice(0, 8) : [];
+  const query = norm(q);
+  const found = query ? vocab.filter((v) => norm(v.item).includes(query) && !d.rows.some((r) => r.item === v.item)).slice(0, 8) : [];
+  const addRow = (item: string) => { set({ rows: [...d.rows, { item, qty: '', toTaste: false, note: '' }] }); setQ(''); };
   const setStep = (i: number, s: string) => set({ steps: d.steps.map((x, j) => (j === i ? s : x)) });
   // The matches appear under the search field, which on a phone sits behind the keyboard and the Save bar.
   const foundRef = useRef<HTMLDivElement>(null);
@@ -35,7 +39,7 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
     setBusy(true);
     setError('');
     try {
-      await saveRecipe(me.household_id, { ...d, steps: d.steps.filter((s) => s.trim()) });
+      await saveRecipe(me.household_id, { ...d, id, steps: d.steps.filter((s) => s.trim()) }, !start?.id);
       toast({ text: `Рецепт «${d.name.trim()}» сохранён` });
       onClose();
     } catch (err) {
@@ -48,7 +52,9 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
   return (
     <Sheet title={d.id ? 'Изменить рецепт' : 'Свой рецепт'} onClose={onClose} keepOnBackdrop
       actions={<button type="submit" form="recipe-form" className="btn" disabled={!canSave(d) || busy}>{busy ? 'Сохраняем…' : 'Сохранить'}</button>}>
-      <form id="recipe-form" style={{ margin: '0 16px' }} onSubmit={save}>
+      {/* Enter on a phone keyboard never saves this long form: in the product search it adds the first match. */}
+      <form id="recipe-form" style={{ margin: '0 16px' }} onSubmit={save}
+        onKeyDown={(e) => { if (e.key === 'Enter' && e.target instanceof HTMLInputElement && !e.nativeEvent.isComposing) e.preventDefault(); }}>
         <label className="field">Название<input value={d.name} onChange={(e) => set({ name: e.target.value })} maxLength={80} autoFocus={!d.id} placeholder="Например, мамины сырники" /></label>
         <label className="field">Пара слов о блюде<input value={d.about} onChange={(e) => set({ about: e.target.value })} maxLength={120} placeholder="Можно не писать" /></label>
         <fieldset className="kin-pick"><legend>Что это</legend><div className="picks">
@@ -74,9 +80,10 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
             <input className="re-note" value={r.note} onChange={(e) => setRow(i, { note: e.target.value })} maxLength={40} aria-label={`${cap(r.item)}: пометка`} placeholder={i === 0 ? 'Пометка, например «9%» или «спелые»' : 'Пометка'} />
           </div>
         ))}
-        <label className="field">Найти продукт<input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Например, творог" autoComplete="off" /></label>
+        <label className="field">Найти продукт<input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Например, творог" autoComplete="off" enterKeyHint="search"
+          onKeyDown={(e) => { if (e.key === 'Enter' && found[0]) addRow(found[0].item); }} /></label>
         {found.length ? (
-          <div className="picks re-found" ref={foundRef}>{found.map((v) => <button key={v.item} type="button" className="pick" aria-label={`Добавить: ${v.item}`} onClick={() => { set({ rows: [...d.rows, { item: v.item, qty: '', toTaste: false, note: '' }] }); setQ(''); }}>{cap(v.item)}</button>)}</div>
+          <div className="picks re-found" ref={foundRef}>{found.map((v) => <button key={v.item} type="button" className="pick" aria-label={`Добавить: ${v.item}`} onClick={() => addRow(v.item)}>{cap(v.item)}</button>)}</div>
         ) : query ? <p className="note">Нет в списке. Выберите ближайший и уточните в пометке.</p> : null}
 
         <h3 className="sh-h re-h">Как готовить</h3>

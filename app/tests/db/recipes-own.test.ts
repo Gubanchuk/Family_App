@@ -34,4 +34,9 @@ describe('own recipes', { timeout: 60_000 }, () => {
     await asUser(db, MAMA, "update public.recipes set name = 'Испорчено' where id = $1", [id]);
     expect((await rows<{ name: string }>(MAMA, 'select name from public.recipes where id = $1', [id]))[0].name).not.toBe('Испорчено');
   });
+  it('stamps a recipe with the server clock, whatever the phone sent', async () => {
+    await asUser(db, MAMA, "insert into public.recipes (id, household_id, name, category, meals, time_active, time_total, servings, protein, dima_level, steps, updated_at) values ('own-9', $1, 'Блины', 'breakfast', '{breakfast}', 20, 25, 4, 'other', 'ok', '{Испечь}', '2030-01-01')", [hh]);
+    const [{ updated_at }] = await rows<{ updated_at: string }>(MAMA, "select updated_at::text from public.recipes where id = 'own-9'");
+    expect(updated_at < '2030').toBe(true);
+  });
 });

@@ -15,6 +15,7 @@ async function vocab() {
   await db.ingredients.bulkPut([
     { item: 'творог', unit: 'г', dept: 'Молочное и яйца', grp: 'dairy', piece_weight: null, piece_name: null, pantry: false },
     { item: 'яйца', unit: 'шт', dept: 'Молочное и яйца', grp: 'egg', piece_weight: null, piece_name: null, pantry: false },
+    { item: 'свёкла', unit: 'г', dept: 'Овощи и фрукты', grp: 'veg', piece_weight: null, piece_name: null, pantry: false },
   ]);
   return db;
 }
@@ -36,7 +37,7 @@ describe('RecipeEditor', () => {
     await userEvent.type(screen.getByLabelText('Шаг 1'), 'Смешать и обжарить');
     expect(save).toBeEnabled();
     await userEvent.click(save);
-    expect(saveRecipe).toHaveBeenCalledWith('h', expect.objectContaining({ name: 'Мамины сырники', category: 'breakfast', servings: '4', rows: [expect.objectContaining({ item: 'творог', qty: '500', note: '9%' })], steps: ['Смешать и обжарить'] }));
+    expect(saveRecipe).toHaveBeenCalledWith('h', expect.objectContaining({ name: 'Мамины сырники', category: 'breakfast', servings: '4', rows: [expect.objectContaining({ item: 'творог', qty: '500', note: '9%' })], steps: ['Смешать и обжарить'] }), true);
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -53,5 +54,43 @@ describe('RecipeEditor', () => {
     await userEvent.type(screen.getByLabelText('Шаг 1'), 'Взбить');
     await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Нет интернета. Рецепт сохранится, когда появится сеть');
+  });
+  it('keeps one recipe id when a failed save is tried again', async () => {
+    vi.mocked(saveRecipe).mockClear();
+    vi.mocked(saveRecipe).mockRejectedValueOnce(new Error('network'));
+    const db = await vocab();
+    render(<RecipeEditor me={mama} db={db} onClose={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Название'), 'Омлет');
+    await userEvent.click(screen.getByRole('button', { name: 'Завтрак' }));
+    await userEvent.type(screen.getByLabelText('Порций'), '2');
+    await userEvent.type(screen.getByLabelText('Найти продукт'), 'яй');
+    await userEvent.click(await screen.findByRole('button', { name: 'Добавить: яйца' }));
+    await userEvent.type(screen.getByLabelText('Яйца, шт'), '3');
+    await userEvent.type(screen.getByLabelText('Шаг 1'), 'Взбить');
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    await screen.findByRole('alert');
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    const [first, second] = vi.mocked(saveRecipe).mock.calls;
+    expect(first[1].id).toMatch(/^own-/);
+    expect(second[1].id).toBe(first[1].id);
+    expect(first[2]).toBe(true);
+  });
+
+  it('finds a product typed without ё', async () => {
+    const db = await vocab();
+    render(<RecipeEditor me={mama} db={db} onClose={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Найти продукт'), 'свекла');
+    expect(await screen.findByRole('button', { name: 'Добавить: свёкла' })).toBeInTheDocument();
+  });
+
+  it('adds the first match on Enter in the product search instead of saving', async () => {
+    vi.mocked(saveRecipe).mockClear();
+    const db = await vocab();
+    render(<RecipeEditor me={mama} db={db} onClose={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Найти продукт'), 'тво');
+    await screen.findByRole('button', { name: 'Добавить: творог' });
+    await userEvent.type(screen.getByLabelText('Найти продукт'), '{Enter}');
+    expect(screen.getByLabelText('Творог, г')).toBeInTheDocument();
+    expect(saveRecipe).not.toHaveBeenCalled();
   });
 });
