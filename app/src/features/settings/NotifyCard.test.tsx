@@ -33,4 +33,14 @@ describe('NotifyCard', () => {
     render(<NotifyCard me={papa} />);
     expect(await screen.findByRole('switch', { name: 'Сторис' })).toBeInTheDocument();
   });
+
+  it('offers payment reminders to parents only', async () => {
+    const { unmount } = render(<NotifyCard me={papa} />);
+    expect(await screen.findByRole('switch', { name: 'Платежи' })).toBeInTheDocument();
+    unmount();
+    render(<NotifyCard me={{ ...papa, role: 'child' }} />);
+    await screen.findByRole('switch', { name: 'Сторис' });
+    expect(screen.queryByRole('switch', { name: 'Платежи' })).toBeNull();
+  });
 });
+

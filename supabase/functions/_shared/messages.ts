@@ -3,7 +3,8 @@ export type Ev =
   | { kind: 'dish_offers'; author: string; dish: string; meal: 'breakfast' | 'lunch' | 'snack' | 'dinner'; onDate: string; toAll: boolean }
   | { kind: 'shop_trips'; author: string }
   | { kind: 'stories'; author: string; verb: 'выложила' | 'выложил' | null }
-  | { kind: 'requests'; author: string; title: string; status: 'open' | 'done'; verb: 'сделала' | 'сделал' | null };
+  | { kind: 'requests'; author: string; title: string; status: 'open' | 'done'; verb: 'сделала' | 'сделал' | null }
+  | { kind: 'payments_due'; title: string; amount: number; when: 'soon' | 'today' };
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const MEAL_FOR = { breakfast: 'на завтрак', lunch: 'на обед', snack: 'на полдник', dinner: 'на ужин' };
@@ -35,6 +36,10 @@ export function compose(e: Ev, today: string) {
     const d = days(today, e.onDate);
     const when = d === 0 ? 'Сегодня' : d === 1 ? 'Завтра' : `${parse(e.onDate).getUTCDate()} ${MONTHS[parse(e.onDate).getUTCMonth()]}`;
     return { title: `${e.author} просит: ${e.dish}`, body: `${when} ${MEAL_FOR[e.meal]}.${e.toAll ? ' Предложено всем.' : ''}`, url: '/menu?panel=ideas', pref: 'offers', tag: `offer-${e.onDate}` };
+  }
+  if (e.kind === 'payments_due') {
+    const sum = `${Math.round(e.amount).toLocaleString('ru-RU').replace(/[  ]/g, ' ')} ₽`;
+    return { title: `${e.when === 'today' ? 'Сегодня' : 'Через 3 дня'} платёж: ${e.title} — ${sum}`, body: 'Отметьте в «Деньгах», когда оплатите.', url: '/money', pref: 'payments', tag: `pay-${e.title}` };
   }
   if (e.kind === 'requests') {
     const title = e.status === 'open' ? `${e.author} просит: ${e.title}` : e.verb ? `${e.author} ${e.verb}: ${e.title}` : `Готово: ${e.title} (${e.author})`;

@@ -49,4 +49,12 @@ describe('money', { timeout: 60_000 }, () => {
   it('turns payment pushes on by default', async () => {
     expect(await rows(PAPA, "select notify->>'payments' as p from public.member_settings where member_id = $1", [m['Оля']])).toEqual([{ p: 'true' }]);
   });
+
+  it('logs a payment reminder once per payment, month and kind, so a repeated cron call sends nothing new', async () => {
+    const log = (version: string) => db.query("insert into public.push_log (kind, ref_id, version) values ('payments_due', $1, $2)", [P, version]);
+    await log('2026-10:soon');
+    await expect(log('2026-10:soon')).rejects.toThrow();
+    await log('2026-10:today');
+  });
 });
+

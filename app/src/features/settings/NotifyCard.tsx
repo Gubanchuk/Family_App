@@ -5,6 +5,7 @@ import { loadMemberSettings, saveNotify } from './memberSettings';
 const ROWS: Array<[string, string, string?]> = [
   ['offers', 'Предложения блюд', '«Сделай сегодня…»'],
   ['stories', 'Сторис', 'когда кто-то выложил новую'],
+  ['payments', 'Платежи', 'за 3 дня и в день оплаты'],
   ['votes', 'Голосование за меню'],
   ['shop', 'Кто идёт в магазин'],
   ['quiet', 'Тихие часы', 'с 22:00 до 8:00 без звука'],
@@ -24,7 +25,7 @@ export default function NotifyCard({ me, push }: { me: Member; push?: ReactNode 
     <section className="card">
       <div className="card-h"><h2>Уведомления</h2></div>
       {push}
-      {ROWS.map(([k, title, sub]) => (
+      {ROWS.filter(([k]) => k !== 'payments' || me.role === 'parent').map(([k, title, sub]) => (
         <div className="row" key={k}>
           <span className="row-main"><b>{title}</b>{sub ? <small>{sub}</small> : null}</span>
           <button type="button" className="switch" role="switch" aria-checked={!!n?.[k]} aria-label={title} disabled={!n} onClick={() => flip(k)}><i /></button>

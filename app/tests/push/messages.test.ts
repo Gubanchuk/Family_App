@@ -48,4 +48,8 @@ describe('push texts', () => {
     expect(compose({ kind: 'requests', author: 'Тёма', title: 'Вынести мусор', status: 'done', verb: null }, '2026-10-15').title).toBe('Готово: Вынести мусор (Тёма)');
     expect(eventVersion('requests', { status: 'done' })).toBe('done');
   });
+  it('reminds parents of a payment', () => {
+    expect(compose({ kind: 'payments_due', title: 'Интернет и ТВ', amount: 650, when: 'soon' }, '2026-10-13')).toMatchObject({ title: 'Через 3 дня платёж: Интернет и ТВ — 650 ₽', url: '/money', pref: 'payments' });
+    expect(compose({ kind: 'payments_due', title: 'Аренда', amount: 45000, when: 'today' }, '2026-10-13').title).toBe('Сегодня платёж: Аренда — 45 000 ₽');
+  });
 });

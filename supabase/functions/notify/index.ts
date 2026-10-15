@@ -1,8 +1,9 @@
-// Sends Web Push for a week proposal, a dish offer, a shop trip, a new story or a request. Called by a database trigger
+// Sends Web Push for a week proposal, a dish offer, a shop trip, a new story, a request or a payment due. Called by a database trigger
 // with { table, id }; re-reads the row itself, so a forged call can only repeat a real event once.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { compose, doneVerbFor, eventVersion, isStale, verbFor, type Ev } from '../_shared/messages.ts';
 import { sendPush } from '../_shared/webpush.ts';
+import { dueReminders } from '../_shared/due.ts';
 
 const TABLES = ['weeks', 'dish_offers', 'shop_trips', 'stories', 'requests'];
 
@@ -17,8 +18,38 @@ function serverKey(): string {
   return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 }
 
+// Called once a day by pg_cron: every family's payments due today or in three days, to its parents.
+async function paymentsDue(): Promise<Response> {
+  const db = createClient(Deno.env.get('SUPABASE_URL')!, serverKey(), { auth: { persistSession: false } });
+  const today = new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 10);
+  const { data: payments } = await db.from('payments').select('*').is('deleted_at', null);
+  const { data: marks } = await db.from('payment_marks').select('payment_id, month, paid');
+  const vapid = { subject: Deno.env.get('VAPID_SUBJECT')!, publicKey: Deno.env.get('VAPID_PUBLIC_KEY')!, privateJwk: JSON.parse(Deno.env.get('VAPID_PRIVATE_JWK')!) };
+  let sent = 0;
+  for (const r of dueReminders(payments ?? [], marks ?? [], today)) {
+    // One reminder per payment, month and kind, however often the job runs.
+    const { error: claimed } = await db.from('push_log').insert({ kind: 'payments_due', ref_id: r.payment.id, version: `${r.month}:${r.kind}` });
+    if (claimed) continue;
+    const { data: parents } = await db.from('members').select('id').eq('household_id', r.payment.household_id).eq('role', 'parent').is('deleted_at', null).not('user_id', 'is', null);
+    const ids = (parents ?? []).map((m) => m.id);
+    const { data: settings } = await db.from('member_settings').select('member_id, notify').in('member_id', ids);
+    const wanted = ids.filter((id) => (settings ?? []).find((s) => s.member_id === id)?.notify?.payments !== false);
+    const msg = compose({ kind: 'payments_due', title: r.payment.title, amount: r.payment.amount, when: r.kind }, today);
+    const { data: subs } = await db.from('push_subscriptions').select('endpoint, member_id, p256dh, auth').in('member_id', wanted);
+    for (const s of subs ?? []) {
+      try {
+        const status = await sendPush(s, { ...msg, quiet: false }, vapid);
+        if (status === 404 || status === 410) await db.from('push_subscriptions').delete().eq('endpoint', s.endpoint);
+        else if (status < 300) sent += 1;
+      } catch { /* one dead endpoint must not stop the rest */ }
+    }
+  }
+  return Response.json({ sent });
+}
+
 Deno.serve(async (req) => {
   const { table, id } = await req.json().catch(() => ({}));
+  if (table === 'payments_due') return await paymentsDue();
   if (!TABLES.includes(table) || typeof id !== 'string') return Response.json({ skipped: 'bad request' });
   const db = createClient(Deno.env.get('SUPABASE_URL')!, serverKey(), { auth: { persistSession: false } });
   // Read the event first, then claim it: junk ids never reach the log, and each version is pushed once.
