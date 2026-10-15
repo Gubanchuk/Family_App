@@ -11,7 +11,7 @@ import { useToday } from '../../lib/useToday';
 import { rub } from '../shop/build';
 import { useMoney } from './useMoney';
 import { setPaid } from './moneyActions';
-import { dayTitle, daysTo, dueText, incomeOf, monthKey, monthPayments, monthTitle, nextDue, shiftMonth, spendByCategory, spendByMember } from './month';
+import { dayTitle, daysTo, dueText, incomeOf, monthKey, monthPayments, monthTitle, nextDue, shiftMonth, shopSpend, shopUnpriced, spendByCategory, spendByMember } from './month';
 import EntrySheet from './EntrySheet';
 import PaymentSheet from './PaymentSheet';
 import EntriesSheet from './EntriesSheet';
@@ -43,9 +43,11 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   const next = month === current ? nextDue(data.payments, data.marks, todayIso) : undefined;
   const total = list.reduce((s, x) => s + (x.paid ? x.amount : x.p.amount), 0);
   const paid = list.filter((x) => x.paid).reduce((s, x) => s + x.amount, 0);
-  const cats = spendByCategory(data.entries, list, month);
+  const entries = [...data.entries, ...shopSpend(data.items, data.shopMarks)];
+  const unpriced = shopUnpriced(data.items, data.shopMarks, month);
+  const cats = spendByCategory(entries, list, month);
   const maxC = Math.max(1, ...cats.map((c) => c.sum));
-  const byMember = [...spendByMember(data.entries, list, month).entries()].sort((a, b) => b[1] - a[1]);
+  const byMember = [...spendByMember(entries, list, month).entries()].sort((a, b) => b[1] - a[1]);
   const maxM = Math.max(1, ...byMember.map(([, s]) => s));
   const close = () => setParams(month === current ? {} : { m: month }, { replace: true });
   return (
@@ -110,7 +112,8 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
       {add === 'expense' || add === 'income' ? <EntrySheet kind={add} me={me} members={members} db={db} month={month} onClose={close} /> : null}
       {lines ? (
         <EntriesSheet title={lines === 'income' ? 'Доходы' : lines} month={month} members={members}
-          entries={data.entries.filter((e) => e.on_date.startsWith(month) && (lines === 'income' ? e.kind === 'income' : e.kind === 'expense' && (e.category && CAT_SET.has(e.category) ? e.category : 'Другое') === lines))}
+          unpriced={lines === 'income' ? 0 : unpriced.get(lines) ?? 0}
+          entries={entries.filter((e) => e.on_date.startsWith(month) && (lines === 'income' ? e.kind === 'income' : e.kind === 'expense' && (e.category && CAT_SET.has(e.category) ? e.category : 'Другое') === lines))}
           onPick={(e) => { setLines(null); setEntry(e); }} onClose={() => setLines(null)}
           onAdd={lines === 'income' ? () => { setLines(null); setParams({ ...(month !== current ? { m: month } : {}), add: 'income' }); } : undefined} />
       ) : null}

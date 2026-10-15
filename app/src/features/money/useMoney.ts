@@ -5,13 +5,16 @@ import { MONEY_TABLES } from './types';
 
 export function useMoney(db: LocalDb, h: string) {
   return useLiveQuery(async () => {
-    const [payments, marks, entries] = await Promise.all([
+    const [payments, marks, entries, items, shopMarks] = await Promise.all([
       // Deleted payments too: past months keep what was paid for them.
       db.payments.where('household_id').equals(h).toArray(),
       db.payment_marks.where('household_id').equals(h).toArray(),
       db.money_entries.where('household_id').equals(h).filter((e) => !e.deleted_at).toArray(),
+      // Bought lines of the shopping list count as spending by themselves.
+      db.shopping_items.where('household_id').equals(h).toArray(),
+      db.shopping_marks.toArray(),
     ]);
-    return { payments, marks, entries };
+    return { payments, marks, entries, items, shopMarks: shopMarks.filter((m) => m.household_id === h) };
   }, [db, h]);
 }
 

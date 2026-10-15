@@ -45,9 +45,12 @@ export default function EntrySheet({ kind, me, members, db, month, prev, onClose
       <form id="entry-form" style={{ margin: '0 16px' }} onSubmit={save}>
         <label className="field">Сумма, ₽<input inputMode="numeric" autoFocus={!prev} value={sum} onChange={(e) => setSum(e.target.value)} placeholder="0" /></label>
         {kind === 'expense' ? (
+          <>
           <fieldset className="kin-pick"><legend>Категория</legend><div className="picks">
             {CATEGORIES.map((c) => <button key={c} type="button" className="pick" aria-pressed={cat === c} onClick={() => setCat(c)}>{c}</button>)}
           </div></fieldset>
+          {cat === 'Продукты' ? <p className="note">Покупки из списка считаются сами — вносите только то, чего в списке не было.</p> : null}
+          </>
         ) : null}
         <fieldset className="kin-pick"><legend>{kind === 'expense' ? 'Кто платил' : 'Кто получил'}</legend><div className="picks">
           {parents.map((m) => <button key={m.id} type="button" className="pick" aria-pressed={who === m.id} onClick={() => setWho(m.id)}>{m.id === me.id ? 'Я' : m.name}</button>)}

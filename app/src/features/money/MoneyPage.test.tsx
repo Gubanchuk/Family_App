@@ -112,4 +112,22 @@ describe('MoneyPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Назад' }));
     expect(await screen.findByText('Главная')).toBeInTheDocument();
   });
+  it('counts what was bought from the shopping list in the month and keeps those lines read-only', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.shopping_items.put({ id: 'u:1', household_id: 'h', week_id: null, offer_id: null, source: 'manual', item: null, title: 'Молоко', qty: null, unit: null, qty_text: '', dept: 'Молочное и яйца', urgent: false, est_price: 95, added_by: 'mama', updated_at: 'x', deleted_at: null });
+    await db.shopping_marks.put({ item_id: 'u:1', household_id: 'h', bought: true, by_member: 'papa', price_real: 120, updated_at: '2026-10-12T09:00:00.000Z' });
+    render(<MemoryRouter><MoneyPage me={mama} members={[papa, mama]} db={db} today={OCT13} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: /^Продукты\s*·\s*1/ }));
+    const list = screen.getByRole('dialog', { name: 'Продукты' });
+    expect(within(list).getByText('из списка покупок · Андрей')).toBeInTheDocument();
+    expect(within(list).queryByRole('button', { name: /Молоко/ })).toBeNull();
+  });
+
+  it('reminds that shopping is counted by itself when adding groceries by hand', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    render(<MemoryRouter><MoneyPage me={mama} members={[papa, mama]} db={db} today={OCT13} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Расход' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Продукты' }));
+    expect(screen.getByText('Покупки из списка считаются сами — вносите только то, чего в списке не было.')).toBeInTheDocument();
+  });
 });

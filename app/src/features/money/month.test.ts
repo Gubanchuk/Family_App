@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { daysTo, dueDate, dueText, installmentNo, monthPayments, nextDue, nextUnpaid, spendByCategory, spendByMember } from './month';
+import { daysTo, dueDate, dueText, installmentNo, monthPayments, nextDue, nextUnpaid, shopSpend, shopUnpriced, spendByCategory, spendByMember } from './month';
 import type { MoneyEntry, Payment, PaymentMark } from './types';
 
 const pay = (o: Partial<Payment>): Payment => ({ id: 'p', household_id: 'h', title: 'Интернет', amount: 650, day: 16, kind: 'monthly', total: null, first_month: null, note: '', created_by: null, updated_at: '', deleted_at: null, ...o });
@@ -51,5 +51,18 @@ describe('money month', () => {
     const gone = pay({ first_month: '2026-08', deleted_at: '2026-10-02T09:00:00Z' });
     expect(monthPayments([gone], [mark({ month: '2026-09' })], '2026-09')).toMatchObject([{ paid: true }]);
     expect(monthPayments([gone], [mark({ month: '2026-09' })], '2026-10')).toEqual([]);
+  });
+  it('turns what was bought from the list into expenses by department, person and day', () => {
+    const item = (id: string, title: string, dept: string, est: number | null) => ({ id, household_id: 'h', week_id: null, offer_id: null, source: 'manual' as const, item: null, title, qty: null, unit: null, qty_text: '', dept, urgent: false, est_price: est, added_by: null, updated_at: '', deleted_at: null });
+    const mark = (id: string, bought: boolean, price: number | null, at = '2026-10-12T09:00:00.000Z') => ({ item_id: id, household_id: 'h', bought, by_member: 'mama', price_real: price, updated_at: at });
+    const items = [item('a', 'Молоко', 'Молочное и яйца', 95), item('b', 'Порошок', 'Для дома', 400), item('c', 'Пластырь', 'Аптека', null), item('d', 'Хлеб', 'Хлеб', 60), item('e', 'Сыр', 'Молочное и яйца', 300)];
+    const marks = [mark('a', true, 120), mark('b', true, null), mark('c', true, null), mark('d', false, null), mark('e', true, 280, '2026-09-30T10:00:00.000Z')];
+    const spent = shopSpend(items as never, marks as never);
+    expect(spent.map((e) => [e.note, e.category, e.amount, e.member_id, e.on_date])).toEqual([
+      ['Молоко', 'Продукты', 120, 'mama', '2026-10-12'],
+      ['Порошок', 'Дом', 400, 'mama', '2026-10-12'],
+      ['Сыр', 'Продукты', 280, 'mama', '2026-09-30'],
+    ]);
+    expect(shopUnpriced(items as never, marks as never, '2026-10')).toEqual(new Map([['Здоровье', 1]]));
   });
 });

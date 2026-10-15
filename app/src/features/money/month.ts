@@ -1,3 +1,4 @@
+import type { ShoppingItem, ShoppingMark } from '../../data/db';
 import { CATEGORIES, MANDATORY, type MoneyEntry, type Payment, type PaymentMark } from './types';
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -79,3 +80,34 @@ export function spendByMember(entries: MoneyEntry[], list: MonthPayment[], month
 }
 
 export const incomeOf = (entries: MoneyEntry[], month: string) => entries.filter((e) => e.kind === 'income' && inMonth(e, month)).reduce((s, e) => s + e.amount, 0);
+
+// What was bought from the shopping list counts as spending by itself: food departments go to «Продукты»,
+// the others to the money category of the same kind. The day is when the line was marked bought.
+const DEPT_CATEGORY: Record<string, string> = { 'Для дома': 'Дом', 'Аптека': 'Здоровье', 'Одежда и обувь': 'Одежда', 'Другое': 'Другое' };
+export const categoryOfDept = (dept: string) => DEPT_CATEGORY[dept] ?? 'Продукты';
+const localDay = (iso: string) => { const d = iso ? new Date(iso) : new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+export type ShopEntry = MoneyEntry & { fromShop: true };
+
+function bought(items: ShoppingItem[], marks: ShoppingMark[]) {
+  const byId = new Map(items.filter((i) => !i.deleted_at).map((i) => [i.id, i]));
+  return marks.flatMap((m) => { const it = byId.get(m.item_id); return it && m.bought ? [{ it, m, amount: Math.round(Number(m.price_real ?? it.est_price ?? 0)) }] : []; });
+}
+
+export function shopSpend(items: ShoppingItem[], marks: ShoppingMark[]): ShopEntry[] {
+  return bought(items, marks).filter((x) => x.amount > 0).map(({ it, m, amount }) => ({
+    id: `shop:${it.id}`, household_id: it.household_id, kind: 'expense' as const, amount, category: categoryOfDept(it.dept), member_id: m.by_member,
+    on_date: localDay(m.updated_at), note: it.title, created_by: m.by_member, updated_at: m.updated_at, deleted_at: null, fromShop: true as const,
+  }));
+}
+
+// Bought lines with no price, per category, for «ещё N без цены».
+export function shopUnpriced(items: ShoppingItem[], marks: ShoppingMark[], month: string): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const { it, m, amount } of bought(items, marks)) {
+    if (amount > 0 || !localDay(m.updated_at).startsWith(month)) continue;
+    const c = categoryOfDept(it.dept);
+    out.set(c, (out.get(c) ?? 0) + 1);
+  }
+  return out;
+}
+
