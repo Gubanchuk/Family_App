@@ -44,6 +44,14 @@ describe('sync', () => {
     expect((await syncNow(db, fake.client as never)).pushed).toBe(1);
   });
 
+  it('keeps money rows on the phone and sends them', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    await writeLocal(db, 'money_entries', [{ id: 'e1', household_id: 'h1', kind: 'expense', amount: 1200, category: 'Продукты', member_id: 'm1', on_date: '2026-10-15', note: '', created_by: 'm1', deleted_at: null }]);
+    expect((await db.money_entries.get('e1'))?.amount).toBe(1200);
+    expect((await syncNow(db, fake.client as never)).pushed).toBe(1);
+  });
+
   it('pulls rows changed on another phone and moves the cursor', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     const fake = fakeSupabase({}, KEY_FIELDS);

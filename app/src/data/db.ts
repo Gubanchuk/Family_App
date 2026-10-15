@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import type { Goal, Need, Request, Wish, WishGift, WishMetoo } from '../features/board/types';
+import type { MoneyEntry, Payment, PaymentMark } from '../features/money/types';
 import type { Meal } from '../features/menu/week';
 
 export type Recipe = {
@@ -25,7 +26,8 @@ export type ShopTrip = { id: string; household_id: string; member_id: string; st
 export type NotEat = { household_id: string; kind: 'item' | 'dish'; ref: string; updated_at: string; deleted_at: string | null };
 export type SyncTable = 'weeks' | 'week_slots' | 'votes' | 'week_templates' | 'template_slots'
   | 'dish_offers' | 'shopping_items' | 'shopping_marks' | 'shop_trips' | 'not_eat'
-  | 'wishes' | 'wish_metoo' | 'wish_gifts' | 'needs' | 'goals' | 'requests';
+  | 'wishes' | 'wish_metoo' | 'wish_gifts' | 'needs' | 'goals' | 'requests'
+  | 'payments' | 'payment_marks' | 'money_entries';
 export type OutboxOp = { seq?: number; table: SyncTable; rpc?: 'save_week'; row: Record<string, unknown>; created_at: string; tries: number };
 export type Meta = { key: string; value: unknown };
 
@@ -46,6 +48,9 @@ export const KEY_FIELDS: Record<SyncTable, string[]> = {
   needs: ['id'],
   goals: ['id'],
   requests: ['id'],
+  payments: ['id'],
+  payment_marks: ['payment_id', 'month'],
+  money_entries: ['id'],
 };
 
 export const V1_STORES = {
@@ -89,6 +94,9 @@ export class LocalDb extends Dexie {
   needs!: Table<Need, string>;
   goals!: Table<Goal, string>;
   requests!: Table<Request, string>;
+  payments!: Table<Payment, string>;
+  payment_marks!: Table<PaymentMark, [string, string]>;
+  money_entries!: Table<MoneyEntry, string>;
 
   constructor(name: string) {
     super(name);
@@ -107,6 +115,11 @@ export class LocalDb extends Dexie {
       needs: 'id, household_id',
       goals: 'id, household_id',
       requests: 'id, household_id, to_id, from_id',
+    });
+    this.version(4).stores({
+      payments: 'id, household_id',
+      payment_marks: '[payment_id+month], household_id, month',
+      money_entries: 'id, household_id, on_date',
     });
   }
 }
