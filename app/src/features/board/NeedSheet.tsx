@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { parseRub, rubOk } from './boardMath';
 import Sheet from '../menu/Sheet';
 import type { LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
@@ -6,7 +7,6 @@ import { useToast } from '../shell/toastContext';
 import { removeNeed, saveNeed } from './boardActions';
 import type { Need } from './types';
 
-const toInt = (s: string) => { const n = Math.round(Number(s.replace(/\s/g, '').replace(',', '.'))); return Number.isFinite(n) && n > 0 ? n : null; };
 
 export default function NeedSheet({ me, members, db, need, onClose }: { me: Member; members: Member[]; db: LocalDb; need: Need | null; onClose: () => void }) {
   const toast = useToast();
@@ -17,13 +17,13 @@ export default function NeedSheet({ me, members, db, need, onClose }: { me: Memb
   const [price, setPrice] = useState(need?.price ? String(need.price) : '');
   const save = async (e: FormEvent) => {
     e.preventDefault();
-    await saveNeed(db, me, { id: need?.id, for_id: forId, title, note, due_on: due || null, price: toInt(price) }, need ?? undefined);
+    await saveNeed(db, me, { id: need?.id, for_id: forId, title, note, due_on: due || null, price: parseRub(price) }, need ?? undefined);
     toast({ text: need ? 'Сохранено' : `«${title.trim()}» на доске` });
     onClose();
   };
   return (
     <Sheet title={need ? 'Изменить' : 'Надо купить'} onClose={onClose} keepOnBackdrop={!!title.trim() && !need}
-      actions={<button type="submit" form="need-form" className="btn" disabled={!title.trim()}>Сохранить</button>}>
+      actions={<button type="submit" form="need-form" className="btn" disabled={!title.trim() || !rubOk(price)}>Сохранить</button>}>
       <form id="need-form" style={{ margin: '0 16px' }} onSubmit={save}>
         <label className="field">Что купить<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} autoFocus={!need} placeholder="Например, зимние ботинки" /></label>
         <fieldset className="kin-pick">

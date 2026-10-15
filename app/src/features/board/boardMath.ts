@@ -10,3 +10,14 @@ const FROM: Partial<Record<Kin, string>> = { mother: 'от мамы', father: '�
 // «Подарок от мамы»; without a known kin the name stays in the nominative after a colon.
 export const giftLine = (giver: { name: string; kin?: Kin | null } | undefined) =>
   giver?.kin && FROM[giver.kin] ? `Подарок ${FROM[giver.kin]}` : `Подарок: ${giver?.name ?? 'кто-то'}`;
+
+// A sum typed by hand, in whole rubles. Anything over ten million is a slip of the finger; refusing it
+// here matters, because the server would refuse it on every sync and hold back the phone's other changes.
+export const MAX_RUB = 10_000_000;
+export function parseRub(s: string): number | null {
+  const n = Math.round(Number(s.replace(/\s/g, '').replace(',', '.')));
+  return Number.isFinite(n) && n > 0 && n <= MAX_RUB ? n : null;
+}
+// An optional sum is fine when empty or valid.
+export const rubOk = (s: string) => !s.trim() || parseRub(s) !== null;
+

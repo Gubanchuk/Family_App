@@ -43,4 +43,14 @@ describe('wishes', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
     await waitFor(async () => expect((await db.wishes.toArray())[0]).toMatchObject({ title: 'Наушники', price: 3500, owner_id: 'son' }));
   });
+
+  it('does not let an absurd price through, so the phone never queues a sum the server refuses forever', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    render(<MemoryRouter initialEntries={['/board?tab=wishes']}><BoardPage me={son} members={[mama, son]} db={db} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Добавить' }));
+    await userEvent.type(await screen.findByLabelText('Что хочется'), 'Яхта');
+    await userEvent.type(screen.getByLabelText('Сколько стоит, ₽'), '99999999999');
+    expect(screen.getByRole('button', { name: 'Сохранить' })).toBeDisabled();
+  });
 });
+

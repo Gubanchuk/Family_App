@@ -20,3 +20,16 @@ describe('board maths', () => {
     expect(memberName([{ id: 'a', name: 'Оля' }], 'b')).toBe('Кто-то');
   });
 });
+
+describe('sums typed by hand', () => {
+  it('accepts sensible ruble sums and refuses absurd ones that the server would never take', async () => {
+    const { parseRub } = await import('./boardMath');
+    expect(parseRub('25 000')).toBe(25000);
+    expect(parseRub('1200,6')).toBe(1201);
+    expect(parseRub('')).toBeNull();
+    expect(parseRub('0')).toBeNull();
+    expect(parseRub('99999999999')).toBeNull();
+    expect(parseRub('10000001')).toBeNull();
+    expect(parseRub('10000000')).toBe(10000000);
+  });
+});

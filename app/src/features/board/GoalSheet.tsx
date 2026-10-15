@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { parseRub } from './boardMath';
 import Sheet from '../menu/Sheet';
 import type { LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
@@ -7,7 +8,6 @@ import { rub } from '../shop/build';
 import { addToGoal, removeGoal, saveGoal, toggleStep } from './boardActions';
 import type { Goal, GoalStep } from './types';
 
-const toInt = (s: string) => { const n = Math.round(Number(s.replace(/\s/g, '').replace(',', '.'))); return Number.isFinite(n) && n > 0 ? n : null; };
 const sid = () => Math.random().toString(36).slice(2, 8);
 
 export default function GoalSheet({ me, members, db, goal, onClose }: { me: Member; members: Member[]; db: LocalDb; goal: Goal | null; onClose: () => void }) {
@@ -33,9 +33,9 @@ export default function GoalSheet({ me, members, db, goal, onClose }: { me: Memb
             </label>
           ))}
           {canEdit ? (
-            <form className="inline-add" onSubmit={async (e) => { e.preventDefault(); const n = toInt(sum); if (!n) return; await addToGoal(db, goal, n); setSum(''); toast({ text: `В копилку +${rub(n)}` }); }}>
+            <form className="inline-add" onSubmit={async (e) => { e.preventDefault(); const n = parseRub(sum); if (!n) return; await addToGoal(db, goal, n); setSum(''); toast({ text: `В копилку +${rub(n)}` }); }}>
               <label className="field">Положить в копилку, ₽<input inputMode="numeric" value={sum} onChange={(e) => setSum(e.target.value)} placeholder="5000" /></label>
-              <button type="submit" className="btn soft" disabled={!toInt(sum)}>Положить</button>
+              <button type="submit" className="btn soft" disabled={!parseRub(sum)}>Положить</button>
             </form>
           ) : null}
         </div>
@@ -44,7 +44,7 @@ export default function GoalSheet({ me, members, db, goal, onClose }: { me: Memb
   }
   const save = async (e: FormEvent) => {
     e.preventDefault();
-    const t = toInt(target);
+    const t = parseRub(target);
     if (!t) return;
     await saveGoal(db, me, { id: goal?.id, owner_id: owner, title, target: t, steps }, goal ?? undefined);
     toast({ text: goal ? 'Цель сохранена' : `Цель «${title.trim()}» на доске` });
@@ -52,7 +52,7 @@ export default function GoalSheet({ me, members, db, goal, onClose }: { me: Memb
   };
   return (
     <Sheet title={goal ? 'Изменить цель' : 'Новая цель'} onClose={onClose} keepOnBackdrop={!!title.trim()}
-      actions={<button type="submit" form="goal-form" className="btn" disabled={!title.trim() || !toInt(target)}>Сохранить</button>}>
+      actions={<button type="submit" form="goal-form" className="btn" disabled={!title.trim() || !parseRub(target)}>Сохранить</button>}>
       <form id="goal-form" style={{ margin: '0 16px' }} onSubmit={save}>
         <label className="field">Цель<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} autoFocus={!goal} placeholder="Например, море летом" /></label>
         <label className="field">Сколько нужно, ₽<input inputMode="numeric" value={target} onChange={(e) => setTarget(e.target.value)} placeholder="120000" /></label>

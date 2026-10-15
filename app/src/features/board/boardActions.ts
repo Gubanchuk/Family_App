@@ -11,7 +11,9 @@ export async function saveWish(db: LocalDb, me: Member, w: { id?: string; owner_
     saved: prev?.saved ?? 0, done_at: prev?.done_at ?? null, created_by: prev?.created_by ?? me.id, deleted_at: null,
   }]);
 }
-export const addToWish = (db: LocalDb, w: Wish, sum: number) => writeLocal(db, 'wishes', [{ ...w, saved: Math.max(0, w.saved + Math.round(sum)) }]);
+// The piggy bank stays within what the server's integer column holds.
+const MAX_SAVED = 2_000_000_000;
+export const addToWish = (db: LocalDb, w: Wish, sum: number) => writeLocal(db, 'wishes', [{ ...w, saved: Math.min(MAX_SAVED, Math.max(0, w.saved + Math.round(sum))) }]);
 export const wishDone = (db: LocalDb, w: Wish) => writeLocal(db, 'wishes', [{ ...w, done_at: now() }]);
 export const removeWish = (db: LocalDb, w: Wish) => writeLocal(db, 'wishes', [{ ...w, deleted_at: now() }]);
 export const toggleMetoo = (db: LocalDb, w: Wish, me: Member, on: boolean) =>
@@ -33,7 +35,7 @@ export async function saveGoal(db: LocalDb, me: Member, g: { id?: string; owner_
     saved: prev?.saved ?? 0, steps: g.steps, created_by: prev?.created_by ?? me.id, deleted_at: null,
   }]);
 }
-export const addToGoal = (db: LocalDb, g: Goal, sum: number) => writeLocal(db, 'goals', [{ ...g, saved: Math.max(0, g.saved + Math.round(sum)) }]);
+export const addToGoal = (db: LocalDb, g: Goal, sum: number) => writeLocal(db, 'goals', [{ ...g, saved: Math.min(MAX_SAVED, Math.max(0, g.saved + Math.round(sum))) }]);
 export const toggleStep = (db: LocalDb, g: Goal, stepId: string) => writeLocal(db, 'goals', [{ ...g, steps: g.steps.map((s) => (s.id === stepId ? { ...s, done: !s.done } : s)) }]);
 export const removeGoal = (db: LocalDb, g: Goal) => writeLocal(db, 'goals', [{ ...g, deleted_at: now() }]);
 
