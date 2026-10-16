@@ -6,19 +6,23 @@ import type { Member } from '../family/useFamily';
 import { useToast } from '../shell/toastContext';
 import { rub } from '../shop/build';
 import { removePayment, savePayment, setPaid } from './moneyActions';
-import type { MonthPayment } from './month';
+import { dayTitle, dueDate, installmentNo, type MonthPayment } from './month';
+import type { Payment } from './types';
 
 
-export default function PaymentSheet({ me, db, item, month, onClose }: { me: Member; db: LocalDb; item: MonthPayment | null; month: string; onClose: () => void }) {
+// One month's payment to mark paid, or the form for a new or changed one (edit: straight from the list of all).
+export default function PaymentSheet({ me, db, item, edit, month, onShow, onClose }: {
+  me: Member; db: LocalDb; item: MonthPayment | null; edit?: Payment; month: string; onShow?: (month: string) => void; onClose: () => void;
+}) {
   const toast = useToast();
-  const p = item?.p;
+  const p = item?.p ?? edit;
   const [editing, setEditing] = useState(!item);
   const [title, setTitle] = useState(p?.title ?? '');
   const [amount, setAmount] = useState(p ? String(p.amount) : '');
   const [day, setDay] = useState(p ? String(p.day) : '');
   const [kind, setKind] = useState<'monthly' | 'installment'>(p?.kind ?? 'monthly');
   const [total, setTotal] = useState(p?.total ? String(p.total) : '');
-  const [first, setFirst] = useState(p?.first_month ?? month);
+  const [first, setFirst] = useState(p?.first_month ?? p?.created_at?.slice(0, 7) ?? month);
   const [paidSum, setPaidSum] = useState(item ? String(item.amount) : '');
   const [sure, setSure] = useState(false);
   if (item && !editing) {
@@ -36,12 +40,18 @@ export default function PaymentSheet({ me, db, item, month, onClose }: { me: Mem
       </Sheet>
     );
   }
-  const ok = title.trim() && parseRub(amount) && Number(day) >= 1 && Number(day) <= 31 && (kind === 'monthly' || (parseRub(total) && /^\d{4}-\d{2}$/.test(first)));
+  const ok = title.trim() && parseRub(amount) && Number(day) >= 1 && Number(day) <= 31 && /^\d{4}-(0[1-9]|1[0-2])$/.test(first) && (kind === 'monthly' || parseRub(total));
   const save = async (e: FormEvent) => {
     e.preventDefault();
     if (!ok) return;
-    await savePayment(db, me, { id: p?.id, title, amount: parseRub(amount)!, day: Number(day), kind, total: kind === 'installment' ? parseRub(total) : null, first_month: kind === 'installment' ? first : p ? p.first_month : month, note: '' }, p);
-    toast({ text: p ? 'Платёж сохранён' : `Платёж «${title.trim()}» добавлен` });
+    await savePayment(db, me, { id: p?.id, title, amount: parseRub(amount)!, day: Number(day), kind, total: kind === 'installment' ? parseRub(total) : null, first_month: first, note: '' }, p);
+    // A payment that starts in another month is not on this screen: say where it is and offer to go there.
+    const row = { kind, day: Number(day), total: parseRub(total), first_month: first } as Payment;
+    const elsewhere = kind === 'monthly' ? first > month : installmentNo(row, month) === null;
+    toast({
+      text: `${p ? 'Платёж сохранён' : `Платёж «${title.trim()}» добавлен`}${elsewhere ? `, первый — ${dayTitle(dueDate(row, first))} ${first.slice(0, 4)}` : ''}`,
+      ...(elsewhere && onShow ? { action: { label: 'Показать', run: () => onShow(first) } } : {}),
+    });
     onClose();
   };
   return (
@@ -55,12 +65,8 @@ export default function PaymentSheet({ me, db, item, month, onClose }: { me: Mem
           <button type="button" className="pick" aria-pressed={kind === 'monthly'} onClick={() => setKind('monthly')}>Каждый месяц</button>
           <button type="button" className="pick" aria-pressed={kind === 'installment'} onClick={() => setKind('installment')}>Рассрочка</button>
         </div></fieldset>
-        {kind === 'installment' ? (
-          <>
-            <label className="field">Сколько платежей всего<input inputMode="numeric" value={total} onChange={(e) => setTotal(e.target.value)} placeholder="12" /></label>
-            <label className="field">С какого месяца<input type="month" value={first} onChange={(e) => setFirst(e.target.value)} /></label>
-          </>
-        ) : null}
+        {kind === 'installment' ? <label className="field">Сколько платежей всего<input inputMode="numeric" value={total} onChange={(e) => setTotal(e.target.value)} placeholder="12" /></label> : null}
+        <label className="field">С какого месяца<input type="month" value={first} onChange={(e) => setFirst(e.target.value)} placeholder="2026-11" /></label>
       </form>
     </Sheet>
   );

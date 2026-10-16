@@ -28,6 +28,25 @@ export function installmentNo(p: Payment, month: string): number | null {
 const startOf = (p: Payment) => p.first_month ?? p.created_at?.slice(0, 7) ?? null;
 const livesIn = (p: Payment, month: string) => (p.kind === 'monthly' ? !startOf(p) || startOf(p)! <= month : installmentNo(p, month) !== null);
 
+// How a payment runs, for the list of all payments: «каждый месяц, 16-го · с ноября» or
+// «6 платежей · ноябрь 2026 — апрель 2027».
+const nomYear = (key: string) => `${monthTitle(key).toLowerCase()} ${key.slice(0, 4)}`;
+const genOf = (key: string, current: string) => `${GEN[Number(key.slice(5, 7)) - 1]}${key.slice(0, 4) !== current.slice(0, 4) ? ` ${key.slice(0, 4)}` : ''}`;
+export const lastMonthOf = (p: Payment) => (p.kind === 'installment' && p.first_month && p.total ? shiftMonth(p.first_month, p.total - 1) : null);
+export function paymentSpan(p: Payment, current: string) {
+  const last = lastMonthOf(p);
+  if (last && p.first_month) return `${p.total} ${plural(p.total!, 'платёж', 'платежа', 'платежей')} · ${nomYear(p.first_month)} — ${nomYear(last)}`;
+  const start = startOf(p);
+  return `каждый месяц, ${p.day}-го${start && start > current ? ` · с ${genOf(start, current)}` : ''}`;
+}
+// Every live payment: running and coming ones by their day, finished installments at the end.
+export function allPayments(payments: Payment[], current: string) {
+  const done = (p: Payment) => { const last = lastMonthOf(p); return !!last && last < current; };
+  return payments.filter((p) => !p.deleted_at)
+    .map((p) => ({ p, done: done(p), start: startOf(p) ?? current }))
+    .sort((a, b) => Number(a.done) - Number(b.done) || a.p.day - b.p.day || a.p.title.localeCompare(b.p.title, 'ru'));
+}
+
 export function monthPayments(payments: Payment[], marks: PaymentMark[], month: string) {
   return payments
     .map((p) => ({ p, mark: marks.find((x) => x.payment_id === p.id && x.month === month) }))

@@ -86,6 +86,38 @@ describe('MoneyPage', () => {
     await waitFor(async () => expect(await db.payment_marks.get(['p1', '2026-11'])).toMatchObject({ paid: true }));
   });
 
+  it('lists every payment, also one that starts next month, and shows it on its month', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.payments.bulkPut([
+      { id: 'p1', household_id: 'h', title: 'Рассрочка: диван', amount: 5000, day: 5, kind: 'installment', total: 6, first_month: '2026-11', note: '', created_by: 'papa', updated_at: 'x', deleted_at: null },
+      { id: 'p2', household_id: 'h', title: 'Интернет', amount: 650, day: 16, kind: 'monthly', total: null, first_month: '2026-09', note: '', created_by: 'papa', updated_at: 'x', deleted_at: null },
+    ]);
+    render(<MemoryRouter><MoneyPage me={papa} members={[papa, mama]} db={db} today={OCT13} /></MemoryRouter>);
+    expect(await screen.findByRole('button', { name: /^Интернет/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Рассрочка: диван/ })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: /^Все платежи/ }));
+    const all = screen.getByRole('dialog', { name: 'Все платежи' });
+    expect(within(all).getByRole('button', { name: /Рассрочка: диван/ })).toHaveTextContent(/6 платежей · ноябрь 2026 — апрель 2027/);
+    expect(within(all).getByRole('button', { name: /Интернет/ })).toHaveTextContent(/каждый месяц, 16-го/);
+    await userEvent.click(within(all).getByRole('button', { name: 'Закрыть' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Следующий месяц' }));
+    expect(await screen.findByRole('button', { name: /^Рассрочка: диван/ })).toHaveTextContent(/1 из 6/);
+  });
+
+  it('adds a monthly payment that starts in a later month', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    render(<MemoryRouter><MoneyPage me={papa} members={[papa, mama]} db={db} today={OCT13} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: /^Добавить платёж/ }));
+    await userEvent.type(screen.getByLabelText('Название'), 'Кружок');
+    await userEvent.type(screen.getByLabelText('Сумма, ₽'), '3000');
+    await userEvent.type(screen.getByLabelText('Число месяца'), '10');
+    const from = screen.getByLabelText('С какого месяца');
+    await userEvent.clear(from);
+    await userEvent.type(from, '2026-11');
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    await waitFor(async () => expect((await db.payments.toArray())[0]).toMatchObject({ title: 'Кружок', kind: 'monthly', first_month: '2026-11' }));
+  });
+
   it('asks before deleting a payment', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await db.payments.put({ id: 'p1', household_id: 'h', title: 'Интернет и ТВ', amount: 650, day: 16, kind: 'monthly', total: null, first_month: null, note: '', created_by: 'papa', updated_at: 'x', deleted_at: null });

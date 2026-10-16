@@ -15,8 +15,9 @@ import { dayTitle, daysTo, dueText, incomeOf, monthKey, monthPayments, monthTitl
 import BudgetsSheet from './BudgetsSheet';
 import EntrySheet from './EntrySheet';
 import PaymentSheet from './PaymentSheet';
+import AllPaymentsSheet from './AllPaymentsSheet';
 import EntriesSheet from './EntriesSheet';
-import { CATEGORIES, MANDATORY, type MoneyEntry } from './types';
+import { CATEGORIES, MANDATORY, type MoneyEntry, type Payment } from './types';
 import type { MonthPayment } from './month';
 
 const isoOf = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -26,13 +27,18 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   const toast = useToast();
   const [params, setParams] = useSearchParams();
   const current = monthKey(today);
-  const month = params.get('m') && params.get('m')! <= current ? params.get('m')! : current;
+  // Up to a year ahead: payments added for later months must be found somewhere.
+  const last = shiftMonth(current, 12);
+  const asked = params.get('m') ?? '';
+  const month = /^\d{4}-(0[1-9]|1[0-2])$/.test(asked) && asked <= last ? asked : current;
   const add = params.get('add') as 'expense' | 'income' | 'payment' | null;
   const [open, setOpen] = useState<MonthPayment | null>(null);
   // A category name or 'income': the list of its entries; then one entry to fix or delete.
   const [lines, setLines] = useState<string | null>(null);
   const [entry, setEntry] = useState<MoneyEntry | null>(null);
   const [budgeting, setBudgeting] = useState(false);
+  const [allPays, setAllPays] = useState(false);
+  const [editPay, setEditPay] = useState<Payment | null>(null);
   const data = useMoney(db, me.household_id);
   const go = (m: string) => setParams(m === current ? {} : { m });
   const head = (
@@ -51,8 +57,8 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   // Categories with a budget show even before anything is spent in them.
   const spent = spendByCategory(entries, list, month);
   const cats = [...spent, ...data.budgets.filter((b) => !spent.some((c) => c.cat === b.category)).map((b) => ({ cat: b.category, sum: 0, count: 0 }))];
-  // Six months ending with the one on screen.
-  const months = [5, 4, 3, 2, 1, 0].map((n) => shiftMonth(month, -n));
+  // Six months ending with the one on screen (or this one, when looking ahead).
+  const months = [5, 4, 3, 2, 1, 0].map((n) => shiftMonth(month > current ? current : month, -n));
   const totals = months.map((m) => monthTotal(entries, data.payments, data.marks, m));
   const maxT = Math.max(1, ...totals);
   const maxC = Math.max(1, ...cats.map((c) => c.sum));
@@ -65,7 +71,7 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
       <div className="month-switch" role="group" aria-label="Месяц">
         <button type="button" className="round-btn" aria-label="Предыдущий месяц" onClick={() => go(shiftMonth(month, -1))}><Icon name="back" /></button>
         <b>{monthTitle(month)}{month.slice(0, 4) !== current.slice(0, 4) ? ` ${month.slice(0, 4)}` : ''}</b>
-        <button type="button" className="round-btn" aria-label="Следующий месяц" disabled={month >= current} onClick={() => go(shiftMonth(month, 1))}><Icon name="chev" /></button>
+        <button type="button" className="round-btn" aria-label="Следующий месяц" disabled={month >= last} onClick={() => go(shiftMonth(month, 1))}><Icon name="chev" /></button>
       </div>
       {month === current ? (
         <section className="hero" aria-label="Ближайший платёж">
@@ -87,6 +93,9 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
             <span className="amount">{rub(x.amount)}</span>
           </button>
         ))}
+        {data.payments.some((p) => !p.deleted_at) ? (
+          <button type="button" className="row set-row" onClick={() => setAllPays(true)}><span className="row-main"><b>Все платежи</b><small>{data.payments.filter((p) => !p.deleted_at).length} · и те, что начнутся позже</small></span></button>
+        ) : null}
         <button type="button" className="row set-row add-row" onClick={() => setParams({ ...(month !== current ? { m: month } : {}), add: 'payment' })}><span className="row-main"><b>Добавить платёж</b><small>аренда, рассрочка, кружок</small></span></button>
       </section>
       <section className="card">
@@ -148,7 +157,9 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
       ) : null}
       {budgeting ? <BudgetsSheet me={me} db={db} budgets={data.budgets} onClose={() => setBudgeting(false)} /> : null}
       {entry ? <EntrySheet key={entry.id} kind={entry.kind} me={me} members={members} db={db} month={month} prev={entry} onClose={() => setEntry(null)} /> : null}
-      {add === 'payment' || open ? <PaymentSheet me={me} db={db} item={open} month={month} onClose={() => { setOpen(null); close(); }} /> : null}
+      {allPays ? <AllPaymentsSheet payments={data.payments} current={current} onPick={(p) => { setAllPays(false); setEditPay(p); }} onClose={() => setAllPays(false)} /> : null}
+      {add === 'payment' || open || editPay ? <PaymentSheet key={editPay?.id ?? open?.p.id ?? 'new'} me={me} db={db} item={open} edit={editPay ?? undefined} month={month} onShow={go}
+        onClose={() => { setOpen(null); setEditPay(null); close(); }} /> : null}
     </>
   );
 }
