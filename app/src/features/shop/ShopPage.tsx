@@ -32,6 +32,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const [sheet, setSheet] = useState<'add' | ShoppingItem | null>(params.get('add') === '1' ? 'add' : null);
   const [note, setNote] = useState('');
   const toast = useToast();
+  const folds = useFolds();
   const weekId = weekPick ?? data?.weeks[0]?.id ?? null;
   const shown = useMemo(() => {
     if (!data) return [];
@@ -109,12 +110,21 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
               {urgent.map(row)}
             </section>
           ) : null}
-          {groupByDept(shown.filter((i) => !urgentIds.has(i.id)), marks).map((g) => (
-            <section className="card" key={g.dept} aria-labelledby={`dept-${g.dept.replace(/\s+/g, '-')}`}>
-              <div className="card-h"><h2 id={`dept-${g.dept.replace(/\s+/g, '-')}`}>{g.dept}</h2><span className="note" style={{ margin: 0 }}>{g.items.filter((i) => marks.get(i.id)?.bought).length} из {g.items.length}</span></div>
-              {g.items.map(row)}
-            </section>
-          ))}
+          {groupByDept(shown.filter((i) => !urgentIds.has(i.id)), marks).map((g) => {
+            const id = `dept-${g.dept.replace(/\s+/g, '-')}`;
+            const got = g.items.filter((i) => marks.get(i.id)?.bought).length;
+            const done = got === g.items.length;
+            const folded = folds.isFolded(g.dept, done);
+            return (
+              <section className="card" key={g.dept} aria-labelledby={id}>
+                <div className="card-h dept-h">
+                  <h2 id={id}><button type="button" className="dept-toggle" aria-expanded={!folded} aria-controls={`${id}-rows`} onClick={() => folds.toggle(g.dept, done)}>{g.dept}<Icon name="chev" /></button></h2>
+                  <span className="note" style={{ margin: 0 }}>{folded ? (done ? 'всё куплено' : `осталось ${g.items.length - got}`) : `${got} из ${g.items.length}`}</span>
+                </div>
+                {folded ? null : <div id={`${id}-rows`}>{g.items.map(row)}</div>}
+              </section>
+            );
+          })}
         </>
       )}
       {sheet === 'add' && vocab ? <AddItemSheet vocab={vocab} onClose={() => { setSheet(null); if (params.get('add')) setParams({}, { replace: true }); }} onAdd={async (a) => {
@@ -127,4 +137,24 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
       ) : null}
     </>
   );
+}
+
+// A long department folds to its count with a tap on its name; the choice stays on this phone.
+// A department where everything is bought folds by itself, unless opened again.
+const FOLD_KEY = 'fa.shop-folded';
+function useFolds() {
+  const [folded, setFolded] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem(FOLD_KEY) ?? '[]') as string[]); } catch { return new Set(); }
+  });
+  const [opened, setOpened] = useState<Set<string>>(() => new Set());
+  const isFolded = (dept: string, done: boolean) => folded.has(dept) || (done && !opened.has(dept));
+  const toggle = (dept: string, done: boolean) => {
+    const f = new Set(folded);
+    const o = new Set(opened);
+    if (isFolded(dept, done)) { f.delete(dept); o.add(dept); } else { f.add(dept); o.delete(dept); }
+    setFolded(f);
+    setOpened(o);
+    try { localStorage.setItem(FOLD_KEY, JSON.stringify([...f])); } catch { /* storage unavailable */ }
+  };
+  return { isFolded, toggle };
 }

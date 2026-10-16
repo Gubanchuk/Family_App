@@ -35,6 +35,33 @@ describe('ShopPage', () => {
     expect(await db.outbox.where('table').equals('shopping_marks').count()).toBe(1);
   });
 
+  it('folds a department to its count and remembers it on the phone', async () => {
+    localStorage.removeItem('fa.shop-folded');
+    const db = await ready();
+    const first = show(db);
+    const toggle = await screen.findByRole('button', { name: 'Молочное и яйца' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(toggle);
+    expect(screen.queryByRole('button', { name: /Творог, 1,8 кг/ })).toBeNull();
+    expect(toggle.closest('section')).toHaveTextContent(/осталось \d/);
+    first.unmount();
+    show(db);
+    const again = await screen.findByRole('button', { name: 'Молочное и яйца' });
+    expect(again).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(again);
+    expect(screen.getByRole('button', { name: /Творог, 1,8 кг/ })).toBeInTheDocument();
+  });
+
+  it('folds a department by itself once everything in it is bought', async () => {
+    localStorage.removeItem('fa.shop-folded');
+    const db = await ready();
+    show(db);
+    const dairy = (await screen.findByRole('heading', { name: 'Молочное и яйца' })).closest('section')!;
+    for (const b of within(dairy).getAllByRole('button', { pressed: false })) await userEvent.click(b);
+    await waitFor(() => expect(within(dairy).getByRole('button', { name: 'Молочное и яйца' })).toHaveAttribute('aria-expanded', 'false'));
+    expect(dairy).toHaveTextContent('всё куплено');
+  });
+
   it('sums what is bought and what is left, naming lines without a price', async () => {
     const db = await ready();
     show(db);
