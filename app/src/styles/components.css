@@ -353,6 +353,8 @@ a.more, a.av { text-decoration: none; }
 .fam.ring-seen .av { box-shadow: 0 0 0 3px var(--k-bg), 0 0 0 5px var(--k-rule); }
 .fam-plus { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; display: grid; place-items: center; border: 2px solid var(--k-bg); border-radius: 50%; background: var(--k-primary); color: var(--k-primary-ink); }
 .fam-plus .ic { width: 14px; height: 14px; }
+.fam-count { position: absolute; top: -4px; right: -6px; z-index: 2; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; border: 2px solid var(--k-bg); border-radius: 10px; background: var(--k-primary); color: var(--k-primary-ink); font: 700 11px/1 var(--font); font-style: normal; font-variant-numeric: tabular-nums; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .se { grid-template-rows: 1fr auto; }
 .se-frame { position: relative; align-self: center; touch-action: none; }
 .se-tools { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); left: 8px; right: 8px; display: flex; gap: 8px; align-items: center; }

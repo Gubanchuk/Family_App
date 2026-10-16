@@ -31,4 +31,12 @@ describe('FamilyRow', () => {
     expect(screen.queryByRole('button', { name: /сторис/ })).toBeNull();
     expect(screen.getByText('Тёма')).toBeInTheDocument();
   });
+
+  it('shows the open requests to a person on their circle, like unread messages', () => {
+    const ring = (id: string): Ring => (id === 'son' ? 'unseen' : 'none');
+    render(<MemoryRouter><StoriesContext.Provider value={{ available: true, ringOf: ring, openViewer: vi.fn(), compose: vi.fn() }}><FamilyRow me={me} members={[me, son, papa]} todo={new Map([['son', 2], ['papa', 1]])} /></StoriesContext.Provider></MemoryRouter>);
+    expect(screen.getByRole('button', { name: 'Тёма, новая сторис, 2 просьбы' })).toHaveTextContent('2');
+    expect(screen.getByRole('group', { name: 'Семья' })).toHaveTextContent('1 просьба');
+    expect(screen.getByRole('button', { name: 'Добавить сторис' })).not.toHaveTextContent(/\d/);
+  });
 });

@@ -18,7 +18,7 @@ import { listTotals, rub } from '../shop/build';
 import { useHome } from './useHome';
 import { dateLine, greeting, mainThing } from './main';
 import { setRequestDone } from '../board/boardActions';
-import { mineToDo, whenText } from '../board/requestText';
+import { mineToDo, openTo, whenText } from '../board/requestText';
 import { progress, savedIn } from '../board/boardMath';
 import { daysTo, dueText, nextDue } from '../money/month';
 import { memberColor } from '../family/colors';
@@ -99,7 +99,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   return (
     <>
       {head}
-      <FamilyRow me={me} members={members} />
+      <FamilyRow me={me} members={members} todo={openTo(data.requests)} />
       <section className="hero" aria-label="Главное сейчас">
         {main.kind === 'offer' ? (
           <>

@@ -20,3 +20,12 @@ const order = (a: Request, b: Request) => {
 
 export const mineToDo = (list: Request[], meId: string) => list.filter((r) => r.to_id === meId && r.status !== 'cancelled').sort(order);
 export const mineAsked = (list: Request[], meId: string) => list.filter((r) => r.from_id === meId).sort(order);
+
+// Open requests per person, for the counter on the family row.
+export function openTo(list: Request[]): Map<string, number> {
+  const n = new Map<string, number>();
+  for (const r of list) if (r.status === 'open' && !r.deleted_at) n.set(r.to_id, (n.get(r.to_id) ?? 0) + 1);
+  return n;
+}
+
+export const requestsWord = (n: number) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? 'просьба' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'просьбы' : 'просьб'}`;
