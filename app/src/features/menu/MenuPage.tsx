@@ -20,6 +20,7 @@ import NextWeekHero, { CurrentWeekHero } from './NextWeekHero';
 import { getMealTimes } from '../../lib/mealTimes';
 import { useToast } from '../shell/toastContext';
 import WeekSheet from './WeekSheet';
+import { setWeekFromTemplate } from './weekActions';
 import { dayOfWeek, MEAL_LABEL, MEALS, mondayOf, soupBatches, soupOn, weekLabel, addDaysIso, type Meal } from './week';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
@@ -82,9 +83,13 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
         {segs}
         <section className="card">
           <div className="card-h"><h2>Неделя на {weekLabel(current.start)} не выбрана</h2></div>
-          <p className="note">Возьмите один из шаблонов — меню и список покупок соберутся сами. Потом любое блюдо можно заменить.</p>
+          <p className="note">Возьмите один из шаблонов — меню и список покупок соберутся сами. Потом любое блюдо можно заменить. Или выберите блюда только на нужные дни.</p>
           <div className="btns fill" style={{ marginTop: 12 }}>
             <button type="button" className="btn" onClick={() => setSheet({ kind: 'week', mode: parent ? 'current' : 'next' })}>{parent ? 'Выбрать неделю' : 'Предложить неделю'}</button>
+            {parent ? <button type="button" className="btn soft" onClick={async () => {
+              await setWeekFromTemplate(db, { household: me.household_id, startsOn: current.start, template: null, status: 'approved', by: me.id });
+              toast({ text: 'Нажмите на приём в нужный день и выберите блюдо. В покупки попадёт только выбранное.' });
+            }}>Только нужные дни</button> : null}
           </div>
         </section>
         {data.next.week ? <NextWeekHero me={me} members={members} db={db} data={data} openWeek={() => setSheet({ kind: 'week', mode: 'next' })} /> : null}

@@ -12,6 +12,8 @@ import { rub } from '../shop/build';
 import { useToast } from '../shell/toastContext';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+// The choice of no template: an empty week where dishes are picked only for the days that need them.
+const NONE = 'none';
 const SEASON = ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'];
 
 // Without a choice yet, the template of the week's season comes first.
@@ -26,7 +28,7 @@ export default function WeekSheet({ db, mode, me, data, onClose }: { db: LocalDb
   // Until someone taps a template the default follows the data: templates may still be downloading when the sheet opens.
   const [picked, setPick] = useState<string>();
   const pick = picked ?? target.week?.template_id ?? seasonal(data.templates, target.start);
-  const slots = useLiveQuery(() => (pick ? db.template_slots.where('template_id').equals(pick).toArray() : []), [db, pick]) ?? [];
+  const slots = useLiveQuery(() => (pick && pick !== NONE ? db.template_slots.where('template_id').equals(pick).toArray() : []), [db, pick]) ?? [];
   const costs = useLiveQuery(() => templateCosts(db), [db]);
   const [confirm, setConfirm] = useState(false);
   const t = data.templates.find((x) => x.id === pick);
@@ -35,22 +37,24 @@ export default function WeekSheet({ db, mode, me, data, onClose }: { db: LocalDb
   const parent = me.role === 'parent';
   // An approved week is closed to children; a parent replaces it only after a second tap.
   const locked = target.week?.status === 'approved';
-  const loaded = slots.length >= 28;
+  const loaded = pick === NONE || slots.length >= 28;
   const apply = async () => {
     if (!pick) return;
     if (locked && !confirm) { setConfirm(true); return; }
     const status = mode === 'current' || locked ? 'approved' : 'proposed';
-    const w = await setWeekFromTemplate(db, { household: me.household_id, startsOn: target.start, template: pick, status, by: me.id, existing: target.week });
+    const w = await setWeekFromTemplate(db, { household: me.household_id, startsOn: target.start, template: pick === NONE ? null : pick, status, by: me.id, existing: target.week });
     if (status === 'proposed') {
       await voteWeek(db, w, me, 'yes');
-      toast({ text: `Неделя «${t?.name ?? ''}» предложена. Семья проголосует, родители утвердят.` });
+      toast({ text: `${pick === NONE ? 'Пустая неделя' : `Неделя «${t?.name ?? ''}»`} предложена. Семья проголосует, родители утвердят.` });
+    } else if (pick === NONE) {
+      toast({ text: 'Пустая неделя стоит. Нажмите на приём в нужный день и выберите блюдо.' });
     } else {
       const s = await weekListStats(db, w.id);
       toast({ text: `Неделя «${t?.name ?? ''}» стоит. Список покупок: ${s.count} ${products(s.count)} ≈\u00A0${rub(s.cost)}`, action: { label: 'К покупкам', to: '/shop' } });
     }
     onClose();
   };
-  const name = `неделю «${t?.name ?? ''}»`;
+  const name = pick === NONE ? 'пустую неделю' : `неделю «${t?.name ?? ''}»`;
   const label = locked ? (confirm ? 'Точно заменить? Замены блюд пропадут' : 'Заменить утверждённую неделю') : mode === 'current' ? `Поставить ${name}` : `Предложить ${name}`;
   const sub = mode === 'next' ? 'Выберите шаблон и предложите семье, родители утвердят.'
     : target.week ? 'Меню и список покупок соберутся заново.' : 'Меню и список покупок соберутся сами.';
@@ -79,6 +83,12 @@ export default function WeekSheet({ db, mode, me, data, onClose }: { db: LocalDb
             ) : null}
           </div>
         ))}
+        <div className="tpl-item">
+          <button type="button" className="tpl" role="radio" aria-checked={pick === NONE} onClick={() => { setPick(NONE); setConfirm(false); }}>
+            <span className="tpl-top"><b>Без шаблона</b></span>
+            <small>Пустая неделя: блюда только на нужные дни, в покупки — только для них.</small>
+          </button>
+        </div>
       </div>
     </Sheet>
   );

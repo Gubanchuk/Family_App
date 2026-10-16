@@ -18,7 +18,7 @@ export function CurrentWeekHero({ db, data, openNext }: { db: LocalDb; data: Non
   return (
     <section className="hero" aria-label="Эта неделя">
       <h2>Неделя «{t?.name ?? 'своя'}» стоит до воскресенья</h2>
-      <p>{stats?.count ? `Список покупок собран: ${stats.count} ${products(stats.count)} ≈\u00A0${rub(stats.cost)}.` : 'Список покупок соберётся, как только меню загрузится.'}</p>
+      <p>{stats?.count ? `Список покупок собран: ${stats.count} ${products(stats.count)} ≈\u00A0${rub(stats.cost)}.` : data.current.slots.some((s) => s.dish_id || s.simple) ? 'Список покупок соберётся, как только меню загрузится.' : 'Нажмите на приём в нужный день и выберите блюдо — список соберётся из выбранного.'}</p>
       <div className="hero-chips">
         <Link className="hero-chip primary" to="/shop"><Icon name="cart" />К покупкам</Link>
         <button type="button" className="hero-chip" onClick={openNext}>Следующая неделя</button>

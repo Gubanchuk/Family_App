@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
@@ -23,6 +23,35 @@ describe('choosing and approving weeks', () => {
     await userEvent.click(screen.getByRole('radio', { name: /Быстрая/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Поставить неделю «Быстрая»' }));
     expect(await screen.findByText('Сейчас: «Быстрая», 12–18 октября')).toBeInTheDocument();
+  });
+
+  it('sets an empty week and cooks just one dish on one day, with only its products to buy', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db);
+    render(<MemoryRouter><MenuPage me={papa} members={[papa, son]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Только нужные дни' }));
+    expect(await screen.findByText('Сейчас: «своя неделя», 12–18 октября')).toBeInTheDocument();
+    const week = (await db.weeks.toArray())[0];
+    expect(week).toMatchObject({ template_id: null, status: 'approved' });
+    expect((await db.week_slots.where('week_id').equals(week.id).toArray()).every((s) => !s.dish_id && !s.simple)).toBe(true);
+    expect(await db.shopping_items.count()).toBe(0);
+    expect(screen.getAllByText('Не выбрано').length).toBe(4);
+    // Tuesday's dinner: one dish from all recipes, and the list holds only its products.
+    await userEvent.click(screen.getAllByRole('button', { name: /^Ужин/ })[0]);
+    await userEvent.click(screen.getByRole('tab', { name: 'Все рецепты' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Плов/ }));
+    expect(await screen.findByText('Плов')).toBeInTheDocument();
+    await waitFor(async () => expect((await db.shopping_items.toArray()).filter((i) => !i.deleted_at).map((i) => i.item).sort()).toEqual(['рис', 'фарш']));
+  });
+
+  it('offers an empty week among the templates too', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db);
+    render(<MemoryRouter><MenuPage me={papa} members={[papa, son]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Выбрать неделю' }));
+    await userEvent.click(screen.getByRole('radio', { name: /Без шаблона/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Поставить пустую неделю' }));
+    expect(await screen.findByText('Сейчас: «своя неделя», 12–18 октября')).toBeInTheDocument();
   });
 
   it('lets a child propose next week and a parent approve it', async () => {

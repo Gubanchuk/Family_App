@@ -2,8 +2,10 @@ import { writeLocal, writeWeekLocal } from '../../data/sync';
 import { regenerateWeekList } from '../shop/menuList';
 import type { LocalDb, Week } from '../../data/db';
 import type { Member } from '../family/useFamily';
+import { MEALS } from './week';
 
-export async function setWeekFromTemplate(db: LocalDb, a: { household: string; startsOn: string; template: string; status: 'proposed' | 'approved'; by: string; existing?: Week }): Promise<Week> {
+// template null: an empty week, to pick dishes only for the days that need them.
+export async function setWeekFromTemplate(db: LocalDb, a: { household: string; startsOn: string; template: string | null; status: 'proposed' | 'approved'; by: string; existing?: Week }): Promise<Week> {
   const week: Week = {
     id: a.existing?.id ?? crypto.randomUUID(),
     household_id: a.household,
@@ -15,8 +17,9 @@ export async function setWeekFromTemplate(db: LocalDb, a: { household: string; s
     updated_at: new Date().toISOString(),
     deleted_at: null,
   };
-  const src = await db.template_slots.where('template_id').equals(a.template).toArray();
-  // A half-downloaded template would make a week with empty days; the server refuses to approve those.
+  const empty = [0, 1, 2, 3, 4, 5, 6].flatMap((day) => MEALS.map((meal) => ({ day, meal, dish_id: null, side_id: null, salad_id: null, simple: null })));
+  const src = a.template === null ? empty : await db.template_slots.where('template_id').equals(a.template).toArray();
+  // A half-downloaded template would make a week with holes nobody chose; the server refuses to approve those.
   if (src.length < 28) throw new Error('template_not_loaded');
   await writeWeekLocal(db, week, src.map((s) => ({
     week_id: week.id, household_id: a.household, day: s.day, meal: s.meal,
