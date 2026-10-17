@@ -5,7 +5,7 @@ import { removeFiles, uploadFile } from '../../lib/media';
 import { cropAvatar } from '../../lib/image';
 import type { PhotoChoice } from './AvatarPicker';
 
-export const MEMBER_COLORS = ['#2F6FDB', '#E0457B', '#1FA463', '#F2A900'];
+export const MEMBER_COLORS = ['#2F6FDB', '#E0457B', '#1FA463', '#F2A900', '#8E5CF7', '#F06A1F', '#0E9AA7', '#D93B3B', '#8D5A3B', '#5E9E1A', '#4B4FC4', '#5B6573'];
 
 type Reply = { data: unknown; error: { code?: string; message: string } | null };
 // A database without the kin column rejects the field; the call is repeated without it,

@@ -286,7 +286,7 @@ a.more, a.av { text-decoration: none; }
 /* Member colour choice: the picked circle carries the person's initial and the member ring. */
 .color-pick, .kin-pick { border: 0; padding: 0; margin: 6px 0 14px; min-width: 0; }
 .color-pick legend, .kin-pick legend { padding: 0; margin-bottom: 10px; font: 600 14px var(--font); color: var(--k-ink-2); }
-.color-row { display: flex; gap: 16px; }
+.color-row { display: flex; flex-wrap: wrap; gap: 12px; }
 .color-pick .av { width: 48px; height: 48px; font-size: 19px; cursor: pointer; transition: box-shadow 200ms var(--ease); }
 .color-pick .av[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--k-card), 0 0 0 5px var(--c); }
 .color-pick .av:disabled { cursor: default; background: color-mix(in oklab, var(--c) 28%, var(--k-card)); color: color-mix(in oklab, var(--c) 80%, var(--k-ink)); font-size: 16px; }

@@ -33,6 +33,15 @@
   --mama: #E0457B;
   --son: #1FA463;
   --dima: #F2A900;
+  /* More circle colours for bigger families; lighter at night like the four above. */
+  --m-violet: #8E5CF7;
+  --m-orange: #F06A1F;
+  --m-teal: #0E9AA7;
+  --m-red: #D93B3B;
+  --m-brown: #8D5A3B;
+  --m-lime: #5E9E1A;
+  --m-indigo: #4B4FC4;
+  --m-slate: #5B6573;
 
   --font: "Onest", "Segoe UI", Roboto, Arial, sans-serif;
   /* Google sign-in button colours from its branding guidelines; the dark theme swaps them below. */
@@ -44,6 +53,7 @@
     --k-base: #0F1014; --k-card: #1A1C22; --k-ink: #F2F3F6; --k-ink-2: #A5ABB8; --k-rule: #2A2D36; --k-tint: 24%; --k-tint-focal: 10%;
     --k-shadow: rgba(0, 0, 0, 0.4); --k-scrim: rgba(0, 0, 0, 0.6);
     --papa: #5B8FF0; --mama: #F06A98; --son: #3CC383; --dima: #F5BE2E;
+    --m-violet: #A887FA; --m-orange: #F58A4D; --m-teal: #33BCC8; --m-red: #EC6767; --m-brown: #B5835F; --m-lime: #82C23C; --m-indigo: #7579DD; --m-slate: #8C97A7;
     --g-bg: #131314; --g-line: #8E918F; --g-ink: #E3E3E3;
     color-scheme: dark;
   }
@@ -52,6 +62,7 @@
   --k-base: #0F1014; --k-card: #1A1C22; --k-ink: #F2F3F6; --k-ink-2: #A5ABB8; --k-rule: #2A2D36; --k-tint: 24%; --k-tint-focal: 10%;
   --k-shadow: rgba(0, 0, 0, 0.4); --k-scrim: rgba(0, 0, 0, 0.6);
   --papa: #5B8FF0; --mama: #F06A98; --son: #3CC383; --dima: #F5BE2E;
+    --m-violet: #A887FA; --m-orange: #F58A4D; --m-teal: #33BCC8; --m-red: #EC6767; --m-brown: #B5835F; --m-lime: #82C23C; --m-indigo: #7579DD; --m-slate: #8C97A7;
   --g-bg: #131314; --g-line: #8E918F; --g-ink: #E3E3E3;
   color-scheme: dark;
 }

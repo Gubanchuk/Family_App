@@ -5,6 +5,7 @@ import { memberColor } from '../family/colors';
 import { kinLine } from '../family/kin';
 import type { Member } from '../family/useFamily';
 import { useStories } from '../stories/storiesContext';
+import { MEMBER_COLORS } from '../family/api';
 import { requestsWord } from '../board/requestText';
 
 // Me first, like «Моя история» in Telegram; a ring shows who has a story,
@@ -34,7 +35,7 @@ export default function FamilyRow({ me, members, todo }: { me: Member; members: 
         }
         return <div className="fam" key={m.id} style={style}>{body}</div>;
       })}
-      {me.role === 'parent' && members.length < 4 ? (
+      {me.role === 'parent' && members.length < MEMBER_COLORS.length ? (
         <Link className="fam fam-add" to="/settings"><span className="av" aria-hidden="true"><Icon name="plus" /></span><b>Позвать</b><small>ссылкой</small></Link>
       ) : null}
     </div>
