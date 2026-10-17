@@ -53,6 +53,8 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
   const [params] = useSearchParams();
   // Home links straight to a recipe with ?recipe=<id>.
   const [open, setOpen] = useState<string | null>(params.get('recipe'));
+  // The request the open recipe answers, when it was opened from the request on top.
+  const [answer, setAnswer] = useState<string | null>(null);
   const [editing, setEditing] = useState<Draft | 'new' | null>(null);
   const list = useMemo(() => {
     if (!data) return [];
@@ -82,14 +84,14 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
           <p>{whenText(forMe.on_date, todayIso)} {MEAL_FOR[forMe.meal]}, {forMe.how === 'over' ? 'поверх меню' : 'вместо блюда по меню'}. {dish(forMe.dish_id)!.time_total} минут.</p>
           <div className="hero-chips">
             <button type="button" className="hero-chip primary" onClick={() => takeOffer(db, forMe, me)}><Icon name="check" />Сделаю</button>
-            <button type="button" className="hero-chip" onClick={() => setOpen(forMe.dish_id)}>Рецепт</button>
+            <button type="button" className="hero-chip" onClick={() => { setAnswer(forMe.id); setOpen(forMe.dish_id); }}>Рецепт</button>
             <button type="button" className="hero-chip" onClick={() => declineOffer(db, forMe)}>Не {forMe.on_date === todayIso ? 'сегодня' : 'в этот день'}</button>
           </div>
         </section>
       ) : tip ? (
         <section className="hero" aria-label="Идея на выходные">
           <h2>На выходные: {tip.name.charAt(0).toLowerCase() + tip.name.slice(1)}</h2><p>{tip.about}. {tip.time_total} минут.</p>
-          <div className="hero-chips"><button type="button" className="hero-chip primary" onClick={() => setOpen(tip.id)}>Посмотреть и предложить</button></div>
+          <div className="hero-chips"><button type="button" className="hero-chip primary" onClick={() => { setAnswer(null); setOpen(tip.id); }}>Посмотреть и предложить</button></div>
         </section>
       ) : null}
       <label className="search"><Icon name="search" /><span className="vh">Найти блюдо</span>
@@ -109,7 +111,7 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
       {list.length ? <p className="note idea-count">{dishesWord(list.length)}</p> : null}
       <div className="idea-grid">
         {list.map((r, i) => (
-          <button key={r.id} type="button" className={`idea ${i === 0 && !q.trim() && !col && !meal ? 'wide' : ''}`} onClick={() => setOpen(r.id)}>
+          <button key={r.id} type="button" className={`idea ${i === 0 && !q.trim() && !col && !meal ? 'wide' : ''}`} onClick={() => { setAnswer(null); setOpen(r.id); }}>
             <Photo path={r.photo_path} className="card-photo" />
             <b>{r.name}</b>{i === 0 && !q.trim() && !col && !meal ? <span className="i-about">{r.about}</span> : null}
             <span className="i-meta"><span className="i-min">{r.time_total}<small>мин</small></span></span>
@@ -120,7 +122,10 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
       {list.length ? null : <p className="empty">Ничего не нашли. Попробуйте продукт: «курица», «творог», «яйца».</p>}
       {recipe ? (
         <RecipeSheet recipe={recipe} rows={data.rows.filter((r) => r.recipe_id === recipe.id).sort((a, b) => a.pos - b.pos)} vocab={data.vocab} prices={data.prices}
-          portions={data.portions} me={me} members={members} onClose={() => setOpen(null)}
+          portions={data.portions} me={me} members={members} onClose={() => { setOpen(null); setAnswer(null); }}
+          request={forMe && answer === forMe.id && forMe.dish_id === recipe.id
+            ? { onTake: () => takeOffer(db, forMe, me), onDecline: () => declineOffer(db, forMe), declineLabel: `Не ${forMe.on_date === todayIso ? 'сегодня' : 'в этот день'}` }
+            : undefined}
           // Anyone in the family adds a recipe; changing or deleting one is for parents.
           {...(recipe.household_id && me.role === 'parent' ? {
             inMenu: inMenu(recipe.id),

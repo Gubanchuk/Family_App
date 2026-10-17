@@ -7,18 +7,19 @@ import { MEAL_LABEL, MEALS } from './week';
 import { getMealTimes } from '../../lib/mealTimes';
 import { replaceDay } from './actions';
 import { lineOf } from './SlotSheet';
+import { Locked } from './MealSheet';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const DAY_ACC = ['понедельник', 'вторник', 'среду', 'четверг', 'пятницу', 'субботу', 'воскресенье'];
 
-export default function DaySheet({ db, week, day, recipes, templates, editable, onClose }: {
-  db: LocalDb; week: Week; day: number; recipes: Map<string, Recipe>; templates: WeekTemplate[]; editable: boolean; onClose: () => void;
+export default function DaySheet({ db, week, day, recipes, templates, editable, onPropose, onClose }: {
+  db: LocalDb; week: Week; day: number; recipes: Map<string, Recipe>; templates: WeekTemplate[]; editable: boolean; onPropose: () => void; onClose: () => void;
 }) {
   const [tpl, setTpl] = useState(templates.find((t) => t.id !== week.template_id)?.id ?? templates[0]?.id);
   const [src, setSrc] = useState(day);
   const slots = useLiveQuery(() => (tpl ? db.template_slots.where('template_id').equals(tpl).filter((s) => s.day === src).toArray() : []), [db, tpl, src]) ?? [];
   if (!editable) {
-    return <Sheet title={`Заменить ${DAY_ACC[day]} целиком`} onClose={onClose}><p className="note" style={{ margin: '0 16px 16px' }}>Утверждённую неделю меняют родители. Предложите блюдо — им придёт просьба.</p></Sheet>;
+    return <Sheet title={`Заменить ${DAY_ACC[day]} целиком`} onClose={onClose} actions={<Locked onPropose={onPropose} />}>{null}</Sheet>;
   }
   const apply = async () => { await replaceDay(db, week, day, slots); onClose(); };
   return (

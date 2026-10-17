@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '../shell/Header';
 import Icon from '../shell/Icon';
 import { localDb, type LocalDb } from '../../data/db';
@@ -8,25 +8,31 @@ import WishesPanel from './WishesPanel';
 import NeedsPanel from './NeedsPanel';
 import GoalsPanel from './GoalsPanel';
 import RequestsPanel from './RequestsPanel';
+import { OPENED_HERE, OwnUrl, afterBackClose, openedHere } from '../../lib/backClose';
 
 export type BoardTab = 'wishes' | 'needs' | 'goals' | 'requests';
 const TABS: Array<[BoardTab, string]> = [['wishes', 'Хотелки'], ['needs', 'Надо купить'], ['goals', 'Цели'], ['requests', 'Просьбы']];
 
 export default function BoardPage({ me, members, db = localDb }: { me: Member; members: Member[]; db?: LocalDb }) {
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { state } = useLocation();
   const tab = (TABS.find(([t]) => t === params.get('tab'))?.[0] ?? 'wishes') as BoardTab;
   const add = params.get('add') === '1';
   const data = useBoard(db, me.household_id);
   const setTab = (t: BoardTab) => setParams({ tab: t }, { replace: true });
-  const openAdd = () => setParams({ tab, add: '1' });
-  const closeAdd = () => setParams({ tab }, { replace: true });
+  const openAdd = () => setParams({ tab, add: '1' }, { state: OPENED_HERE });
+  // The add form opened by a tap goes back to the page's entry, so the history keeps no second copy of
+  // the page. Opened by a link from elsewhere it has nothing of this page below: the address drops ?add.
+  // A sheet opened by a tap on a card closes here too and only tidies the address (?wish= from Home).
+  const closeAdd = () => afterBackClose(() => (add && openedHere(state) ? navigate(-1) : setParams({ tab }, { replace: true })));
   return (
     <>
       <Header title="Доска" subtitle="Видно всей семье" action={<button type="button" className="head-pill" onClick={openAdd}><Icon name="plus" />Добавить</button>} />
       <div className="segs" role="tablist" aria-label="Разделы доски">
         {TABS.map(([t, label]) => <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>{label}</button>)}
       </div>
-      {data ? <BoardPanel tab={tab} me={me} members={members} db={db} data={data} adding={add} onAdded={closeAdd} /> : null}
+      {data ? <OwnUrl.Provider value={add}><BoardPanel tab={tab} me={me} members={members} db={db} data={data} adding={add} onAdded={closeAdd} /></OwnUrl.Provider> : null}
     </>
   );
 }

@@ -33,4 +33,13 @@ describe('offers in the menu', () => {
     render(<MemoryRouter><MenuPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></MemoryRouter>);
     expect(await screen.findByRole('button', { name: /Ужин: Плов/ })).toHaveTextContent('вместо: котлеты');
   });
+
+  it('opens the offered dish from its row', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    await db.dish_offers.put(offer({ status: 'taken', taken_by: 'm-papa' }));
+    render(<MemoryRouter><MenuPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: /^Сырники: готовит Папа.*Открыть рецепт/ }));
+    expect(await screen.findByRole('dialog')).toHaveTextContent('Сырники');
+  });
 });

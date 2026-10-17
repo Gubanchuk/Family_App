@@ -81,6 +81,10 @@ describe('replace sheets', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Ужин: Котлеты/ }));
     expect(await screen.findByRole('heading', { name: 'Котлеты' })).toBeInTheDocument();
     expect(screen.getByText('Утверждённую неделю меняют родители. Предложите блюдо — им придёт просьба.')).toBeInTheDocument();
+    // Not a dead end: the button leads to «Что покушать», where a dish is offered.
+    await userEvent.click(screen.getByRole('button', { name: 'Предложить блюдо' }));
+    expect(await screen.findByRole('tab', { name: 'Что покушать', selected: true })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('opens the replace sheet of the meal of today when it comes from «Заменить» on Home', async () => {

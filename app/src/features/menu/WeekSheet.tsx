@@ -54,7 +54,7 @@ export default function WeekSheet({ db, mode, me, data, today, onClose }: { db: 
       toast({ text: 'Пустая неделя стоит. Нажмите на приём в нужный день и выберите блюдо.' });
     } else {
       const s = await weekListStats(db, w.id);
-      toast({ text: `Неделя «${t?.name ?? ''}» стоит. Список покупок: ${s.count} ${products(s.count)} ≈\u00A0${rub(s.cost)}`, action: { label: 'К покупкам', to: '/shop' } });
+      toast({ text: `Неделя «${t?.name ?? ''}» стоит. Список покупок: ${s.count} ${products(s.count)} ≈\u00A0${rub(s.cost)}`, action: { label: 'К покупкам', to: `/shop?week=${w.id}` } });
     }
     onClose();
   };

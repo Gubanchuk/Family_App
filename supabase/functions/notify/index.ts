@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
     if (row.status === 'cancelled') return Response.json({ skipped: 'cancelled' });
     ev = { kind: 'requests', author, title: row.title, status: row.status, verb: doneVerbFor(members?.find((m) => m.id === authorId)?.kin) };
   } else if (table === 'stories') {
-    ev = { kind: 'stories', author, verb: verbFor(members?.find((m) => m.id === authorId)?.kin) };
+    ev = { kind: 'stories', author, memberId: authorId, verb: verbFor(members?.find((m) => m.id === authorId)?.kin) };
   } else {
     ev = { kind: 'shop_trips', author };
   }

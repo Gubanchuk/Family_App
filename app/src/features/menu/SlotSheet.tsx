@@ -6,6 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { fitsMeal, MEAL_LABEL, type Meal } from './week';
 import { replaceMeal } from './actions';
 import { blockedBy } from '../ideas/search';
+import { Locked } from './MealSheet';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const DAY_ACC = ['в понедельник', 'во вторник', 'в среду', 'в четверг', 'в пятницу', 'в субботу', 'в воскресенье'];
@@ -18,8 +19,8 @@ export function lineOf(s: Pick<WeekSlot, 'dish_id' | 'side_id' | 'simple'> | und
   return side ? `${main} + ${side.charAt(0).toLowerCase()}${side.slice(1)}` : main;
 }
 
-export default function SlotSheet({ db, week, day, meal, currentSlot, recipes, templates, editable, onClose }: {
-  db: LocalDb; week: Week; day: number; meal: Meal; currentSlot?: WeekSlot; recipes: Map<string, Recipe>; templates: WeekTemplate[]; editable: boolean; onClose: () => void;
+export default function SlotSheet({ db, week, day, meal, currentSlot, recipes, templates, editable, onPropose, onClose }: {
+  db: LocalDb; week: Week; day: number; meal: Meal; currentSlot?: WeekSlot; recipes: Map<string, Recipe>; templates: WeekTemplate[]; editable: boolean; onPropose: () => void; onClose: () => void;
 }) {
   const [tab, setTab] = useState<'weeks' | 'all'>('weeks');
   const [tpl, setTpl] = useState(templates.find((t) => t.id !== week.template_id)?.id ?? templates[0]?.id);
@@ -40,7 +41,7 @@ export default function SlotSheet({ db, week, day, meal, currentSlot, recipes, t
   const title = `${MEAL_LABEL[meal]} ${DAY_ACC[day]}`;
 
   if (!editable) {
-    return <Sheet title={title} sub={`Сейчас: ${lineOf(currentSlot, recipes)}`} onClose={onClose}><p className="note" style={{ margin: '0 16px 16px' }}>Утверждённую неделю меняют родители. Предложите блюдо — им придёт просьба.</p></Sheet>;
+    return <Sheet title={title} sub={`Сейчас: ${lineOf(currentSlot, recipes)}`} onClose={onClose} actions={<Locked onPropose={onPropose} />}>{null}</Sheet>;
   }
   const pick = async (src: Parameters<typeof replaceMeal>[4]) => { await replaceMeal(db, week, day, meal, src); onClose(); };
   const shown = all.filter((r) => !q || r.name.toLowerCase().includes(q.trim().toLowerCase()));

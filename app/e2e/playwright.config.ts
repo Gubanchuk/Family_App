@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 // End-to-end runs drive the dev server against the Supabase project from app/.env.local.
 // Every run signs up fresh users on example.com and creates its own families.
-export const BASE_URL = 'http://localhost:5174';
+export const BASE_URL = process.env.E2E_BASE_URL ?? 'http://localhost:5174';
 
 export default defineConfig({
   testDir: '.',

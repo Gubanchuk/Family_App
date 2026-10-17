@@ -41,6 +41,34 @@ test('base recipes come with their photos', async ({ browser }) => {
   const photo = mom.page.locator('img.card-photo').first();
   await expect(photo).toBeVisible({ timeout: 30_000 });
   await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth), { timeout: 30_000 }).toBeGreaterThan(0);
+  // In the recipe sheet the 640 px photo fits the phone and the sheet does not scroll sideways.
+  await mom.page.locator('button.idea', { has: mom.page.locator('img.card-photo') }).first().click();
+  const sheet = mom.page.getByRole('dialog');
+  const big = sheet.locator('img.sheet-photo');
+  await expect.poll(() => big.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth), { timeout: 30_000 }).toBeGreaterThan(0);
+  const width = mom.page.viewportSize()!.width;
+  const box = (await big.boundingBox())!;
+  expect(box.x + box.width).toBeLessThanOrEqual(width);
+  expect(await sheet.evaluate((el) => el.scrollWidth - el.clientWidth)).toBe(0);
+  await mom.close();
+  await son.close();
+});
+
+test('a recipe fills itself from a link', async ({ browser }) => {
+  const { mom, son } = await familyOfTwo(browser);
+  await tab(mom.page, 'Меню');
+  await mom.page.getByRole('tab', { name: 'Что покушать' }).click();
+  await mom.page.getByRole('button', { name: 'Свой рецепт' }).click();
+  const editor = mom.page.getByRole('dialog', { name: 'Свой рецепт' });
+  // The product list must be on the phone first, as it is on any phone after its first start.
+  await editor.getByLabel('Найти продукт').fill('молоко');
+  await expect(editor.getByRole('button', { name: 'Добавить: молоко', exact: true })).toBeVisible({ timeout: 30_000 });
+  await editor.getByLabel('Найти продукт').fill('');
+  await editor.getByLabel('Ссылка на рецепт').fill('https://www.gastronom.ru/recipe/54828/jachnevaja-kasha-na-moloke');
+  await editor.getByRole('button', { name: 'Заполнить по ссылке' }).click();
+  await expect(editor.getByLabel('Название')).toHaveValue(/[Кк]аша/, { timeout: 30_000 });
+  await expect(editor.getByRole('textbox', { name: 'Шаг 1' })).not.toHaveValue('');
+  await expect(editor.getByLabel(/^Молоко, /)).toHaveValue('500');
   await mom.close();
   await son.close();
 });

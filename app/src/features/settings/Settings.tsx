@@ -41,6 +41,10 @@ export default function Settings({ me, members, reload }: { me: Member; members:
     if (!mine) loadThemeChoice(me.id).then((t) => { if (t) setThemeChoice(t); });
   }, [me.id]);
   useEffect(() => { householdName(me.household_id).then(setFamily).catch(() => {}); }, [me.household_id]);
+  // «Позвать» on Home opens Settings at the family and its invite buttons, below the profile and colours.
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get('to') === 'family') requestAnimationFrame(() => document.getElementById('family')?.scrollIntoView({ block: 'start' }));
+  }, []);
 
   const [outWarn, setOutWarn] = useState(0);
   const signOut = async () => {
@@ -86,7 +90,7 @@ export default function Settings({ me, members, reload }: { me: Member; members:
       </section>
       <ThemePicker onPick={(c) => { saveThemeChoice(me.id, c); }} />
       {parent ? (
-        <section className="card">
+        <section className="card" id="family">
           <div className="card-h"><h2>{family ? `Семья «${family}»` : 'Семья'}</h2></div>
           {members.map((m) => (
             <div className="row member" key={m.id}>

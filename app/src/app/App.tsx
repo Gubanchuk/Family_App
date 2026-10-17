@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { refreshPush } from '../lib/push';
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import ScrollTop from '../features/shell/ScrollTop';
+import StoryLink from '../features/stories/StoryLink';
 import TabBar from '../features/shell/TabBar';
 import Header from '../features/shell/Header';
 import ProbePage from '../features/probe/ProbePage';
@@ -81,6 +83,9 @@ function MemberShell() {
   return (
     <SyncProvider householdId={me.household_id} isParent={me.role === 'parent'} portions={fam.members.reduce((sum, m) => sum + m.portion, 0) || 3.5} onSynced={fam.reload}>
       <StoriesProvider me={me} members={fam.members}>
+      <ScrollTop />
+      {/* A story push opens the app at /?story=<member>: the viewer opens on that person's story. */}
+      <StoryLink />
       <div className="screen">
         <Routes>
           <Route path="/" element={<HomePage me={me} members={fam.members} />} />
@@ -90,6 +95,8 @@ function MemberShell() {
           <Route path="/board" element={<BoardPage me={me} members={fam.members} />} />
           {me.role === 'parent' ? <Route path="/money" element={<MoneyPage me={me} members={fam.members} />} /> : null}
           <Route path="/join" element={<Header title="Вы уже в семье" />} />
+          {/* An old or mistyped link, or a parent's page opened by a child, lands on Home, not a blank screen. */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
       <TabBar tabs={tabsFor(me.role, boardReady, moneyReady)} />

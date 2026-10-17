@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { LocalDb } from '../../data/db';
 import AvatarFace from '../family/AvatarFace';
 import { memberColor } from '../family/colors';
@@ -14,7 +15,9 @@ import { Photo } from '../shell/PhotoField';
 import { seenLine } from './SeenBy';
 
 export default function WishesPanel({ me, members, db, data, adding, onAdded }: { me: Member; members: Member[]; db: LocalDb; data: BoardData; adding: boolean; onAdded: () => void }) {
-  const [open, setOpen] = useState<Wish | null>(null);
+  // Home's wish tile opens its wish with ?wish=<id>.
+  const [params] = useSearchParams();
+  const [open, setOpen] = useState<Wish | null>(() => data.wishes.find((w) => w.id === params.get('wish')) ?? null);
   const parent = me.role === 'parent';
   const list = data.wishes.filter((w) => !w.done_at).sort((a, b) => (a.created_at ?? a.updated_at).localeCompare(b.created_at ?? b.updated_at));
   return (

@@ -89,6 +89,19 @@ describe('Что покушать', () => {
     await waitFor(async () => expect((await db.dish_offers.get('o1'))?.status).toBe('taken'));
   });
 
+  it('answers the request from its recipe instead of making a new offer', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    await db.dish_offers.put({ id: 'o1', household_id: 'h1', from_member: 'm-mama', to_member: 'm-papa', dish_id: 'mn-plov', on_date: '2026-10-13', meal: 'dinner', how: 'instead', status: 'open', taken_by: null, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter initialEntries={['/menu?panel=ideas']}><MenuPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Рецепт' }));
+    const sheet = await screen.findByRole('dialog', { name: 'Плов' });
+    expect(within(sheet).queryByText('Кому и когда')).not.toBeInTheDocument();
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Сделаю' }));
+    await waitFor(async () => expect((await db.dish_offers.get('o1'))?.status).toBe('taken'));
+    expect(await db.dish_offers.count()).toBe(1);
+  });
+
   it('hides dishes the family does not eat', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db, { currentWeek: true });

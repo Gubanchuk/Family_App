@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { rub } from '../shop/build';
@@ -9,7 +10,9 @@ import type { Goal } from './types';
 import { Photo } from '../shell/PhotoField';
 
 export default function GoalsPanel({ me, members, db, data, adding, onAdded }: { me: Member; members: Member[]; db: LocalDb; data: BoardData; adding: boolean; onAdded: () => void }) {
-  const [open, setOpen] = useState<Goal | null>(null);
+  // Home's goal tile opens its goal with ?goal=<id>.
+  const [params] = useSearchParams();
+  const [open, setOpen] = useState<Goal | null>(() => data.goals.find((g) => g.id === params.get('goal')) ?? null);
   // Family goals first, then personal ones; inside each, the closest to done on top.
   const list = [...data.goals].sort((a, b) => Number(!!a.owner_id) - Number(!!b.owner_id) || progress(savedIn(data.bank, b), b.target) - progress(savedIn(data.bank, a), a.target));
   return (

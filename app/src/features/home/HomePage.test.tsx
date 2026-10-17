@@ -74,7 +74,7 @@ describe('HomePage', () => {
     const db = await ready();
     await db.goals.put({ id: 'g1', household_id: 'h1', owner_id: null, title: 'Море летом', target: 120000, saved: 30000, steps: [], created_by: null, updated_at: 'x', deleted_at: null });
     render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
-    expect(await screen.findByRole('link', { name: /Море летом.*30\s000\s₽.*из 120\s000\s₽/ })).toHaveAttribute('href', '/board?tab=goals');
+    expect(await screen.findByRole('link', { name: /Море летом.*30\s000\s₽.*из 120\s000\s₽/ })).toHaveAttribute('href', '/board?tab=goals&goal=g1');
   });
 
   it('tells a parent about a payment due within a week', async () => {
@@ -110,13 +110,31 @@ describe('HomePage', () => {
     unmount();
     await db.dish_offers.put({ id: 'o4', household_id: 'h1', from_member: 'm-mama', to_member: 'm-papa', dish_id: 'br-syrniki', on_date: '2026-10-13', meal: 'snack', how: 'over', status: 'open', taken_by: null, updated_at: 'x', deleted_at: null });
     render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
-    expect(await screen.findByRole('link', { name: 'Рецепт' })).toHaveAttribute('href', '/menu?panel=ideas&recipe=br-syrniki');
+    // The recipe of a request opens right here; «Сделаю» answers it, so nothing offers the dish anew.
+    await userEvent.click(await screen.findByRole('button', { name: 'Рецепт' }));
+    const sheet = await screen.findByRole('dialog');
+    expect(sheet).toHaveTextContent('Сырники');
+    expect(within(sheet).queryByRole('button', { name: 'Приготовлю я' })).not.toBeInTheDocument();
+  });
+
+  it('names a breakfast taken instead in its row, and opens an offered dish from its row', async () => {
+    const db = await ready();
+    await db.dish_offers.put({ id: 'o5', household_id: 'h1', from_member: 'm-mama', to_member: 'm-papa', dish_id: 'br-syrniki', on_date: '2026-10-13', meal: 'breakfast', how: 'instead', status: 'taken', taken_by: 'm-papa', updated_at: 'x', deleted_at: null });
+    await db.dish_offers.put({ id: 'o6', household_id: 'h1', from_member: 'm-mama', to_member: null, dish_id: 'mn-plov', on_date: '2026-10-13', meal: 'snack', how: 'over', status: 'open', taken_by: null, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('button', { name: /^07:30Сырники|Сырники.*Завтрак/ })).toBeInTheDocument();
+    expect(screen.queryByText('Овсяная каша')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /^Сырники: готовит Папа.*Открыть рецепт/ }));
+    expect(await screen.findByRole('dialog')).toHaveTextContent('Сырники');
+    await userEvent.click(screen.getByRole('button', { name: 'Закрыть' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Плов: Мама предлагает всем.*Открыть рецепт/ }));
+    expect(await screen.findByRole('dialog')).toHaveTextContent('Плов');
   });
 
   it('offers a parent to call the rest of the family while it is small', async () => {
     const db = await ready();
     const { unmount } = render(<MemoryRouter><HomePage me={papa} members={[papa, mama]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
-    expect(await screen.findByRole('link', { name: /Позвать/ })).toHaveAttribute('href', '/settings');
+    expect(await screen.findByRole('link', { name: /Позвать/ })).toHaveAttribute('href', '/settings?to=family');
     unmount();
     const son: Member = { ...papa, id: 'm-son', user_id: 'u3', name: 'Сын', role: 'child', is_owner: false };
     render(<MemoryRouter><HomePage me={son} members={[papa, son]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
@@ -144,7 +162,7 @@ describe('HomePage', () => {
     const db = await ready();
     await db.wishes.put({ id: 'w1', household_id: 'h1', owner_id: 'm-son', title: 'Велосипед', price: 25000, saved: 8000, gift_from: null, done_at: null, created_by: 'm-son', updated_at: 'x', deleted_at: null } as never);
     render(<MemoryRouter><HomePage me={son} members={[papa, mama, son]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
-    expect(await screen.findByRole('link', { name: /Хотелки.*Велосипед.*в копилке 8\s000\s₽/ })).toHaveAttribute('href', '/board?tab=wishes');
+    expect(await screen.findByRole('link', { name: /Хотелки.*Велосипед.*в копилке 8\s000\s₽/ })).toHaveAttribute('href', '/board?tab=wishes&wish=w1');
   });
 
   const openAdd = async (me: Member, boardAndMoney: boolean) => {

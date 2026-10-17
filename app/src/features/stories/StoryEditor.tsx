@@ -5,6 +5,7 @@ import StoryFrame, { OverlayView } from './StoryFrame';
 import { EMOJIS, editor, initialEditor } from './editorState';
 import { moved, overTrash, pinched, type Pt } from './gestures';
 import { TEXT_COLORS, type Overlay, type TextStyle } from './types';
+import { useBackClose } from '../../lib/backClose';
 
 const STYLES: TextStyle[] = ['plain', 'box', 'glass'];
 const STYLE_NAME: Record<TextStyle, string> = { plain: 'Без фона', box: 'На плашке', glass: 'На тёмном' };
@@ -76,6 +77,8 @@ export default function StoryEditor({ kind, src, initial, status, publishLabel, 
 
   const publish = async () => { setBusy(true); try { await onPublish(s.items); } finally { setBusy(false); } };
   const close = () => (s.items.length ? setLeaving(true) : onClose());
+  // Back while typing a caption finishes the caption; otherwise it works like the cross.
+  useBackClose(() => (editing ? dispatch({ t: 'done' }) : close()));
 
   return (
     <div className="story-layer se" role="dialog" aria-modal="true" aria-label="Сторис">

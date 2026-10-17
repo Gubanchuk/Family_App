@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '../shell/Header';
 import Icon from '../shell/Icon';
 import { localDb, type LocalDb } from '../../data/db';
@@ -19,6 +19,7 @@ import AllPaymentsSheet from './AllPaymentsSheet';
 import EntriesSheet from './EntriesSheet';
 import { CATEGORIES, MANDATORY, type MoneyEntry, type Payment } from './types';
 import type { MonthPayment } from './month';
+import { OPENED_HERE, OwnUrl, afterBackClose, openedHere } from '../../lib/backClose';
 
 const isoOf = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -26,6 +27,8 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   const today = useToday(fixed);
   const toast = useToast();
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { state } = useLocation();
   const current = monthKey(today);
   // Up to three years ahead, like the month picker: payments added for later months must be found somewhere.
   const last = shiftMonth(current, 36);
@@ -41,9 +44,13 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   const [editPay, setEditPay] = useState<Payment | null>(null);
   const data = useMoney(db, me.household_id);
   const go = (m: string) => setParams(m === current ? {} : { m });
+  const openAdd = (kind: 'expense' | 'income' | 'payment') => setParams({ ...(month !== current ? { m: month } : {}), add: kind }, { state: OPENED_HERE });
+  // A form opened by a tap goes back to the page's entry, so the history keeps no second copy of the page;
+  // one opened by a link from elsewhere drops ?add from the address instead.
+  const close = () => afterBackClose(() => (add && openedHere(state) ? navigate(-1) : setParams(month === current ? {} : { m: month }, { replace: true })));
   const head = (
     <Header title="Деньги" subtitle={`${monthTitle(month)} · видят только родители`}
-      action={<button type="button" className="head-pill" onClick={() => setParams({ ...(month !== current ? { m: month } : {}), add: 'expense' })}><Icon name="plus" />Расход</button>} />
+      action={<button type="button" className="head-pill" onClick={() => openAdd('expense')}><Icon name="plus" />Расход</button>} />
   );
   if (!data) return head;
   const list = monthPayments(data.payments, data.marks, month);
@@ -66,7 +73,6 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   const maxC = Math.max(1, ...cats.map((c) => c.sum));
   const byMember = [...spendByMember(entries, list, month).entries()].sort((a, b) => b[1] - a[1]);
   const maxM = Math.max(1, ...byMember.map(([, s]) => s));
-  const close = () => setParams(month === current ? {} : { m: month }, { replace: true });
   return (
     <>
       {head}
@@ -98,7 +104,7 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
         {data.payments.some((p) => !p.deleted_at) ? (
           <button type="button" className="row set-row" onClick={() => setAllPays(true)}><span className="row-main"><b>Все платежи</b><small>{data.payments.filter((p) => !p.deleted_at).length} · и те, что начнутся позже</small></span></button>
         ) : null}
-        <button type="button" className="row set-row add-row" onClick={() => setParams({ ...(month !== current ? { m: month } : {}), add: 'payment' })}><span className="row-main"><b>Добавить платёж</b><small>аренда, рассрочка, кружок</small></span></button>
+        <button type="button" className="row set-row add-row" onClick={() => openAdd('payment')}><span className="row-main"><b>Добавить платёж</b><small>аренда, рассрочка, кружок</small></span></button>
       </section>
       <section className="card">
         <div className="card-h"><h2>Расходы</h2><button type="button" className="more" onClick={() => setLines('income')}>пришло {rub(incomeOf(data.entries, month))}</button></div>
@@ -149,19 +155,19 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
           })}
         </section>
       ) : null}
-      {add === 'expense' || add === 'income' ? <EntrySheet kind={add} me={me} members={members} db={db} month={month} onClose={close} /> : null}
+      {add === 'expense' || add === 'income' ? <OwnUrl.Provider value><EntrySheet kind={add} me={me} members={members} db={db} month={month} onClose={close} /></OwnUrl.Provider> : null}
       {lines ? (
         <EntriesSheet title={lines === 'income' ? 'Доходы' : lines} month={month} members={members}
           unpriced={lines === 'income' ? 0 : unpriced.get(lines) ?? 0}
           entries={entries.filter((e) => e.on_date.startsWith(month) && (lines === 'income' ? e.kind === 'income' : e.kind === 'expense' && (e.category && CAT_SET.has(e.category) ? e.category : 'Другое') === lines))}
           onPick={(e) => { setLines(null); setEntry(e); }} onClose={() => setLines(null)}
-          onAdd={lines === 'income' ? () => { setLines(null); setParams({ ...(month !== current ? { m: month } : {}), add: 'income' }); } : undefined} />
+          onAdd={lines === 'income' ? () => { setLines(null); afterBackClose(() => openAdd('income')); } : undefined} />
       ) : null}
       {budgeting ? <BudgetsSheet me={me} db={db} budgets={data.budgets} onClose={() => setBudgeting(false)} /> : null}
       {entry ? <EntrySheet key={entry.id} kind={entry.kind} me={me} members={members} db={db} month={month} prev={entry} onClose={() => setEntry(null)} /> : null}
       {allPays ? <AllPaymentsSheet payments={data.payments} current={current} onPick={(p) => { setAllPays(false); setEditPay(p); }} onClose={() => setAllPays(false)} /> : null}
-      {add === 'payment' || open || editPay ? <PaymentSheet key={editPay?.id ?? open?.p.id ?? 'new'} me={me} db={db} item={open} edit={editPay ?? undefined} month={month} onShow={go}
-        onClose={() => { setOpen(null); setEditPay(null); close(); }} /> : null}
+      {add === 'payment' || open || editPay ? <OwnUrl.Provider value={add === 'payment'}><PaymentSheet key={editPay?.id ?? open?.p.id ?? 'new'} me={me} db={db} item={open} edit={editPay ?? undefined} month={month} onShow={go}
+        onClose={() => { setOpen(null); setEditPay(null); close(); }} /></OwnUrl.Provider> : null}
     </>
   );
 }

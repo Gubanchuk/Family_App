@@ -22,6 +22,13 @@ describe('goals', () => {
     expect(screen.getByText('Дальше: накопить на билеты · шагов 1 из 2')).toBeInTheDocument();
   });
 
+  it('opens the goal a link names, as the goal tile on Home does', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.goals.put(goal);
+    render(<MemoryRouter initialEntries={['/board?tab=goals&goal=g1']}><BoardPage me={mama} members={[mama, son]} db={db} /></MemoryRouter>);
+    expect(await screen.findByRole('checkbox', { name: 'Накопить на билеты' })).toBeInTheDocument();
+  });
+
   it('lets a parent tick a step and put money aside', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await db.goals.put(goal);

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { Member } from '../family/useFamily';
 import { useStories } from './storiesContext';
+import { pressBack } from '../../test/pressBack';
 
 const api = vi.hoisted(() => ({ result: 'missing' as unknown }));
 vi.mock('./storiesApi', () => ({
@@ -62,6 +63,26 @@ describe('StoriesProvider', () => {
     await userEvent.click(within(viewers).getByRole('button', { name: 'Закрыть' }));
     await userEvent.click(within(layer).getByRole('button', { name: 'Удалить сторис' }));
     expect(within(layer).getByRole('dialog', { name: 'Удалить сторис?' })).toBeInTheDocument();
+  });
+
+  it('closes on the phone Back, a sheet over the story first', async () => {
+    const fresh = { household_id: 'h', kind: 'photo', width: 1, height: 1, duration_ms: null, overlays: [], created_at: new Date().toISOString(), expires_at: new Date(Date.now() + 3600_000).toISOString() };
+    api.result = { stories: [{ ...fresh, id: 'mine', member_id: 'me', path: 'h/stories/mine.jpg' }], views: [{ story_id: 'mine', member_id: 'son', viewed_at: '', reaction: '❤️' }] };
+    const son: Member = { ...me, id: 'son', user_id: 'u2', name: 'Тёма', role: 'child', is_owner: false };
+    function Open() { const st = useStories(); return <button type="button" onClick={() => st.openViewer('me')}>Открыть</button>; }
+    const { default: StoriesProvider } = await import('./StoriesProvider');
+    render(<StoriesProvider me={me} members={[me, son]}><Open /></StoriesProvider>);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Открыть' })).toBeInTheDocument());
+    await new Promise((r) => setTimeout(r, 0));
+    await userEvent.click(screen.getByRole('button', { name: 'Открыть' }));
+    const layer = await screen.findByRole('dialog', { name: 'Сторис: Аня' });
+    await userEvent.click(within(layer).getByRole('button', { name: 'Посмотрели: 1' }));
+    await pressBack();
+    expect(screen.queryByRole('dialog', { name: 'Кто посмотрел' })).toBeNull();
+    expect(screen.getByRole('dialog', { name: 'Сторис: Аня' })).toBeInTheDocument();
+    await pressBack();
+    expect(screen.queryByRole('dialog', { name: 'Сторис: Аня' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Открыть' })).toBeInTheDocument();
   });
 
   it('shows the rings from the last list when the phone starts without network', async () => {

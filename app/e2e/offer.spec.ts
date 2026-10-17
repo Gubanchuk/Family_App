@@ -21,7 +21,7 @@ test('a dish mom offers to the son shows on his Home, and his «Сделаю» s
   await tab(mom.page, 'Главная');
   await expect(mom.page.locator('.row.offer', { hasText: dish })).toContainText('готовит Сын');
   await tab(mom.page, 'Покупки');
-  await expect(mom.page.getByText(/к предложенному блюду/).first()).toBeVisible();
+  await expect(mom.page.getByText(`к блюду «${dish}»`).first()).toBeVisible();
 
   await mom.close();
   await son.close();

@@ -6,6 +6,8 @@ import { createLocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import RecipeEditor from './RecipeEditor';
 import { saveRecipe } from './recipeApi';
+import { fetchRecipe } from './recipeImport';
+import { pressBack } from '../../test/pressBack';
 
 vi.mock('./recipeApi', () => ({ saveRecipe: vi.fn(async () => 'own-1'), deleteRecipe: vi.fn(async () => {}) }));
 vi.mock('./recipeImport', async (orig) => ({
@@ -162,10 +164,10 @@ describe('RecipeEditor', () => {
     const onClose = vi.fn();
     render(<RecipeEditor me={mama} db={db} onClose={onClose} />);
     await userEvent.type(screen.getByLabelText('Название'), 'Пирог');
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    await pressBack();
     expect(await screen.findByRole('group', { name: 'Выйти без сохранения?' })).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    await pressBack();
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -180,6 +182,17 @@ describe('RecipeEditor', () => {
     expect(screen.getByLabelText('Творог, г')).toHaveValue('500');
     expect(screen.getByLabelText('Яйца, шт')).toHaveValue('2');
     expect(screen.getByLabelText('Шаг 2')).toHaveValue('Обжарить.');
+  });
+
+  it('waits for the product list instead of calling every line unknown', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    vi.mocked(fetchRecipe).mockClear();
+    render(<RecipeEditor me={mama} db={db} onClose={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Ссылка на рецепт'), 'https://eda.ru/recepty/1');
+    await userEvent.click(screen.getByRole('button', { name: 'Заполнить по ссылке' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Список продуктов ещё загружается. Попробуйте через минуту.');
+    expect(fetchRecipe).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Название')).toHaveValue('');
   });
 
   it('says plainly when a page has no recipe to read', async () => {

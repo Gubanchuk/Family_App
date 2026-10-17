@@ -1,14 +1,14 @@
 import 'fake-indexeddb/auto';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
-import { createLocalDb } from '../../data/db';
+import { createLocalDb, type WeekSlot } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import MenuPage from './MenuPage';
 import ToastProvider from '../shell/Toast';
 import { regenerateWeekList } from '../shop/menuList';
-import { seedMenu } from './testData';
+import { seedMenu, templateDays } from './testData';
 
 const papa: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: 'Папа', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1 };
 const son: Member = { ...papa, id: 'm-son', user_id: 'u2', name: 'Сын', role: 'child', is_owner: false };
@@ -98,9 +98,22 @@ describe('choosing and approving weeks', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Выбрать неделю' }));
     await userEvent.click(screen.getByRole('radio', { name: /Быстрая/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Поставить неделю «Быстрая»' }));
-    expect(await screen.findByText(/^Неделя «Быстрая» стоит\. Список покупок: \d+ продукт/)).toBeInTheDocument();
+    const toast = (await screen.findByText(/^Неделя «Быстрая» стоит\. Список покупок: \d+ продукт/)).closest('.toast') as HTMLElement;
     // The toast and the hero of the freshly set week both lead to the list.
-    for (const link of screen.getAllByRole('link', { name: 'К покупкам' })) expect(link).toHaveAttribute('href', '/shop');
+    const week = (await db.weeks.toArray())[0];
+    expect(within(toast).getByRole('link', { name: 'К покупкам' })).toHaveAttribute('href', `/shop?week=${week.id}`);
+    for (const link of screen.getAllByRole('link', { name: 'К покупкам' }).filter((l) => !toast.contains(l))) expect(link).toHaveAttribute('href', '/shop');
+  });
+
+  it('leads from an approved next week to its own list, not this week’s', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    await db.weeks.put({ id: 'w-next', household_id: 'h1', starts_on: '2026-10-19', template_id: 'quick', status: 'proposed', proposed_by: 'm-son', approved_by: null, updated_at: 'x', deleted_at: null });
+    await db.week_slots.bulkPut(templateDays('quick', 'mn-plov', 'sp-ukha').map(({ template_id: _t, ...s }): WeekSlot => ({ ...s, week_id: 'w-next', household_id: 'h1' })));
+    render(<MemoryRouter><ToastProvider><MenuPage me={papa} members={[papa, son]} db={db} today={TUESDAY} /></ToastProvider></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Утвердить' }));
+    const toast = (await screen.findByText(/^Неделя на 19–25 октября утверждена/)).closest('.toast') as HTMLElement;
+    expect(within(toast).getByRole('link', { name: 'К покупкам' })).toHaveAttribute('href', '/shop?week=w-next');
   });
 
   it('early in the week shows the week that is set and its list instead of rushing the next one', async () => {

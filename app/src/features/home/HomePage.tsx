@@ -35,6 +35,8 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const times = getMealTimes();
   const navigate = useNavigate();
   const [open, setOpen] = useState<Meal | null>(null);
+  // An offered dish opened from its row under «Предложили на сегодня».
+  const [dish, setDish] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   // Read ahead so the quick-add sheet opens with all its rows at once.
   const boardReady = useBoardReady(db);
@@ -58,6 +60,9 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const name = (id: string | null | undefined) => (id ? data.recipes.get(id)?.name ?? '' : '');
   const slot = (m: Meal) => data.slots.find((s) => s.day === d && s.meal === m);
   const text = (m: Meal) => {
+    // A dish taken «instead» is what the family eats, so the row names it, as the sheet it opens does.
+    const sw = swapOf(m);
+    if (sw) return name(sw.dish_id);
     const s = slot(m);
     if (m === 'lunch') { const pot = soupOn(data.slots, d); if (pot) return `${name(pot.dish_id)}${pot.of > 1 ? `, ${pot.nth}-й день из ${pot.of}` : ''}`; }
     if (m === 'snack' && !s?.dish_id && s?.simple) return s.simple.simple;
@@ -96,6 +101,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const next = MEALS.find((m) => mins(times[m]) > nowMin);
   const totals = listTotals(data.items.map((i) => ({ est: i.est_price, real: data.marks.get(i.id)?.price_real ?? null, bought: !!data.marks.get(i.id)?.bought })));
   const who = (id: string) => members.find((m) => m.id === id)?.name ?? 'Кто-то';
+  const offerRows = data.offers.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} onOpen={() => setDish(o.dish_id)} />);
 
   return (
     <>
@@ -109,7 +115,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
             <p>Сегодня {MEAL_FOR[main.offer.meal]}, {main.offer.how === 'over' ? 'поверх меню' : 'вместо блюда по меню'}.</p>
             <div className="hero-chips">
               <button type="button" className="hero-chip primary" onClick={() => takeOffer(db, main.offer, me)}><Icon name="check" />Сделаю</button>
-              <Link className="hero-chip" to={`/menu?panel=ideas&recipe=${main.offer.dish_id}`}>Рецепт</Link>
+              <button type="button" className="hero-chip" onClick={() => setDish(main.offer.dish_id)}>Рецепт</button>
             </div>
           </>
         ) : main.kind === 'request' ? (
@@ -152,8 +158,14 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
               <button type="button" className={`row meal-row ${mins(times[m]) < nowMin ? 'past' : ''}`} key={m} onClick={() => openMeal(m)}><span className="tl-t">{times[m]}</span><span className="row-main"><b>{text(m) || 'Не выбрано'}</b><small>{MEAL_LABEL[m]}</small></span></button>
             ))}
             {data.offers.length ? <p className="tl-group">Предложили на сегодня</p> : null}
-            {data.offers.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} />)}
+            {offerRows}
           </section>
+        </>
+      ) : data.offers.length ? (
+        // Without a menu for the week, a dish offered or taken for today is still what someone cooks.
+        <>
+          <div className="sec-h"><h2>Предложили на сегодня</h2></div>
+          <section className="card">{offerRows}</section>
         </>
       ) : null}
       {moreRequests.length ? (
@@ -162,8 +174,10 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
           <section className="card">
             {moreRequests.map((r) => (
               <div className="row" key={r.id}>
-                <span className="row-main"><b>{r.title}</b><small>{who(r.from_id)} · {whenText(r.due_on, data.todayIso)}</small></span>
-                {r.urgent ? <span className="pill">срочно</span> : null}
+                <Link className="row-btn" to="/board?tab=requests">
+                  <span className="row-main"><b>{r.title}</b><small>{who(r.from_id)} · {whenText(r.due_on, data.todayIso)}</small></span>
+                  {r.urgent ? <span className="pill">срочно</span> : null}
+                </Link>
                 <button type="button" className="btn soft sm" aria-label={`${r.title}: сделано`} onClick={() => setRequestDone(db, r, true)}><Icon name="check" /></button>
               </div>
             ))}
@@ -172,12 +186,16 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
       ) : null}
       {open && data.week ? (
         <MealSheet key={open} db={db} parts={partsOf(open)} recipes={data.recipes} onClose={() => setOpen(null)}
+          onPropose={() => navigate('/menu?panel=ideas')}
           onReplace={canEditWeek(me, data.week) ? () => navigate(`/menu?replace=${open}`) : null} />
+      ) : null}
+      {dish ? (
+        <MealSheet key={`dish-${dish}`} db={db} parts={{ dish_id: dish, side_id: null, salad_id: null, simple: null }} recipes={data.recipes} onClose={() => setDish(null)} onReplace={null} />
       ) : null}
       {/* As in the mockup: the goal stands tall on the left when two tiles share the right; no holes in two columns. */}
       <div className="bento">
         {goal ? (
-          <Link className={`tile ${pay || myWish ? 'tall' : ''}`} to="/board?tab=goals" style={{ ['--h' as string]: 'var(--k-goal)' }}>
+          <Link className={`tile ${pay || myWish ? 'tall' : ''}`} to={`/board?tab=goals&goal=${goal.id}`} style={{ ['--h' as string]: 'var(--k-goal)' }}>
             <span className="t-k"><Icon name="board" />{goal.title}</span><span className="t-v num">{rub(inBank(goal))}</span>
             <span className="bar" aria-hidden="true"><i style={{ width: `${Math.round(progress(inBank(goal), goal.target) * 100)}%` }} /></span>
             <span className="t-s">из {rub(goal.target)}</span>
@@ -193,7 +211,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
             <span className="t-s">{dueText(daysTo(data.todayIso, pay.due))}</span>
           </Link>
         ) : myWish ? (
-          <Link className="tile" to="/board?tab=wishes" style={{ ['--h' as string]: 'var(--k-money)' }}>
+          <Link className="tile" to={`/board?tab=wishes&wish=${myWish.id}`} style={{ ['--h' as string]: 'var(--k-money)' }}>
             <span className="t-k"><Icon name="gift" />Хотелки</span><span className="t-v">{myWish.title}</span>
             <span className="t-s">в копилке {rub(inBank(myWish))}</span>
           </Link>

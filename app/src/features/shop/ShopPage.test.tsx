@@ -213,6 +213,29 @@ describe('ShopPage', () => {
     await waitFor(async () => expect((await db.shopping_items.get('o:now:рис'))?.deleted_at).toBeTruthy());
   });
 
+  it('names the offered dish a line was added for', async () => {
+    const db = await ready();
+    const offer = (id: string, dish_id: string) => ({ id, household_id: 'h1', from_member: 'm-mama', to_member: null, dish_id, on_date: '2026-10-14', meal: 'dinner' as const, how: 'over' as const, status: 'taken' as const, taken_by: 'm-papa', updated_at: 'x', deleted_at: null });
+    await db.dish_offers.bulkPut([offer('plov', 'mn-plov'), offer('far', 'not-on-phone')]);
+    const line = (id: string, offer_id: string, title: string) => ({ id, household_id: 'h1', week_id: null, offer_id, source: 'offer' as const, item: null, title, qty: null, unit: null, qty_text: '', dept: 'Другое', urgent: false, est_price: null, added_by: null, updated_at: 'x', deleted_at: null });
+    await db.shopping_items.bulkPut([line('o:plov:зира', 'plov', 'Зира'), line('o:far:кинза', 'far', 'Кинза')]);
+    show(db);
+    expect(await screen.findByRole('button', { name: 'Зира' })).toHaveTextContent('к блюду «Плов»');
+    // A recipe this phone has not loaded keeps the general words.
+    expect(screen.getByRole('button', { name: 'Кинза' })).toHaveTextContent('к предложенному блюду');
+  });
+
+  it('opens on the week a link names, if that week has a list', async () => {
+    const db = await ready();
+    await db.weeks.put({ id: 'w-next', household_id: 'h1', starts_on: '2026-10-19', template_id: 'quick', status: 'approved', proposed_by: null, approved_by: 'm-papa', updated_at: 'x', deleted_at: null });
+    const at = (url: string) => render(<MemoryRouter initialEntries={[url]}><ShopPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></MemoryRouter>);
+    const first = at('/shop?week=w-next');
+    expect(await screen.findByRole('tab', { name: '19–25 октября' })).toHaveAttribute('aria-selected', 'true');
+    first.unmount();
+    at('/shop?week=w-gone');
+    expect(await screen.findByRole('tab', { name: '12–18 октября' })).toHaveAttribute('aria-selected', 'true');
+  });
+
   it('keeps «Иду в магазин» and refusal notes on an empty list', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db);

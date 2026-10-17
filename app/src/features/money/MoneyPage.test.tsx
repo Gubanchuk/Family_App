@@ -160,6 +160,26 @@ describe('MoneyPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Назад' }));
     expect(await screen.findByText('Главная')).toBeInTheDocument();
   });
+  it('leaves no copy of the page to go back through after a form opened by a tap is closed', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.money_entries.put({ id: 'i1', household_id: 'h', kind: 'income', amount: 185000, category: null, member_id: 'papa', on_date: '2026-10-05', note: 'Зарплата', created_by: 'papa', updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter initialEntries={['/', '/money']} initialIndex={1}>
+      <Routes>
+        <Route path="/" element={<p>Главная</p>} />
+        <Route path="/money" element={<><MoneyPage me={mama} members={[papa, mama]} db={db} today={OCT13} /><Back /></>} />
+      </Routes>
+    </MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Расход' }));
+    await userEvent.click(within(screen.getByRole('dialog', { name: 'Расход' })).getByRole('button', { name: 'Закрыть' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    // The income form opened from the list of incomes closes the same way.
+    await userEvent.click(screen.getByRole('button', { name: /пришло/ }));
+    await userEvent.click(within(screen.getByRole('dialog', { name: 'Доходы' })).getByRole('button', { name: 'Добавить доход' }));
+    await userEvent.click(within(await screen.findByRole('dialog', { name: 'Доход' })).getByRole('button', { name: 'Закрыть' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await userEvent.click(screen.getByRole('button', { name: 'Назад' }));
+    expect(await screen.findByText('Главная')).toBeInTheDocument();
+  });
   it('counts what was bought from the shopping list in the month and keeps those lines read-only', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await db.shopping_items.put({ id: 'u:1', household_id: 'h', week_id: null, offer_id: null, source: 'manual', item: null, title: 'Молоко', qty: null, unit: null, qty_text: '', dept: 'Молочное и яйца', urgent: false, est_price: 95, added_by: 'mama', updated_at: 'x', deleted_at: null });

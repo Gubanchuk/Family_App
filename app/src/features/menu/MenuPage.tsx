@@ -30,6 +30,7 @@ const daysWord = (n: number) => (n === 1 ? 'день' : n < 5 ? 'дня' : 'дн
 
 export type MenuSheet =
   | { kind: 'meal'; day: number; meal: Meal }
+  | { kind: 'dish'; dish_id: string }
   | { kind: 'slot'; day: number; meal: Meal }
   | { kind: 'day'; day: number }
   | { kind: 'week'; mode: 'current' | 'next' }
@@ -50,6 +51,8 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
     return m && MEALS.includes(m) ? { kind: 'slot', day: dayOfWeek(today), meal: m } : null;
   });
   const closeSheet = () => { setSheet(null); if (params.has('replace')) setParams({}, { replace: true }); };
+  // «Предложить блюдо» for whoever cannot change the week: «Что покушать» is where a dish is offered.
+  const propose = () => { setParams({ panel: 'ideas' }); setSheet(null); };
   const toast = useToast();
   const times = getMealTimes();
   const panel = params.get('panel') === 'ideas' ? 'ideas' : 'week';
@@ -75,6 +78,8 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
   const template = templates.find((t) => t.id === current.week?.template_id);
 
   if (!current.week) {
+    // Dishes offered or taken for this week still show without a menu: someone is cooking them.
+    const weekOffers = [...data.offers].sort((a, b) => a.on_date.localeCompare(b.on_date));
     return (
       <>
         <Header title="Меню" subtitle={`Неделя ${weekLabel(current.start)}`} />
@@ -92,8 +97,14 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
             }}>Только нужные дни</button> : null}
           </div>
         </section>
+        {weekOffers.length ? (
+          <section className="card">
+            <div className="card-h"><h2>Предложили на эту неделю</h2></div>
+            {weekOffers.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} onOpen={() => setSheet({ kind: 'dish', dish_id: o.dish_id })} />)}
+          </section>
+        ) : null}
         {data.next.week ? <NextWeekHero me={me} members={members} db={db} data={data} openWeek={() => setSheet({ kind: 'week', mode: 'next' })} /> : null}
-        {sheet ? <SheetHost sheet={sheet} open={setSheet} close={closeSheet} me={me} members={members} db={db} data={data} today={dayOfWeek(today)} /> : null}
+        {sheet ? <SheetHost sheet={sheet} open={setSheet} close={closeSheet} propose={propose} me={me} members={members} db={db} data={data} today={dayOfWeek(today)} /> : null}
       </>
     );
   }
@@ -116,7 +127,7 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
     if (s?.salad_id) extra.push(lower(name(s.salad_id)));
     // A dish someone took «instead» replaces the menu dish on screen; the week itself stays as it was.
     const swap = dayOffers.find((o) => o.meal === meal && o.how === 'instead' && o.status === 'taken');
-    if (swap) { extra.unshift(`вместо: ${lower(main)}`); main = name(swap.dish_id); }
+    if (swap) { if (main) extra.unshift(`вместо: ${lower(main)}`); main = name(swap.dish_id); }
     const replace = () => setSheet({ kind: 'slot', day, meal });
     // An empty meal has nothing to read, so it goes straight to choosing one.
     const filled = !!(s?.dish_id || s?.simple || swap);
@@ -150,31 +161,32 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
         <div className="card-h"><h2>{DAY_NAME[day]}, {date(day)}</h2><button type="button" className="more" onClick={() => setSheet({ kind: 'day', day })}>Заменить день</button></div>
         {MEALS.map(row)}
         {dayOffers.length ? <p className="tl-group">Предложили на этот день</p> : null}
-        {dayOffers.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} />)}
+        {dayOffers.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} onOpen={() => setSheet({ kind: 'dish', dish_id: o.dish_id })} />)}
         <p className="note">Нажмите на блюдо, чтобы открыть рецепт.</p>
         {parent ? <div className="card-foot"><button type="button" className="more" onClick={() => setSheet({ kind: 'save' })}>Сохранить неделю как шаблон</button></div> : null}
       </section>
-      {sheet ? <SheetHost sheet={sheet} open={setSheet} close={closeSheet} me={me} members={members} db={db} data={data} today={dayOfWeek(today)} onSaved={(name) => toast({ text: `Шаблон «${name}» сохранён — он появится в выборе недели.` })} /> : null}
+      {sheet ? <SheetHost sheet={sheet} open={setSheet} close={closeSheet} propose={propose} me={me} members={members} db={db} data={data} today={dayOfWeek(today)} onSaved={(name) => toast({ text: `Шаблон «${name}» сохранён — он появится в выборе недели.` })} /> : null}
     </>
   );
 }
 
-function SheetHost({ sheet, open, close, me, db, data, today, onSaved }: { sheet: MenuSheet; open: (s: MenuSheet) => void; close: () => void; me: Member; members: Member[]; db: LocalDb; data: NonNullable<ReturnType<typeof useMenu>>; today: number; onSaved?: (name: string) => void }) {
+function SheetHost({ sheet, open, close, propose, me, db, data, today, onSaved }: { sheet: MenuSheet; open: (s: MenuSheet) => void; close: () => void; propose: () => void; me: Member; members: Member[]; db: LocalDb; data: NonNullable<ReturnType<typeof useMenu>>; today: number; onSaved?: (name: string) => void }) {
   const week = data.current.week;
   if (sheet.kind === 'save' && week) return <SaveTemplateSheet db={db} week={week} slots={data.current.slots} onClose={close} onSaved={onSaved} />;
   if (sheet.kind === 'meal' && week) {
     const s = data.current.slots.find((x) => x.day === sheet.day && x.meal === sheet.meal);
     const swap = data.offers.find((o) => o.on_date === addDaysIso(data.current.start, sheet.day) && o.meal === sheet.meal && o.how === 'instead' && o.status === 'taken');
     const parts = swap ? { dish_id: swap.dish_id, side_id: null, salad_id: null, simple: null } : { dish_id: s?.dish_id ?? null, side_id: s?.side_id ?? null, salad_id: s?.salad_id ?? null, simple: s?.simple ?? null };
-    return <MealSheet key={`${sheet.day}-${sheet.meal}`} db={db} parts={parts} recipes={data.recipes} onClose={close}
+    return <MealSheet key={`${sheet.day}-${sheet.meal}`} db={db} parts={parts} recipes={data.recipes} onClose={close} onPropose={propose}
       onReplace={canEditWeek(me, week) ? () => open({ kind: 'slot', day: sheet.day, meal: sheet.meal }) : null} />;
   }
+  if (sheet.kind === 'dish') return <MealSheet key={`dish-${sheet.dish_id}`} db={db} parts={{ dish_id: sheet.dish_id, side_id: null, salad_id: null, simple: null }} recipes={data.recipes} onClose={close} onReplace={null} />;
   if (sheet.kind === 'slot' && week) {
     return <SlotSheet db={db} week={week} day={sheet.day} meal={sheet.meal} currentSlot={data.current.slots.find((s) => s.day === sheet.day && s.meal === sheet.meal)}
-      recipes={data.recipes} templates={data.templates} editable={canEditWeek(me, week)} onClose={close} />;
+      recipes={data.recipes} templates={data.templates} editable={canEditWeek(me, week)} onPropose={propose} onClose={close} />;
   }
   if (sheet.kind === 'week') return <WeekSheet db={db} mode={sheet.mode} me={me} data={data} today={today} onClose={close} />;
-  if (sheet.kind === 'day' && week) return <DaySheet db={db} week={week} day={sheet.day} recipes={data.recipes} templates={data.templates} editable={canEditWeek(me, week)} onClose={close} />;
+  if (sheet.kind === 'day' && week) return <DaySheet db={db} week={week} day={sheet.day} recipes={data.recipes} templates={data.templates} editable={canEditWeek(me, week)} onPropose={propose} onClose={close} />;
   return null;
 }
 

@@ -33,10 +33,12 @@ export default function FamilyRow({ me, members, todo }: { me: Member; members: 
         if (ring !== 'none') {
           return <button type="button" className={`fam ring-${ring}`} key={m.id} style={style} aria-label={`${m.name}, ${ring === 'unseen' ? 'новая сторис' : 'сторис'}${count}`} onClick={() => st.openViewer(m.id)}>{body}</button>;
         }
+        // Open requests to someone without a story: the counter leads to the requests.
+        if (n > 0) return <Link className="fam" key={m.id} style={style} to="/board?tab=requests" aria-label={`${m.name}${count}`}>{body}</Link>;
         return <div className="fam" key={m.id} style={style}>{body}</div>;
       })}
       {me.role === 'parent' && members.length < MEMBER_COLORS.length ? (
-        <Link className="fam fam-add" to="/settings"><span className="av" aria-hidden="true"><Icon name="plus" /></span><b>Позвать</b><small>ссылкой</small></Link>
+        <Link className="fam fam-add" to="/settings?to=family"><span className="av" aria-hidden="true"><Icon name="plus" /></span><b>Позвать</b><small>ссылкой</small></Link>
       ) : null}
     </div>
   );

@@ -30,11 +30,15 @@ describe('push texts', () => {
   });
 
   it('announces a story with the verb that fits who posted it', () => {
-    expect(compose({ kind: 'stories', author: 'Мама', verb: 'выложила' }, '2026-10-15')).toMatchObject({ title: 'Мама выложила сторис', url: '/', pref: 'stories' });
-    expect(compose({ kind: 'stories', author: 'Тёма', verb: null }, '2026-10-15').title).toBe('Новая сторис от Тёма');
+    expect(compose({ kind: 'stories', author: 'Мама', memberId: 'm-mama', verb: 'выложила' }, '2026-10-15')).toMatchObject({ title: 'Мама выложила сторис', pref: 'stories' });
+    expect(compose({ kind: 'stories', author: 'Тёма', memberId: 'm-son', verb: null }, '2026-10-15').title).toBe('Новая сторис от Тёма');
     expect(verbFor('son')).toBe('выложил');
     expect(verbFor('grandmother')).toBe('выложила');
     expect(verbFor(null)).toBeNull();
+  });
+
+  it('opens the story of the person who posted it, not just Home', () => {
+    expect(compose({ kind: 'stories', author: 'Мама', memberId: 'm-mama', verb: 'выложила' }, '2026-10-15').url).toBe('/?story=m-mama');
   });
 
   it('does not push a story that reached the server an hour late', () => {

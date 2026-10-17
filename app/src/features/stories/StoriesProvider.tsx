@@ -10,6 +10,7 @@ import StoryEditor from './StoryEditor';
 import ViewersSheet from './ViewersSheet';
 import Sheet from '../menu/Sheet';
 import { useToast } from '../shell/toastContext';
+import { useBackClose } from '../../lib/backClose';
 import { kindOf, preparePhoto, prepareVideo } from './prepare';
 import type { Overlay, Prepared, Story, StoryView } from './types';
 
@@ -89,6 +90,8 @@ function ViewerHost({ me, members, startId, stories, views, now, onClose, onChan
   // The queue is fixed when the viewer opens, so a story arriving meanwhile does not shift what is on screen.
   const [groups] = useState(() => groupsFrom([me.id, ...members.filter((m) => m.id !== me.id).map((m) => m.id)], stories, startId, seenBy(views, me.id), me.id));
   const [start] = useState(() => ({ g: 0, i: groups[0] && groups[0].memberId !== me.id ? firstUnseen(groups[0].stories, seenBy(views, me.id)) : 0 }));
+  // The story covers the whole screen above the routes: Back closes it, not the page under it.
+  useBackClose(onClose, groups.length > 0);
   const [urls, setUrls] = useState<Map<string, string> | null>(null);
   const [mine, setMine] = useState<StoryView[]>([]);
   useEffect(() => { storyUrls(groups.flatMap((g) => g.stories)).then(setUrls).catch(() => setUrls(new Map())); }, [groups]);

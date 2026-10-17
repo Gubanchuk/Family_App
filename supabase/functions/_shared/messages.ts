@@ -2,7 +2,7 @@ export type Ev =
   | { kind: 'weeks'; author: string; template: string; startsOn: string }
   | { kind: 'dish_offers'; author: string; dish: string; meal: 'breakfast' | 'lunch' | 'snack' | 'dinner'; onDate: string; toAll: boolean }
   | { kind: 'shop_trips'; author: string }
-  | { kind: 'stories'; author: string; verb: 'выложила' | 'выложил' | null }
+  | { kind: 'stories'; author: string; memberId: string; verb: 'выложила' | 'выложил' | null }
   | { kind: 'requests'; author: string; title: string; status: 'open' | 'done'; verb: 'сделала' | 'сделал' | null }
   | { kind: 'payments_due'; title: string; amount: number; when: 'soon' | 'today' };
 
@@ -46,7 +46,8 @@ export function compose(e: Ev, today: string) {
     return { title, body: e.status === 'open' ? 'Откройте Доску, чтобы отметить, когда сделаете.' : 'Просьба выполнена.', url: '/board?tab=requests', pref: 'requests', tag: `request-${e.title}` };
   }
   if (e.kind === 'stories') {
-    return { title: e.verb ? `${e.author} ${e.verb} сторис` : `Новая сторис от ${e.author}`, body: 'Она исчезнет через сутки.', url: '/', pref: 'stories', tag: `story-${e.author}` };
+    // The app opens this person's stories over Home when started at this address.
+    return { title: e.verb ? `${e.author} ${e.verb} сторис` : `Новая сторис от ${e.author}`, body: 'Она исчезнет через сутки.', url: `/?story=${encodeURIComponent(e.memberId)}`, pref: 'stories', tag: `story-${e.author}` };
   }
   return { title: `${e.author} идёт в магазин`, body: 'Добавьте в список, что нужно купить.', url: '/shop', pref: 'shop', tag: 'shop' };
 }

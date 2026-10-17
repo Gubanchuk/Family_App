@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import StoryEditor from './StoryEditor';
+import { pressBack } from '../../test/pressBack';
 
 describe('StoryEditor', () => {
   it('adds a caption and a sticker and publishes them', async () => {
@@ -27,6 +28,19 @@ describe('StoryEditor', () => {
     expect(onClose).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole('button', { name: 'Выйти без публикации' }));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('on the phone Back finishes the caption being typed, then asks before leaving', async () => {
+    const onClose = vi.fn();
+    render(<StoryEditor kind="photo" src="blob:x" initial={[]} status="" publishLabel="Опубликовать" error="" onPublish={vi.fn()} onClose={onClose} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Надпись' }));
+    await userEvent.type(screen.getByRole('textbox', { name: 'Текст надписи' }), 'Привет');
+    await pressBack();
+    expect(screen.queryByRole('textbox', { name: 'Текст надписи' })).toBeNull();
+    expect(screen.getByText('Привет')).toBeInTheDocument();
+    await pressBack();
+    expect(screen.getByRole('dialog', { name: 'Выйти без публикации?' })).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('shows why a file cannot be posted', () => {

@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { DishOffer, LocalDb, ShoppingItem, ShoppingMark } from '../../data/db';
+import type { DishOffer, LocalDb, Recipe, ShoppingItem, ShoppingMark } from '../../data/db';
 import { addDaysIso, mondayOf } from '../menu/week';
 import { deptRank } from './build';
 
@@ -13,8 +13,10 @@ export function useShop(db: LocalDb, householdId: string, today: Date) {
     const items = (await db.shopping_items.where('household_id').equals(householdId).toArray()).filter((i) => !i.deleted_at);
     const marks = new Map((await db.shopping_marks.bulkGet(items.map((i) => i.id))).filter((m): m is ShoppingMark => !!m).map((m) => [m.item_id, m]));
     const offers = new Map((await db.dish_offers.where('household_id').equals(householdId).toArray()).map((o) => [o.id, o]));
+    // Recipe names of offered dishes, so a line for one can say which dish it is for.
+    const dishes = new Map((await db.recipes.bulkGet([...new Set([...offers.values()].map((o) => o.dish_id))])).filter((r): r is Recipe => !!r).map((r) => [r.id, r.name]));
     const trips = (await db.shop_trips.where('household_id').equals(householdId).toArray()).sort((a, b) => b.started_at.localeCompare(a.started_at));
-    return { weeks, items, marks, offers, lastTrip: trips[0] ?? null, start };
+    return { weeks, items, marks, offers, dishes, lastTrip: trips[0] ?? null, start };
   }, [db, householdId, start]);
 }
 

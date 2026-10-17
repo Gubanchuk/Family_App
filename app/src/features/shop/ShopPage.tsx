@@ -30,15 +30,16 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const data = useShop(db, me.household_id, today);
   const sync = useSync();
   const vocab = useLiveQuery(async () => new Map((await db.ingredients.toArray()).map((v) => [v.item, v])), [db]);
-  const [weekPick, setWeekPick] = useState<string | null>(null);
-  // Home's «Добавить» → «В покупки» opens the list with the add form (?add=1).
+  // Home's «Добавить» → «В покупки» opens the list with the add form (?add=1); a just-approved week links to its own list (?week=).
   const [params, setParams] = useSearchParams();
+  const [weekPick, setWeekPick] = useState<string | null>(params.get('week'));
   const [sheet, setSheet] = useState<'add' | ShoppingItem | null>(params.get('add') === '1' ? 'add' : null);
   const [note, setNote] = useState('');
   const toast = useToast();
   const folds = useFolds();
   const hasDays = useFeature(db, 'listDays');
-  const weekId = weekPick ?? data?.weeks[0]?.id ?? null;
+  // A linked week that is no longer in the list falls back to the first one.
+  const weekId = data?.weeks.find((w) => w.id === weekPick)?.id ?? data?.weeks[0]?.id ?? null;
   const shown = useMemo(() => {
     if (!data) return [];
     const weekStart = data.weeks.find((w) => w.id === weekId)?.starts_on ?? data.start;
@@ -52,7 +53,13 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const tripFresh = lastTrip && today.getTime() - new Date(lastTrip.started_at).getTime() < TRIP_MS;
   const meShopping = tripFresh && lastTrip!.member_id === me.id;
   const week = data.weeks.find((w) => w.id === weekId);
-  const origin = (i: ShoppingItem) => (i.source === 'menu' ? 'из меню' : i.source === 'offer' ? 'к предложенному блюду' : `вручную · ${name(i.added_by)}`);
+  // The dish is named once its offer and recipe are on this phone.
+  const offered = (i: ShoppingItem) => {
+    const o = i.offer_id ? data.offers.get(i.offer_id) : undefined;
+    const dish = o ? data.dishes.get(o.dish_id) : undefined;
+    return dish ? `к блюду «${dish}»` : 'к предложенному блюду';
+  };
+  const origin = (i: ShoppingItem) => (i.source === 'menu' ? 'из меню' : i.source === 'offer' ? offered(i) : `вручную · ${name(i.added_by)}`);
 
   // Urgent lines still to buy get their own card on top; once bought they go back to their department.
   const urgent = shown.filter((i) => i.urgent && !marks.get(i.id)?.bought);

@@ -12,10 +12,21 @@ export type MealParts = { dish_id: string | null; side_id: string | null; salad_
 export const LOCKED_NOTE = 'Утверждённую неделю меняют родители. Предложите блюдо — им придёт просьба.';
 const portionsWord = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 'порция' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'порции' : 'порций');
 
+// Who may not change the week is told so and can offer a dish instead, so the sheet is not a dead end.
+export function Locked({ onPropose }: { onPropose: () => void }) {
+  return (
+    <div className="locked">
+      <p className="note" style={{ margin: 0 }}>{LOCKED_NOTE}</p>
+      <button type="button" className="btn soft" onClick={onPropose}>Предложить блюдо</button>
+    </div>
+  );
+}
+
 // A meal opens on what is cooked: the dish, its side and salad, each with its recipe.
 // Replacing is a separate button, so looking at a recipe never changes the menu by accident.
-export default function MealSheet({ db, parts, recipes, onReplace, onClose }: {
-  db: LocalDb; parts: MealParts; recipes: Map<string, Recipe>; onReplace: (() => void) | null; onClose: () => void;
+// Without onReplace and onPropose it only shows a dish (an offered one), with no buttons.
+export default function MealSheet({ db, parts, recipes, onReplace, onPropose, onClose }: {
+  db: LocalDb; parts: MealParts; recipes: Map<string, Recipe>; onReplace: (() => void) | null; onPropose?: () => void; onClose: () => void;
 }) {
   const ids = [parts.dish_id, parts.side_id, parts.salad_id].filter((x): x is string => !!x && recipes.has(x));
   const [pick, setPick] = useState(ids[0] ?? null);
@@ -32,7 +43,7 @@ export default function MealSheet({ db, parts, recipes, onReplace, onClose }: {
 
   const actions = onReplace
     ? <button type="button" className="btn soft" onClick={onReplace}><Icon name="swap" />Заменить</button>
-    : <p className="note" style={{ margin: 0 }}>{LOCKED_NOTE}</p>;
+    : onPropose ? <Locked onPropose={onPropose} /> : null;
 
   if (!recipe) {
     // A simple snack has no recipe: what to put on the plate, for the whole family.

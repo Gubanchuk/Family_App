@@ -32,13 +32,17 @@
 
 .card { margin: 0 16px 12px; padding: 16px; border-radius: 22px; background: var(--k-card); box-shadow: 0 1px 2px var(--k-shadow); }
 .card-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
-.card-h h2 { margin: 0; font: 700 18px/1.2 var(--font); letter-spacing: -0.01em; }
+.card-h h2 { min-width: 0; margin: 0; font: 700 18px/1.2 var(--font); letter-spacing: -0.01em; overflow-wrap: anywhere; }
 .more { display: inline-flex; align-items: center; min-height: 44px; border: 0; background: none; padding: 0; color: color-mix(in oklab, var(--k-primary) 80%, var(--k-ink)); font: 600 14px var(--font); cursor: pointer; }
 .row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--k-rule); }
 .card-h + .row, .row:first-child { border-top: 0; }
 .row-btn { all: unset; display: flex; align-items: center; gap: 12px; width: 100%; cursor: pointer; }
 .row-btn:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 2px; border-radius: 10px; }
 .row-main { flex: 1; min-width: 0; }
+/* A pasted link or one long word wraps instead of widening the screen. */
+.row-main b, .wish b { overflow-wrap: anywhere; }
+/* A soup named at length by the family wraps inside its pill. */
+.soup-line .pill { flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere; }
 .row-main b { display: block; font-weight: 600; font-size: 16px; line-height: 1.3; }
 .row-main small { display: block; color: var(--k-ink-2); font-size: 13px; margin-top: 1px; }
 .amount { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -167,7 +171,7 @@
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 599px) { .sheet-backdrop, .sheet { position: fixed; } }
 .sheet-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; padding: 18px 16px 0; }
-.sheet-head h2 { margin: 0; font: 800 26px/1.1 var(--font); letter-spacing: -0.025em; text-wrap: balance; }
+.sheet-head h2 { min-width: 0; margin: 0; font: 800 26px/1.1 var(--font); letter-spacing: -0.025em; text-wrap: balance; overflow-wrap: anywhere; }
 .sheet-head .round-btn { background: color-mix(in oklab, var(--k-ink) 6%, var(--k-card)); box-shadow: none; }
 .sheet-sub { margin: 6px 16px 14px; font-size: 15px; color: var(--k-ink-2); }
 .meta-line { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: -6px 16px 14px; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: color-mix(in oklab, var(--k-meal) 82%, var(--k-ink)); }
@@ -209,7 +213,7 @@
 /* Menu: week bar, meals, sheets for replacing a meal, a day or the week (ported from mockups/styles.css) */
 .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .segs { display: flex; gap: 6px; margin: 0 16px 14px; padding: 4px; border-radius: 16px; background: var(--k-card); box-shadow: 0 1px 2px var(--k-shadow); overflow-x: auto; scrollbar-width: none; }
-.segs button { flex: 1 0 auto; border: 0; border-radius: 12px; padding: 9px 10px; background: none; font: 600 14px var(--font); color: var(--k-ink-2); cursor: pointer; }
+.segs button { flex: 1 1 auto; border: 0; border-radius: 12px; padding: 9px 6px; background: none; font: 600 14px var(--font); color: var(--k-ink-2); cursor: pointer; }
 .segs button[aria-selected="true"] { background: var(--k-primary); color: var(--k-primary-ink); }
 .search { display: flex; align-items: center; gap: 10px; margin: 0 16px 12px; padding: 0 14px; min-height: 48px; border-radius: 16px; background: var(--k-card); color: var(--k-ink-2); box-shadow: 0 1px 2px var(--k-shadow); }
 .search:focus-within { outline: 3px solid var(--k-primary); outline-offset: 2px; }
@@ -260,15 +264,17 @@ button.meal-row { cursor: pointer; }
 
 /* Notices, offers and the shopping list (ported from mockups/styles.css) */
 .notice { display: flex; align-items: center; gap: 12px; margin: 0 16px 14px; padding: 14px 16px; border-radius: 22px; background: color-mix(in oklab, var(--k-meal) var(--k-tint), var(--k-card)); }
-.row.offer .row-btn, .row.member .row-btn { flex: 1; min-width: 0; }
+/* A tappable row takes the room left by its side buttons and never pushes them off screen. */
+.row > .row-btn { flex: 1; min-width: 0; }
 .amount-btn { flex: none; min-width: 44px; min-height: 44px; text-align: right; border: 0; background: none; padding: 8px 0 8px 10px; font: inherit; color: inherit; cursor: pointer; }
 
 /* «Что покушать»: idea cards and the recipe sheet (ported from mockups/styles.css) */
-.idea-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 16px 12px; }
+/* Two equal columns whatever the words: a long one («консервированной») breaks instead of widening its card. */
+.idea-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0 16px 12px; }
 .idea { display: flex; flex-direction: column; gap: 6px; padding: 14px; border: 0; border-radius: 22px; background: var(--k-card); color: var(--k-ink); text-align: left; font: inherit; cursor: pointer; box-shadow: 0 1px 2px var(--k-shadow); transition: transform 160ms var(--ease); }
 .idea:active { transform: scale(0.98); }
 .idea.wide { grid-column: 1 / -1; padding: 16px; background: color-mix(in oklab, var(--k-meal) var(--k-tint-focal), var(--k-card)); box-shadow: none; }
-.idea b { font: 700 17px/1.2 var(--font); letter-spacing: -0.01em; text-wrap: balance; }
+.idea b { font: 700 17px/1.2 var(--font); letter-spacing: -0.01em; text-wrap: balance; overflow-wrap: break-word; hyphens: auto; }
 .idea.wide b { font-size: 21px; font-weight: 800; letter-spacing: -0.02em; }
 .i-about { font-size: 14px; line-height: 1.35; color: var(--k-ink-2); }
 .i-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-top: auto; padding-top: 10px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -376,7 +382,7 @@ a.more, a.av { text-decoration: none; }
 
 /* Board: wishes as cards two in a row, a piggy-bank bar in the owner's colour, the secret gift label. */
 .wish-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 16px 12px; }
-.wish { position: relative; display: grid; gap: 6px; align-content: start; padding: 14px; border-radius: 20px; background: var(--k-card); box-shadow: 0 1px 2px var(--k-shadow); }
+.wish { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; align-content: start; padding: 14px; border-radius: 20px; background: var(--k-card); box-shadow: 0 1px 2px var(--k-shadow); }
 .wish > b { font-size: 16px; line-height: 1.25; }
 .wish > small { font-size: 13px; color: var(--k-ink-2); }
 .wish .btn, .wish .secret { position: relative; z-index: 1; justify-self: start; }
@@ -491,7 +497,9 @@ a.more, a.av { text-decoration: none; }
 .photo-add .ic { width: 20px; height: 20px; }
 .photo-field { display: grid; gap: 10px; margin: 0 0 14px; }
 .photo-field img, .photo-wait, .sheet-photo { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 18px; background: color-mix(in oklab, var(--k-ink) 6%, var(--k-card)); }
-.sheet-photo { width: auto; margin: 0 16px 14px; }
+/* The sheet's width less its side margins, never the picture's own: photos come 640 to 1280 px wide. */
+.sheet-photo { width: calc(100% - 32px); margin: 0 16px 14px; }
+.locked { display: grid; gap: 10px; }
 .card-photo { display: block; width: calc(100% + 28px); margin: -14px -14px 4px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 22px 22px 0 0; }
 .idea.wide .card-photo { width: calc(100% + 32px); margin: -16px -16px 6px; aspect-ratio: 16 / 9; }
 .goal .goal-photo { width: calc(100% + 32px); margin: -16px -16px 12px; aspect-ratio: 16 / 9; }
