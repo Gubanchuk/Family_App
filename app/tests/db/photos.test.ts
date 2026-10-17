@@ -62,4 +62,13 @@ describe('photos of recipes, wishes and goals', { timeout: 60_000 }, () => {
     await expect(asUser(db, MAMA, "update public.recipes set photo_path = $1 where id = 'own-p'", [`${other}/photos/recipes/own-p/1.jpg`])).rejects.toThrow();
     expect(await rows(STRANGER, "select photo_path from public.recipes where id = 'own-p'")).toEqual([]);
   });
+
+  it('lets every member read photos of the base recipes and nobody add there', async () => {
+    await db.query("insert into storage.objects (bucket_id, name) values ('family', 'base/br-syrniki.jpg')");
+    expect(await rows(SON, "select name from storage.objects where name like 'base/%'")).toEqual([{ name: 'base/br-syrniki.jpg' }]);
+    expect(await rows(STRANGER, "select name from storage.objects where name like 'base/%'")).toEqual([{ name: 'base/br-syrniki.jpg' }]);
+    await expect(put(PAPA, 'base/br-omlet.jpg')).rejects.toThrow();
+    expect(await rows(PAPA, "select photo_path as p from public.recipes where id = 'br-syrniki'")).toEqual([{ p: 'base/br-syrniki.jpg' }]);
+    await expect(asUser(db, MAMA, "insert into public.recipes (id, household_id, name, category, meals, time_active, time_total, servings, protein, dima_level, steps, photo_path) values ('own-b', $1, 'Сырники', 'breakfast', '{breakfast}', 20, 25, 4, 'dairy', 'ok', '{Смешать}', 'base/br-syrniki.jpg')", [hh])).rejects.toThrow();
+  });
 });

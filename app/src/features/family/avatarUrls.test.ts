@@ -22,4 +22,13 @@ describe('avatar links', () => {
     // Nine days later the link is due for renewal, the renewal fails, the old one is still used.
     expect(await avatarUrl('h/avatars/m1/1.jpg', Date.now() + 9 * 86_400_000)).toBe('https://cdn/old');
   });
+
+  it('asks for many links in small requests, so no answer grows large', async () => {
+    const signer = vi.fn(async (paths: string[]) => new Map(paths.map((p) => [p, `https://cdn/${p}`])));
+    setAvatarSigner(signer);
+    const paths = Array.from({ length: 95 }, (_, i) => `base/r${i}.jpg`);
+    const urls = await Promise.all(paths.map((p) => avatarUrl(p)));
+    expect(urls[94]).toBe('https://cdn/base/r94.jpg');
+    expect(signer.mock.calls.map(([p]) => p.length)).toEqual([40, 40, 15]);
+  });
 });

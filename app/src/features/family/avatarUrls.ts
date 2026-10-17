@@ -34,8 +34,11 @@ async function flush() {
   queue = new Map();
   timer = null;
   const paths = [...batch.keys()];
-  let urls = new Map<string, string>();
-  try { urls = await signer(paths, SIGN_FOR_S); } catch { /* offline: a remembered link or the letter */ }
+  // In parts of 40: a screen of recipe photos would make one answer too large for a fragile connection.
+  const urls = new Map<string, string>();
+  for (let i = 0; i < paths.length; i += 40) {
+    try { for (const [k, v] of await signer(paths.slice(i, i + 40), SIGN_FOR_S)) urls.set(k, v); } catch { /* offline: a remembered link or the letter */ }
+  }
   const c = read();
   const until = Date.now() + SIGN_FOR_S * 1000;
   for (const p of paths) {
