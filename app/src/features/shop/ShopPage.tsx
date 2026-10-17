@@ -124,11 +124,14 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
             const got = g.items.filter((i) => marks.get(i.id)?.bought).length;
             const done = got === g.items.length;
             const folded = folds.isFolded(g.dept, done);
+            // What the department costs: what is left to buy, or what it took once all is bought.
+            const sum = listTotals(g.items.map((i) => ({ est: i.est_price, real: marks.get(i.id)?.price_real ?? null, bought: !!marks.get(i.id)?.bought })));
+            const money = done ? (sum.bought ? ` · ${rub(sum.bought)}` : '') : sum.left ? ` · ≈ ${rub(sum.left)}` : '';
             return (
               <section className="card" key={g.dept} aria-labelledby={id}>
                 <div className="card-h dept-h">
                   <h2 id={id}><button type="button" className="dept-toggle" aria-expanded={!folded} aria-controls={`${id}-rows`} onClick={() => folds.toggle(g.dept, done)}>{g.dept}<Icon name="chev" /></button></h2>
-                  <span className="note" style={{ margin: 0 }}>{folded ? (done ? 'всё куплено' : `осталось ${g.items.length - got}`) : `${got} из ${g.items.length}`}</span>
+                  <span className="note" style={{ margin: 0 }}>{folded ? (done ? 'всё куплено' : `осталось ${g.items.length - got}`) : `${got} из ${g.items.length}`}{money}</span>
                 </div>
                 {folded ? null : <div id={`${id}-rows`}>{g.items.map(row)}</div>}
               </section>
