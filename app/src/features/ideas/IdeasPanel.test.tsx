@@ -33,9 +33,24 @@ describe('Что покушать', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Сладкое' }));
     expect(screen.getByRole('button', { name: /Печёные яблоки/ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Сырники/ })).toBeNull();
-    await userEvent.click(screen.getByRole('button', { name: 'Все' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Сладкое' }));
     await userEvent.type(screen.getByRole('searchbox'), 'творог');
     expect(await screen.findByRole('button', { name: /^Сырники/ })).toBeInTheDocument();
+  });
+
+  it('shows every dish, not just the collections, and filters them by meal', async () => {
+    await open();
+    expect(await screen.findByRole('button', { name: /^Овсяная каша/ })).toBeInTheDocument();
+    const meals = screen.getByRole('group', { name: 'Приём' });
+    await userEvent.click(within(meals).getByRole('button', { name: 'Полдник' }));
+    expect(screen.getByRole('button', { name: /^Печёные яблоки/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Плов/ })).toBeNull();
+    await userEvent.click(within(meals).getByRole('button', { name: 'Ужин' }));
+    expect(screen.getByRole('button', { name: /^Плов/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Сырники/ })).toBeNull();
+    expect(screen.getByText('2 блюда')).toBeInTheDocument();
+    await userEvent.click(within(meals).getByRole('button', { name: 'Ужин' }));
+    expect(screen.getByRole('button', { name: /^Сырники/ })).toBeInTheDocument();
   });
 
   it('shows a recipe for the family and offers it to a member', async () => {
@@ -109,7 +124,7 @@ describe('Что покушать', () => {
     await userEvent.click(screen.getByRole('button', { name: /Бабушкин пирог/ }));
     expect(screen.getByRole('button', { name: 'Изменить' })).toBeInTheDocument();
     await userEvent.click(within(screen.getByRole('dialog', { name: 'Бабушкин пирог' })).getByRole('button', { name: 'Закрыть' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Все' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Наши рецепты' }));
     await userEvent.click(screen.getByRole('button', { name: new RegExp(base.name) }));
     expect(screen.queryByRole('button', { name: 'Изменить' })).toBeNull();
   });

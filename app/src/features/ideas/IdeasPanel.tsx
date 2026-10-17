@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import Icon from '../shell/Icon';
 import type { LocalDb, Recipe } from '../../data/db';
 import type { Member } from '../family/useFamily';
-import { addDaysIso, dayOfWeek, mondayOf } from '../menu/week';
+import { addDaysIso, dayOfWeek, fitsMeal, mondayOf, type Meal } from '../menu/week';
 import { useToast } from '../shell/toastContext';
 import { lineOf } from '../menu/SlotSheet';
 import { blockedBy, recipeMatches } from './search';
@@ -16,6 +16,10 @@ import { deleteRecipe } from './recipeApi';
 
 const DIMA = { ok: 'Диме можно', adapt: 'Диме с поправкой', skip: 'Диме нельзя' } as const;
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+const MEAL_CHIPS: Array<[Meal, string]> = [['breakfast', 'Завтрак'], ['lunch', 'Обед'], ['snack', 'Полдник'], ['dinner', 'Ужин']];
+// A dish fits a meal by its kind (soups for lunch, mains for dinner) or because the recipe names that meal.
+const inMeal = (r: Recipe, m: Meal) => fitsMeal(r, m) || r.meals.includes(m);
+const dishesWord = (n: number) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? 'блюдо' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'блюда' : 'блюд'}`;
 
 export default function IdeasPanel({ me, members, db, today }: { me: Member; members: Member[]; db: LocalDb; today: Date }) {
   const todayIso = addDaysIso(mondayOf(today), dayOfWeek(today));
@@ -42,7 +46,8 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
     };
   }, [db, me.household_id, me.id, todayIso]);
   const toast = useToast();
-  const [col, setCol] = useState('all');
+  const [col, setCol] = useState<string | null>(null);
+  const [meal, setMeal] = useState<Meal | null>(null);
   const [q, setQ] = useState('');
   const [params] = useSearchParams();
   // Home links straight to a recipe with ?recipe=<id>.
@@ -51,9 +56,12 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
   const list = useMemo(() => {
     if (!data) return [];
     const ok = (r: Recipe) => !blockedBy(r, data.itemsOf.get(r.id) ?? [], data.notEat);
-    if (q.trim()) return data.recipes.filter((r) => ok(r) && recipeMatches(q, r, data.itemsOf.get(r.id) ?? [])).sort((a, b) => a.name.localeCompare(b.name, 'ru'));
-    return data.recipes.filter((r) => ok(r) && r.collections.length > 0 && (col === 'all' || r.collections.includes(col)));
-  }, [data, q, col]);
+    const byName = (a: Recipe, b: Recipe) => a.name.localeCompare(b.name, 'ru');
+    if (q.trim()) return data.recipes.filter((r) => ok(r) && recipeMatches(q, r, data.itemsOf.get(r.id) ?? [])).sort(byName);
+    // Every dish of the base and the family's own; the ones from collections lead when nothing is filtered.
+    return data.recipes.filter((r) => ok(r) && (!col || r.collections.includes(col)) && (!meal || inMeal(r, meal)))
+      .sort((a, b) => (col || meal ? 0 : Number(b.collections.length > 0) - Number(a.collections.length > 0)) || byName(a, b));
+  }, [data, q, col, meal]);
   if (!data) return <p className="note" style={{ margin: 16 }}>Загружаем рецепты…</p>;
 
   const name = (id: string | null) => members.find((m) => m.id === id)?.name ?? 'Кто-то';
@@ -86,15 +94,22 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
       <label className="search"><Icon name="search" /><span className="vh">Найти блюдо</span>
         <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Блюдо или продукт: курица, яйца" autoComplete="off" /></label>
       {q.trim() ? null : (
-        <div className="col-chips" role="group" aria-label="Подборки">
-          {[{ id: 'all', name: 'Все' }, ...(hasOwn ? [{ id: 'ours', name: 'Наши рецепты' }] : []), ...COLLECTIONS].map((c) => <button key={c.id} type="button" aria-pressed={col === c.id} onClick={() => setCol(c.id)}>{c.name}</button>)}
-        </div>
+        <>
+          {/* A meal or a collection narrows the list; a second tap takes it off. */}
+          <div className="col-chips" role="group" aria-label="Приём">
+            {MEAL_CHIPS.map(([m, label]) => <button key={m} type="button" aria-pressed={meal === m} onClick={() => setMeal(meal === m ? null : m)}>{label}</button>)}
+          </div>
+          <div className="col-chips" role="group" aria-label="Подборки">
+            {[...(hasOwn ? [{ id: 'ours', name: 'Наши рецепты' }] : []), ...COLLECTIONS].map((c) => <button key={c.id} type="button" className="soft" aria-pressed={col === c.id} onClick={() => setCol(col === c.id ? null : c.id)}>{c.name}</button>)}
+          </div>
+        </>
       )}
       <button type="button" className="btn soft sm own-add" onClick={() => setEditing('new')}><Icon name="plus" />Свой рецепт</button>
+      {list.length ? <p className="note idea-count">{dishesWord(list.length)}</p> : null}
       <div className="idea-grid">
         {list.map((r, i) => (
-          <button key={r.id} type="button" className={`idea ${i === 0 && !q.trim() ? 'wide' : ''}`} onClick={() => setOpen(r.id)}>
-            <b>{r.name}</b>{i === 0 && !q.trim() ? <span className="i-about">{r.about}</span> : null}
+          <button key={r.id} type="button" className={`idea ${i === 0 && !q.trim() && !col && !meal ? 'wide' : ''}`} onClick={() => setOpen(r.id)}>
+            <b>{r.name}</b>{i === 0 && !q.trim() && !col && !meal ? <span className="i-about">{r.about}</span> : null}
             <span className="i-meta"><span className="i-min">{r.time_total}<small>мин</small></span></span>
             <span className="i-dima">{DIMA[r.dima_level]}</span>
           </button>

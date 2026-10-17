@@ -479,3 +479,7 @@ a.more, a.av { text-decoration: none; }
 .mp-year b { font: 700 17px var(--font); font-variant-numeric: tabular-nums; }
 .mp-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .mp-grid .pick { padding: 8px 0; }
+/* «Что покушать»: meals on the first chip row, collections lighter on the second, then the count. */
+.col-chips + .col-chips { margin-top: -6px; }
+.col-chips button.soft:not([aria-pressed="true"]) { background: color-mix(in oklab, var(--k-ink) 5%, var(--k-bg)); box-shadow: none; }
+.idea-count { margin: 0 16px 8px; }
