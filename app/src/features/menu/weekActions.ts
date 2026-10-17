@@ -5,7 +5,8 @@ import type { Member } from '../family/useFamily';
 import { MEALS } from './week';
 
 // template null: an empty week, to pick dishes only for the days that need them.
-export async function setWeekFromTemplate(db: LocalDb, a: { household: string; startsOn: string; template: string | null; status: 'proposed' | 'approved'; by: string; existing?: Week }): Promise<Week> {
+// listDays: the days the shopping list is for, left out until the server has the column.
+export async function setWeekFromTemplate(db: LocalDb, a: { household: string; startsOn: string; template: string | null; status: 'proposed' | 'approved'; by: string; existing?: Week; listDays?: number[] | null }): Promise<Week> {
   const week: Week = {
     id: a.existing?.id ?? crypto.randomUUID(),
     household_id: a.household,
@@ -14,6 +15,7 @@ export async function setWeekFromTemplate(db: LocalDb, a: { household: string; s
     status: a.status,
     proposed_by: a.status === 'proposed' ? a.by : a.existing?.proposed_by ?? null,
     approved_by: a.status === 'approved' ? a.by : null,
+    ...(a.listDays !== undefined ? { list_days: a.listDays } : {}),
     updated_at: new Date().toISOString(),
     deleted_at: null,
   };
@@ -42,4 +44,12 @@ export async function approveWeek(db: LocalDb, week: Week, parent: Member) {
 export async function weekListStats(db: LocalDb, weekId: string): Promise<{ count: number; cost: number }> {
   const items = (await db.shopping_items.where('week_id').equals(weekId).toArray()).filter((i) => i.source === 'menu' && !i.deleted_at);
   return { count: items.length, cost: items.reduce((sum, i) => sum + (i.est_price ?? 0), 0) };
+}
+
+// The days from today to Sunday, for a week set after its Monday; the whole week otherwise.
+export const daysFrom = (day: number): number[] | null => (day > 0 ? [0, 1, 2, 3, 4, 5, 6].filter((d) => d >= day) : null);
+
+export async function setListDays(db: LocalDb, week: Week, days: number[] | null) {
+  await writeLocal(db, 'weeks', [{ ...week, list_days: days && days.length < 7 ? [...days].sort((x, y) => x - y) : null }]);
+  await regenerateWeekList(db, week.id);
 }

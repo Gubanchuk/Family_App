@@ -16,7 +16,8 @@ export type Price = { item: string; price_per_unit: number; source: string; note
 export type SimpleSnack = { simple: string; items: Array<{ item: string; qty: number }> };
 export type WeekTemplate = { id: string; household_id: string | null; name: string; season: string[]; note: string; updated_at: string; deleted_at: string | null };
 export type TemplateSlot = { template_id: string; day: number; meal: Meal; dish_id: string | null; side_id: string | null; salad_id: string | null; simple: SimpleSnack | null; updated_at: string };
-export type Week = { id: string; household_id: string; starts_on: string; template_id: string | null; status: 'proposed' | 'approved'; proposed_by: string | null; approved_by: string | null; updated_at: string; deleted_at: string | null };
+// list_days: the days the shopping list is built from (none: all seven); sent only once the server has the column.
+export type Week = { id: string; household_id: string; starts_on: string; template_id: string | null; status: 'proposed' | 'approved'; proposed_by: string | null; approved_by: string | null; list_days?: number[] | null; updated_at: string; deleted_at: string | null };
 export type WeekSlot = { week_id: string; household_id: string; day: number; meal: Meal; dish_id: string | null; side_id: string | null; salad_id: string | null; simple: SimpleSnack | null; updated_at: string };
 export type Vote = { week_id: string; member_id: string; household_id: string; value: 'yes' | 'changes'; comment: string; updated_at: string };
 export type DishOffer = { id: string; household_id: string; from_member: string; to_member: string | null; dish_id: string; on_date: string; meal: Meal; how: 'over' | 'instead'; status: 'open' | 'taken' | 'declined'; taken_by: string | null; updated_at: string; deleted_at: string | null };

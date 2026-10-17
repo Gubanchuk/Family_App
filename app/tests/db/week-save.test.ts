@@ -69,4 +69,19 @@ describe('saving a week in one step', { timeout: 60_000 }, () => {
   it('keeps a child from saving an approved week through the call', async () => {
     await expect(save(SON, week(W1, 'approved', sonId), slots())).rejects.toThrow(/not_a_parent/);
   });
+
+  it('approves an empty week where nothing is chosen yet', async () => {
+    await save(PAPA, { ...week(W1, 'approved', papaId), template_id: null }, slots('', 28).map((x) => ({ ...x, dish_id: null })));
+    expect((await rows<{ status: string }>(PAPA, 'select status from public.weeks where id = $1', [W1]))[0].status).toBe('approved');
+  });
+
+  it('keeps the days the shopping list is built from, and only real days', async () => {
+    await save(PAPA, { ...week(W1, 'approved', papaId), list_days: [3, 4, 5, 6] }, slots());
+    expect(await rows(PAPA, 'select list_days from public.weeks where id = $1', [W1])).toEqual([{ list_days: [3, 4, 5, 6] }]);
+    await save(PAPA, { ...week(W1, 'approved', papaId), list_days: null }, slots());
+    expect(await rows(PAPA, 'select list_days from public.weeks where id = $1', [W1])).toEqual([{ list_days: null }]);
+    await expect(asUser(db, PAPA, 'update public.weeks set list_days = $2 where id = $1', [W1, [2, 7]])).rejects.toThrow();
+    await asUser(db, PAPA, 'update public.weeks set list_days = $2 where id = $1', [W1, [5, 6]]);
+    expect(await rows(PAPA, 'select list_days from public.weeks where id = $1', [W1])).toEqual([{ list_days: [5, 6] }]);
+  });
 });

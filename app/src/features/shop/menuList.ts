@@ -8,12 +8,14 @@ export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const round1 = (n: number | null) => (n === null ? null : Math.round(n * 10) / 10);
 const SAME: Array<keyof ShoppingItem> = ['title', 'qty', 'unit', 'qty_text', 'dept', 'est_price', 'deleted_at'];
 
-// Rebuilds the menu part of an approved week's list. Bought lines stay as they are;
+// Rebuilds the menu part of an approved week's list from the days it is for. Bought lines stay as they are;
 // if any dish of the week is missing on this phone, nothing is written.
 export async function regenerateWeekList(db: LocalDb, weekId: string): Promise<'done' | 'skipped'> {
   const week = await db.weeks.get(weekId);
   if (!week || week.status !== 'approved' || week.deleted_at) return 'skipped';
-  const slots = await db.week_slots.where('week_id').equals(weekId).toArray();
+  // Only the days the list is for: a week set late leaves its past days out.
+  const days = week.list_days?.length ? new Set(week.list_days) : null;
+  const slots = (await db.week_slots.where('week_id').equals(weekId).toArray()).filter((s) => !days || days.has(s.day));
   const ids = [...new Set(slots.flatMap((s) => [s.dish_id, s.side_id, s.salad_id]).filter((x): x is string => !!x))];
   const recipes = await db.recipes.bulkGet(ids);
   if (recipes.some((r) => !r)) return 'skipped';
@@ -66,7 +68,7 @@ export async function refreshLists(db: LocalDb, householdId: string, now: Date):
     const slots = (await db.week_slots.where('week_id').equals(w.id).toArray())
       .map((s) => [s.day, s.meal, s.dish_id, s.side_id, s.salad_id, s.simple?.simple ?? null])
       .sort((a, b) => String(a).localeCompare(String(b)));
-    const print = JSON.stringify([slots, portions, content]);
+    const print = JSON.stringify([slots, portions, content, w.list_days ?? null]);
     const key = `list:${w.id}`;
     if ((await db.meta.get(key))?.value === print) continue;
     if ((await regenerateWeekList(db, w.id)) === 'done') {

@@ -16,6 +16,10 @@ import AddItemSheet from './AddItemSheet';
 import ItemSheet from './ItemSheet';
 import { useToast } from '../shell/toastContext';
 import { capitalize } from './menuList';
+import ListDays from './ListDays';
+import { useFeature } from '../../data/useFeature';
+import { setListDays } from '../menu/weekActions';
+import { dayOfWeek } from '../menu/week';
 
 const TRIP_MS = 3 * 3600 * 1000;
 const hhmm = (iso: string) => new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -33,6 +37,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const [note, setNote] = useState('');
   const toast = useToast();
   const folds = useFolds();
+  const hasDays = useFeature(db, 'listDays');
   const weekId = weekPick ?? data?.weeks[0]?.id ?? null;
   const shown = useMemo(() => {
     if (!data) return [];
@@ -85,6 +90,10 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
         <div className="segs" role="tablist" aria-label="Неделя">
           {data.weeks.map((w) => <button key={w.id} type="button" role="tab" aria-selected={w.id === weekId} onClick={() => setWeekPick(w.id)}>{weekLabel(w.starts_on)}</button>)}
         </div>
+      ) : null}
+      {week && hasDays && me.role === 'parent' ? (
+        <ListDays key={`${week.id}-${(week.list_days ?? []).join()}`} week={week} today={week.starts_on === data.start ? dayOfWeek(today) : null}
+          onSave={(days) => setListDays(db, week, days)} />
       ) : null}
       {sync.message ? (
         <section className="notice" role="alert"><span className="row-main"><b>{sync.message}</b></span>

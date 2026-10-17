@@ -25,6 +25,17 @@ describe('choosing and approving weeks', () => {
     expect(await screen.findByText('Сейчас: «Быстрая», 12–18 октября')).toBeInTheDocument();
   });
 
+  it('builds the list from today on when a parent sets this week after its Monday', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db);
+    await db.meta.put({ key: 'features', value: ['listDays'] });
+    render(<MemoryRouter><MenuPage me={papa} members={[papa, son]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Выбрать неделю' }));
+    await userEvent.click(screen.getByRole('radio', { name: /Быстрая/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Поставить неделю «Быстрая»' }));
+    await waitFor(async () => expect((await db.weeks.toArray())[0].list_days).toEqual([1, 2, 3, 4, 5, 6]));
+  });
+
   it('sets an empty week and cooks just one dish on one day, with only its products to buy', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db);

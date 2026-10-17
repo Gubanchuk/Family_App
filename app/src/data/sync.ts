@@ -21,6 +21,27 @@ const isMissingTable = (e: ServerError) => e.code === 'PGRST205' || e.code === '
 
 export const missingTables = async (db: LocalDb) => ((await db.meta.get('missing_tables'))?.value as string[] | undefined) ?? [];
 
+// Columns that later migrations add to existing tables. PostgREST refuses a whole row that names a
+// column it does not know (PGRST204), and such a change would block the outbox, so the app shows and
+// sends a feature only after a sync found its column. A found one is never asked about again.
+export const COLUMN_FEATURES = {
+  photos: ['wishes', 'photo_path'],
+  visibility: ['wishes', 'visible_to'],
+  listDays: ['weeks', 'list_days'],
+} as const;
+export type Feature = keyof typeof COLUMN_FEATURES;
+export const features = async (db: LocalDb) => new Set(((await db.meta.get('features'))?.value as Feature[] | undefined) ?? []);
+
+async function probeColumns(db: LocalDb, client: Client) {
+  const have = await features(db);
+  for (const [f, [table, column]] of Object.entries(COLUMN_FEATURES) as Array<[Feature, readonly [string, string]]>) {
+    if (have.has(f)) continue;
+    const { error } = await (client.from(table).select(column).range(0, 0) as unknown as Promise<{ error: ServerError | null }>);
+    if (!error) have.add(f);
+  }
+  await db.meta.put({ key: 'features', value: [...have] });
+}
+
 // The server owns updated_at (a trigger stamps it); the phone's copy never travels.
 const forServer = (row: Row) => { const { updated_at: _u, ...rest } = row; return rest; };
 
@@ -192,6 +213,7 @@ export async function syncNow(db: LocalDb, client: Client) {
     return { pushed: push.pushed, pulled, offline: true, rejected: push.rejected };
   }
   await db.meta.put({ key: 'missing_tables', value: missing });
+  try { await probeColumns(db, client); } catch { /* asked again on the next sync */ }
   await db.meta.put({ key: 'synced_at', value: new Date().toISOString() });
   return { pushed: push.pushed, pulled, offline: false, rejected: push.rejected };
 }

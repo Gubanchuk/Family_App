@@ -93,7 +93,7 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
           </div>
         </section>
         {data.next.week ? <NextWeekHero me={me} members={members} db={db} data={data} openWeek={() => setSheet({ kind: 'week', mode: 'next' })} /> : null}
-        {sheet ? <SheetHost sheet={sheet} open={setSheet} close={closeSheet} me={me} members={members} db={db} data={data} /> : null}
+        {sheet ? <SheetHost sheet={sheet} open={setSheet} close={closeSheet} me={me} members={members} db={db} data={data} today={dayOfWeek(today)} /> : null}
       </>
     );
   }
@@ -154,12 +154,12 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
         <p className="note">Нажмите на блюдо, чтобы открыть рецепт.</p>
         {parent ? <div className="card-foot"><button type="button" className="more" onClick={() => setSheet({ kind: 'save' })}>Сохранить неделю как шаблон</button></div> : null}
       </section>
-      {sheet ? <SheetHost sheet={sheet} open={setSheet} close={closeSheet} me={me} members={members} db={db} data={data} onSaved={(name) => toast({ text: `Шаблон «${name}» сохранён — он появится в выборе недели.` })} /> : null}
+      {sheet ? <SheetHost sheet={sheet} open={setSheet} close={closeSheet} me={me} members={members} db={db} data={data} today={dayOfWeek(today)} onSaved={(name) => toast({ text: `Шаблон «${name}» сохранён — он появится в выборе недели.` })} /> : null}
     </>
   );
 }
 
-function SheetHost({ sheet, open, close, me, db, data, onSaved }: { sheet: MenuSheet; open: (s: MenuSheet) => void; close: () => void; me: Member; members: Member[]; db: LocalDb; data: NonNullable<ReturnType<typeof useMenu>>; onSaved?: (name: string) => void }) {
+function SheetHost({ sheet, open, close, me, db, data, today, onSaved }: { sheet: MenuSheet; open: (s: MenuSheet) => void; close: () => void; me: Member; members: Member[]; db: LocalDb; data: NonNullable<ReturnType<typeof useMenu>>; today: number; onSaved?: (name: string) => void }) {
   const week = data.current.week;
   if (sheet.kind === 'save' && week) return <SaveTemplateSheet db={db} week={week} slots={data.current.slots} onClose={close} onSaved={onSaved} />;
   if (sheet.kind === 'meal' && week) {
@@ -173,7 +173,7 @@ function SheetHost({ sheet, open, close, me, db, data, onSaved }: { sheet: MenuS
     return <SlotSheet db={db} week={week} day={sheet.day} meal={sheet.meal} currentSlot={data.current.slots.find((s) => s.day === sheet.day && s.meal === sheet.meal)}
       recipes={data.recipes} templates={data.templates} editable={canEditWeek(me, week)} onClose={close} />;
   }
-  if (sheet.kind === 'week') return <WeekSheet db={db} mode={sheet.mode} me={me} data={data} onClose={close} />;
+  if (sheet.kind === 'week') return <WeekSheet db={db} mode={sheet.mode} me={me} data={data} today={today} onClose={close} />;
   if (sheet.kind === 'day' && week) return <DaySheet db={db} week={week} day={sheet.day} recipes={data.recipes} templates={data.templates} editable={canEditWeek(me, week)} onClose={close} />;
   return null;
 }

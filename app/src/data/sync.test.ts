@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
 import { createLocalDb, KEY_FIELDS } from './db';
 import { fakeSupabase } from './fakeSupabase';
-import { missingTables, pendingCount, pullTable, pushOutbox, rejectionText, syncNow, writeLocal, writeWeekLocal } from './sync';
+import { features, missingTables, pendingCount, pullTable, pushOutbox, rejectionText, syncNow, writeLocal, writeWeekLocal } from './sync';
 
 const slot = (dish: string) => ({ week_id: 'w1', household_id: 'h1', day: 1, meal: 'dinner', dish_id: dish, side_id: null, salad_id: null, simple: null });
 
@@ -34,6 +34,17 @@ describe('sync', () => {
     expect(r.offline).toBe(false);
     expect(await db.weeks.get('w1')).toBeTruthy();
     expect(await missingTables(db)).toEqual(['shop_trips']);
+  });
+
+  it('learns which later columns the server has and keeps asking about the missing ones', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    fake.missingColumn('weeks', 'list_days');
+    await syncNow(db, fake.client as never);
+    expect(await features(db)).toEqual(new Set(['photos', 'visibility']));
+    fake.missingColumn('weeks', 'list_days', false);
+    await syncNow(db, fake.client as never);
+    expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'listDays']));
   });
 
   it('keeps board rows on the phone and sends them like any other change', async () => {

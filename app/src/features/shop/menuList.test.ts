@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createLocalDb } from '../../data/db';
 import { seedMenu, RECIPES } from '../menu/testData';
 import { replaceMeal } from '../menu/actions';
+import { setListDays } from '../menu/weekActions';
 import { menuItemId, refreshLists, regenerateWeekList } from './menuList';
 
 const items = async (db: ReturnType<typeof createLocalDb>) => new Map((await db.shopping_items.where('week_id').equals('w-cur').toArray()).filter((i) => !i.deleted_at).map((i) => [i.item, i]));
@@ -26,6 +27,23 @@ describe('regenerateWeekList', () => {
     expect(list.get('яблоки')?.est_price).toBeNull();
     expect(list.has('мука')).toBe(false);
     expect(list.get('творог')?.id).toBe(menuItemId('w-cur', 'творог'));
+  });
+
+  it('builds the list only from the days it is for, and the whole week again without them', async () => {
+    const db = await ready();
+    await regenerateWeekList(db, 'w-cur');
+    await db.shopping_marks.put({ item_id: menuItemId('w-cur', 'яйца'), household_id: 'h1', bought: true, by_member: 'm-papa', price_real: null, updated_at: 'x' });
+    // Odd days have porridge for breakfast, even ones cheesecakes.
+    await setListDays(db, (await db.weeks.get('w-cur'))!, [1, 3, 5]);
+    expect((await db.weeks.get('w-cur'))?.list_days).toEqual([1, 3, 5]);
+    let list = await items(db);
+    expect(list.has('овсяные хлопья')).toBe(true);
+    expect(list.has('творог')).toBe(false);
+    expect(list.has('яйца')).toBe(true);
+    await setListDays(db, (await db.weeks.get('w-cur'))!, [0, 1, 2, 3, 4, 5, 6]);
+    expect((await db.weeks.get('w-cur'))?.list_days).toBeNull();
+    list = await items(db);
+    expect(list.get('творог')?.qty_text).toBe('1,8 кг');
   });
 
   it('recounts what is not bought yet and leaves bought lines alone', async () => {

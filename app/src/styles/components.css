@@ -468,3 +468,9 @@ a.more, a.av { text-decoration: none; }
 .dept-toggle[aria-expanded="false"] .ic { transform: rotate(0deg); }
 .dept-h:has(.dept-toggle[aria-expanded="false"]) { margin-bottom: 0; }
 @media (prefers-reduced-motion: reduce) { .dept-toggle .ic { transition: none; } }
+/* Days of a week as chips: the day, its date, and «прошёл» for days behind us. */
+.list-days { margin-top: 0; }
+.day-picks { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin: 0 16px; }
+.day-pick { display: grid; justify-items: center; gap: 2px; padding: 8px 0; min-width: 0; }
+.day-pick b { font-size: 16px; }
+.day-pick small { font-size: 10px; opacity: .75; }

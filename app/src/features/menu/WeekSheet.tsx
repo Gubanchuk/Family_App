@@ -4,7 +4,8 @@ import Sheet from './Sheet';
 import type { LocalDb, WeekTemplate } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import type { useMenu } from './useMenu';
-import { setWeekFromTemplate, voteWeek, weekListStats } from './weekActions';
+import { daysFrom, setWeekFromTemplate, voteWeek, weekListStats } from './weekActions';
+import { useFeature } from '../../data/useFeature';
 import { products, weekLabel } from './week';
 import { lineOf } from './SlotSheet';
 import { templateCosts } from './templateCost';
@@ -22,8 +23,10 @@ function seasonal(templates: WeekTemplate[], start: string): string | undefined 
   return (templates.find((t) => t.season.includes(season)) ?? templates[0])?.id;
 }
 
-export default function WeekSheet({ db, mode, me, data, onClose }: { db: LocalDb; mode: 'current' | 'next'; me: Member; data: NonNullable<ReturnType<typeof useMenu>>; onClose: () => void }) {
+// today: this week's day number, so a week set after its Monday buys only for the days ahead.
+export default function WeekSheet({ db, mode, me, data, today, onClose }: { db: LocalDb; mode: 'current' | 'next'; me: Member; data: NonNullable<ReturnType<typeof useMenu>>; today: number; onClose: () => void }) {
   const target = mode === 'current' ? data.current : data.next;
+  const hasDays = useFeature(db, 'listDays');
   const toast = useToast();
   // Until someone taps a template the default follows the data: templates may still be downloading when the sheet opens.
   const [picked, setPick] = useState<string>();
@@ -42,7 +45,8 @@ export default function WeekSheet({ db, mode, me, data, onClose }: { db: LocalDb
     if (!pick) return;
     if (locked && !confirm) { setConfirm(true); return; }
     const status = mode === 'current' || locked ? 'approved' : 'proposed';
-    const w = await setWeekFromTemplate(db, { household: me.household_id, startsOn: target.start, template: pick === NONE ? null : pick, status, by: me.id, existing: target.week });
+    const w = await setWeekFromTemplate(db, { household: me.household_id, startsOn: target.start, template: pick === NONE ? null : pick, status, by: me.id, existing: target.week,
+      ...(hasDays ? { listDays: mode === 'current' && pick !== NONE ? daysFrom(today) : null } : {}) });
     if (status === 'proposed') {
       await voteWeek(db, w, me, 'yes');
       toast({ text: `${pick === NONE ? 'Пустая неделя' : `Неделя «${t?.name ?? ''}»`} предложена. Семья проголосует, родители утвердят.` });

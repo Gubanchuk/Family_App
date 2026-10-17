@@ -62,6 +62,28 @@ describe('ShopPage', () => {
     expect(dairy).toHaveTextContent('всё куплено');
   });
 
+  it('lets a parent leave past days of the week out of the list', async () => {
+    const db = await ready();
+    await db.meta.put({ key: 'features', value: ['listDays'] });
+    show(db);
+    expect(await screen.findByText('Список на всю неделю')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Какие дни' }));
+    const sheet = screen.getByRole('dialog', { name: 'Из каких дней список' });
+    await userEvent.click(within(sheet).getByRole('button', { name: 'С сегодняшнего дня' }));
+    expect(within(sheet).getByRole('button', { name: /^Пн/ })).toHaveAttribute('aria-pressed', 'false');
+    expect(within(sheet).getByRole('button', { name: /^Вт/ })).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Сохранить' }));
+    await waitFor(async () => expect((await db.weeks.get('w-cur'))?.list_days).toEqual([1, 2, 3, 4, 5, 6]));
+    expect(await screen.findByText('Список на дни: вт–вс')).toBeInTheDocument();
+  });
+
+  it('does not offer days before the server keeps them, nor to a child', async () => {
+    const db = await ready();
+    show(db);
+    await screen.findByRole('heading', { name: 'Молочное и яйца' });
+    expect(screen.queryByRole('button', { name: 'Какие дни' })).toBeNull();
+  });
+
   it('sums what is bought and what is left, naming lines without a price', async () => {
     const db = await ready();
     show(db);
