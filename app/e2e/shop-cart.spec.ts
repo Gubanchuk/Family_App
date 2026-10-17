@@ -25,7 +25,7 @@ test('mom shops for one meal while the son adds bread; what ran out at home reac
   await son.page.getByRole('button', { name: 'Добавить' }).click();
   await son.page.getByLabel('Что купить').fill('Батон');
   await son.page.getByRole('button', { name: 'Добавить в список' }).click();
-  await expect(mom.page.getByRole('button', { name: 'Батон' })).toContainText(/добавил/, { timeout: 30_000 });
+  await expect(mom.page.getByRole('button', { name: 'Батон', exact: true })).toContainText(/добавил/, { timeout: 30_000 });
 
   await first.click();
   await son.page.reload();
