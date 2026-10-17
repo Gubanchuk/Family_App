@@ -41,11 +41,36 @@ test('a thing to buy goes to the shopping list', async ({ browser }) => {
   await mom.page.getByRole('tab', { name: 'Надо купить' }).click();
   await mom.page.getByRole('button', { name: 'Добавить' }).click();
   await mom.page.getByLabel('Что купить').fill('Зимние ботинки');
-  await mom.page.getByRole('button', { name: 'Сын', exact: true }).click();
+  await mom.page.getByRole('group', { name: 'Для кого' }).getByRole('button', { name: 'Сын', exact: true }).click();
   await mom.page.getByRole('button', { name: 'Сохранить' }).click();
   await mom.page.getByRole('button', { name: 'Зимние ботинки: в покупки' }).click();
   await tab(son.page, 'Покупки');
   await expect(son.page.getByText('Зимние ботинки')).toBeVisible({ timeout: 30_000 });
+  await mom.close();
+  await son.close();
+});
+
+test('a surprise to buy stays off the phone of the son', async ({ browser }) => {
+  const { mom, son } = await familyOfTwo(browser);
+  await expect(mom.page.getByRole('navigation', { name: 'Разделы' }).getByRole('link', { name: 'Доска' })).toBeVisible({ timeout: 30_000 });
+  await mom.page.getByRole('navigation', { name: 'Разделы' }).getByRole('link', { name: 'Доска' }).click();
+  await mom.page.getByRole('tab', { name: 'Надо купить' }).click();
+  const add = async (title: string, seen: string) => {
+    await mom.page.getByRole('button', { name: 'Добавить' }).click();
+    await mom.page.getByLabel('Что купить').fill(title);
+    await mom.page.getByRole('group', { name: 'Кто видит' }).getByRole('button', { name: seen }).click();
+    await mom.page.getByRole('button', { name: 'Сохранить' }).click();
+  };
+  await add('Торт на день рождения', 'Только я');
+  await expect(mom.page.getByText('только вы')).toBeVisible();
+  // Sent after the surprise: once it reaches the son, the surprise has reached the server too.
+  await add('Батарейки', 'Вся семья');
+  await son.page.getByRole('navigation', { name: 'Разделы' }).getByRole('link', { name: 'Доска' }).click();
+  await son.page.getByRole('tab', { name: 'Надо купить' }).click();
+  await expect(son.page.getByText('Батарейки')).toBeVisible({ timeout: 30_000 });
+  await son.page.reload();
+  await expect(son.page.getByText('Батарейки')).toBeVisible({ timeout: 30_000 });
+  await expect(son.page.getByText('Торт на день рождения')).toHaveCount(0);
   await mom.close();
   await son.close();
 });

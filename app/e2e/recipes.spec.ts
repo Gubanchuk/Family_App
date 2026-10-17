@@ -32,3 +32,15 @@ test('a recipe mom adds shows for the son under «Наши рецепты»', as
   await mom.close();
   await son.close();
 });
+
+test('base recipes come with their photos', async ({ browser }) => {
+  const { mom, son } = await familyOfTwo(browser);
+  await tab(mom.page, 'Меню');
+  await mom.page.getByRole('tab', { name: 'Что покушать' }).click();
+  // Signed links to the private bucket: the picture must actually arrive, not just the <img>.
+  const photo = mom.page.locator('img.card-photo').first();
+  await expect(photo).toBeVisible({ timeout: 30_000 });
+  await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth), { timeout: 30_000 }).toBeGreaterThan(0);
+  await mom.close();
+  await son.close();
+});
