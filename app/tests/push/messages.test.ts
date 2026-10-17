@@ -14,7 +14,11 @@ describe('push texts', () => {
     expect(compose({ kind: 'dish_offers', author: 'Мама', dish: 'Плов', meal: 'dinner', onDate: '2026-10-14', toAll: true }, today).body).toBe('Завтра на ужин. Предложено всем.');
   });
   it('announces a shop trip', () => {
-    expect(compose({ kind: 'shop_trips', author: 'Папа' }, today)).toEqual({ title: 'Папа идёт в магазин', body: 'Добавьте в список, что нужно купить.', url: '/shop', pref: 'shop', tag: 'shop' });
+    expect(compose({ kind: 'shop_trips', author: 'Папа', label: null }, today)).toEqual({ title: 'Папа идёт в магазин', body: 'Добавьте в список, что нужно купить.', url: '/shop', pref: 'shop', tag: 'shop' });
+  });
+
+  it('names what the trip is for', () => {
+    expect(compose({ kind: 'shop_trips', author: 'Папа', label: 'завтрак на завтра' }, '2026-10-13').body).toBe('Берёт: завтрак на завтра. Добавьте в список, что ещё нужно купить.');
   });
 
   it('versions a week proposal by template and author, so a new proposal is pushed again', () => {

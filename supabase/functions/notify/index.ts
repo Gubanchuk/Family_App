@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
   } else if (table === 'stories') {
     ev = { kind: 'stories', author, memberId: authorId, verb: verbFor(members?.find((m) => m.id === authorId)?.kin) };
   } else {
-    ev = { kind: 'shop_trips', author };
+    ev = { kind: 'shop_trips', author, label: typeof row.label === 'string' ? row.label : null };
   }
   const today = new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 10);
   const msg = compose(ev, today);
