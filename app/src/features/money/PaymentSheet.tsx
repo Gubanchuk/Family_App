@@ -8,6 +8,7 @@ import { rub } from '../shop/build';
 import { removePayment, savePayment, setPaid } from './moneyActions';
 import { dayTitle, dueDate, installmentNo, type MonthPayment } from './month';
 import type { Payment } from './types';
+import MonthPicker from './MonthPicker';
 
 
 // One month's payment to mark paid, or the form for a new or changed one (edit: straight from the list of all).
@@ -66,7 +67,7 @@ export default function PaymentSheet({ me, db, item, edit, month, onShow, onClos
           <button type="button" className="pick" aria-pressed={kind === 'installment'} onClick={() => setKind('installment')}>Рассрочка</button>
         </div></fieldset>
         {kind === 'installment' ? <label className="field">Сколько платежей всего<input inputMode="numeric" value={total} onChange={(e) => setTotal(e.target.value)} placeholder="12" /></label> : null}
-        <label className="field">С какого месяца<input type="month" value={first} onChange={(e) => setFirst(e.target.value)} placeholder="2026-11" /></label>
+        <MonthPicker label="С какого месяца" value={first} onChange={setFirst} />
       </form>
     </Sheet>
   );

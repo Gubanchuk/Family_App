@@ -111,11 +111,27 @@ describe('MoneyPage', () => {
     await userEvent.type(screen.getByLabelText('Название'), 'Кружок');
     await userEvent.type(screen.getByLabelText('Сумма, ₽'), '3000');
     await userEvent.type(screen.getByLabelText('Число месяца'), '10');
-    const from = screen.getByLabelText('С какого месяца');
-    await userEvent.clear(from);
-    await userEvent.type(from, '2026-11');
+    const from = screen.getByRole('group', { name: 'С какого месяца' });
+    expect(within(from).getByRole('button', { name: 'Октябрь 2026' })).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(within(from).getByRole('button', { name: 'Ноябрь 2026' }));
     await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
     await waitFor(async () => expect((await db.payments.toArray())[0]).toMatchObject({ title: 'Кружок', kind: 'monthly', first_month: '2026-11' }));
+  });
+
+  it('picks the first month of an installment in the next year with month buttons', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    render(<MemoryRouter><MoneyPage me={papa} members={[papa, mama]} db={db} today={OCT13} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: /^Добавить платёж/ }));
+    await userEvent.type(screen.getByLabelText('Название'), 'Процессор');
+    await userEvent.type(screen.getByLabelText('Сумма, ₽'), '2300');
+    await userEvent.type(screen.getByLabelText('Число месяца'), '5');
+    await userEvent.click(screen.getByRole('button', { name: 'Рассрочка' }));
+    await userEvent.type(screen.getByLabelText('Сколько платежей всего'), '6');
+    const from = screen.getByRole('group', { name: 'С какого месяца' });
+    await userEvent.click(within(from).getByRole('button', { name: 'Следующий год' }));
+    await userEvent.click(within(from).getByRole('button', { name: 'Январь 2027' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    await waitFor(async () => expect((await db.payments.toArray())[0]).toMatchObject({ kind: 'installment', total: 6, first_month: '2027-01' }));
   });
 
   it('asks before deleting a payment', async () => {

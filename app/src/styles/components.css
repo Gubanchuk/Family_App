@@ -474,3 +474,8 @@ a.more, a.av { text-decoration: none; }
 .day-pick { display: grid; justify-items: center; gap: 2px; padding: 8px 0; min-width: 0; }
 .day-pick b { font-size: 16px; }
 .day-pick small { font-size: 10px; opacity: .75; }
+/* Month picker: a year switch over twelve month buttons. */
+.mp-year { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.mp-year b { font: 700 17px var(--font); font-variant-numeric: tabular-nums; }
+.mp-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.mp-grid .pick { padding: 8px 0; }
