@@ -21,15 +21,22 @@ export type Week = { id: string; household_id: string; starts_on: string; templa
 export type WeekSlot = { week_id: string; household_id: string; day: number; meal: Meal; dish_id: string | null; side_id: string | null; salad_id: string | null; simple: SimpleSnack | null; updated_at: string };
 export type Vote = { week_id: string; member_id: string; household_id: string; value: 'yes' | 'changes'; comment: string; updated_at: string };
 export type DishOffer = { id: string; household_id: string; from_member: string; to_member: string | null; dish_id: string; on_date: string; meal: Meal; how: 'over' | 'instead'; status: 'open' | 'taken' | 'declined'; taken_by: string | null; updated_at: string; deleted_at: string | null };
-export type ShoppingItem = { id: string; household_id: string; week_id: string | null; offer_id: string | null; source: 'menu' | 'manual' | 'offer'; item: string | null; title: string; qty: number | null; unit: string | null; qty_text: string; dept: string; urgent: boolean; est_price: number | null; added_by: string | null; updated_at: string; deleted_at: string | null };
+// source 'home': a product that ran out at home. created_at comes from the server (absent on lines not synced yet).
+export type ShoppingItem = { id: string; household_id: string; week_id: string | null; offer_id: string | null; source: 'menu' | 'manual' | 'offer' | 'home'; item: string | null; title: string; qty: number | null; unit: string | null; qty_text: string; dept: string; urgent: boolean; est_price: number | null; added_by: string | null; updated_at: string; deleted_at: string | null; created_at?: string };
 // bought_at: set by the server when the line becomes bought (absent before its migration).
-export type ShoppingMark = { item_id: string; household_id: string; bought: boolean; by_member: string | null; price_real: number | null; bought_at?: string | null; updated_at: string };
-export type ShopTrip = { id: string; household_id: string; member_id: string; started_at: string; updated_at: string };
+// at_home: closed as «есть дома» without buying (absent before its migration).
+export type ShoppingMark = { item_id: string; household_id: string; bought: boolean; by_member: string | null; price_real: number | null; bought_at?: string | null; at_home?: boolean; updated_at: string };
+// A trip's cart: the list lines it takes, each with how much the chosen meals need. label, items and ended_at
+// are absent before their migration; a trip without items takes the whole list.
+export type TripLine = { id: string; hint: string | null };
+export type ShopTrip = { id: string; household_id: string; member_id: string; started_at: string; updated_at: string; label?: string | null; items?: TripLine[] | null; ended_at?: string | null };
+// What is at home: keyed by the dictionary item or 't:' and the product's own name.
+export type HomeStock = { household_id: string; key: string; item: string | null; title: string; dept: string; state: 'have' | 'out'; by_member: string | null; updated_at: string; deleted_at: string | null };
 export type NotEat = { household_id: string; kind: 'item' | 'dish'; ref: string; updated_at: string; deleted_at: string | null };
 export type SyncTable = 'weeks' | 'week_slots' | 'votes' | 'week_templates' | 'template_slots'
   | 'dish_offers' | 'shopping_items' | 'shopping_marks' | 'shop_trips' | 'not_eat'
   | 'wishes' | 'wish_metoo' | 'wish_gifts' | 'needs' | 'goals' | 'requests'
-  | 'payments' | 'payment_marks' | 'money_entries' | 'deposits' | 'budgets';
+  | 'payments' | 'payment_marks' | 'money_entries' | 'deposits' | 'budgets' | 'home_stock';
 export type OutboxOp = { seq?: number; table: SyncTable; rpc?: 'save_week'; row: Record<string, unknown>; created_at: string; tries: number };
 export type Meta = { key: string; value: unknown };
 
@@ -55,6 +62,7 @@ export const KEY_FIELDS: Record<SyncTable, string[]> = {
   money_entries: ['id'],
   deposits: ['id'],
   budgets: ['household_id', 'category'],
+  home_stock: ['household_id', 'key'],
 };
 
 export const V1_STORES = {
@@ -103,6 +111,7 @@ export class LocalDb extends Dexie {
   money_entries!: Table<MoneyEntry, string>;
   deposits!: Table<Deposit, string>;
   budgets!: Table<Budget, [string, string]>;
+  home_stock!: Table<HomeStock, [string, string]>;
 
   constructor(name: string) {
     super(name);
@@ -132,6 +141,9 @@ export class LocalDb extends Dexie {
     });
     this.version(6).stores({
       budgets: '[household_id+category], household_id',
+    });
+    this.version(7).stores({
+      home_stock: '[household_id+key], household_id',
     });
   }
 }

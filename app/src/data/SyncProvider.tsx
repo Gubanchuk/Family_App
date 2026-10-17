@@ -16,7 +16,7 @@ export const useSync = () => useContext(SyncContext);
 const REALTIME = ['weeks', 'week_slots', 'votes', 'dish_offers', 'shopping_items', 'shopping_marks', 'shop_trips', 'not_eat'];
 // Tables that came later get their own channel, opened once a pull has shown the server has them:
 // before their migration an unknown table could break the family channel above.
-const LATER = ['wishes', 'wish_metoo', 'wish_gifts', 'needs', 'goals', 'requests', 'payments', 'payment_marks', 'money_entries', 'deposits', 'budgets'];
+const LATER = ['wishes', 'wish_metoo', 'wish_gifts', 'needs', 'goals', 'requests', 'payments', 'payment_marks', 'money_entries', 'deposits', 'budgets', 'home_stock'];
 
 export function SyncProvider({ householdId, portions = 3.5, isParent = false, now, children, client = supabase, db = localDb, onSynced }: { householdId: string; portions?: number; isParent?: boolean; now?: Date; children: ReactNode; client?: SupabaseClient; db?: LocalDb; onSynced?: () => void }) {
   const [state, setState] = useState<SyncState>({ syncing: false, offline: false, syncedAt: null, message: '' });

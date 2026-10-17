@@ -6,7 +6,7 @@ type Client = Pick<SupabaseClient, 'from' | 'rpc'> & { auth?: Pick<SupabaseClien
 type ServerError = { message: string; code?: string };
 const PAGE = 1000;
 const TABLES: SyncTable[] = ['week_templates', 'template_slots', 'weeks', 'week_slots', 'votes', 'dish_offers', 'shopping_items', 'shopping_marks', 'shop_trips', 'not_eat',
-  'wishes', 'wish_metoo', 'wish_gifts', 'needs', 'goals', 'requests', 'payments', 'payment_marks', 'money_entries', 'deposits', 'budgets'];
+  'wishes', 'wish_metoo', 'wish_gifts', 'needs', 'goals', 'requests', 'payments', 'payment_marks', 'money_entries', 'deposits', 'budgets', 'home_stock'];
 
 // Only the family's own rules refuse a change: our triggers (P0001), row level security (42501),
 // constraints (23xxx). Everything else — no network, an expired token, a 5xx page, a sleeping
@@ -29,6 +29,8 @@ export const COLUMN_FEATURES = {
   visibility: ['wishes', 'visible_to'],
   listDays: ['weeks', 'list_days'],
   needDept: ['needs', 'dept'],
+  // «Дома», «есть дома» on a line and trip carts come in one migration.
+  homeCart: ['shopping_marks', 'at_home'],
 } as const;
 export type Feature = keyof typeof COLUMN_FEATURES;
 export const features = async (db: LocalDb) => new Set(((await db.meta.get('features'))?.value as Feature[] | undefined) ?? []);

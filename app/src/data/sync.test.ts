@@ -41,10 +41,33 @@ describe('sync', () => {
     const fake = fakeSupabase({}, KEY_FIELDS);
     fake.missingColumn('weeks', 'list_days');
     await syncNow(db, fake.client as never);
-    expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'needDept']));
+    expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'needDept', 'homeCart']));
     fake.missingColumn('weeks', 'list_days', false);
     await syncNow(db, fake.client as never);
-    expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'needDept', 'listDays']));
+    expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'needDept', 'listDays', 'homeCart']));
+  });
+
+  it('finds homeCart only when the column answers', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const fake = fakeSupabase({}, KEY_FIELDS);
+    fake.missingColumn('shopping_marks', 'at_home');
+    await syncNow(db, fake.client as never);
+    expect((await features(db)).has('homeCart')).toBe(false);
+    fake.missingColumn('shopping_marks', 'at_home', false);
+    await syncNow(db, fake.client as never);
+    expect((await features(db)).has('homeCart')).toBe(true);
+  });
+
+  it('sends and pulls what is at home', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const store: Record<string, Array<Record<string, unknown>>> = {};
+    const fake = fakeSupabase(store, KEY_FIELDS);
+    await writeLocal(db, 'home_stock', [{ household_id: 'h', key: 'молоко', item: 'молоко', title: 'Молоко', dept: 'Молочное и яйца', state: 'out', by_member: 'm', deleted_at: null }]);
+    await syncNow(db, fake.client as never);
+    expect(store.home_stock).toEqual([expect.objectContaining({ key: 'молоко', state: 'out' })]);
+    const other = createLocalDb(`t-${Math.random()}`);
+    await syncNow(other, fake.client as never);
+    expect(await other.home_stock.get(['h', 'молоко'])).toMatchObject({ state: 'out' });
   });
 
   it('drops a wish that was hidden from this phone after it arrived, keeping its own new one', async () => {
