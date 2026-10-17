@@ -95,4 +95,19 @@ describe('shopping schema', { timeout: 60_000 }, () => {
     await db.query("insert into public.push_log (kind, ref_id, version) values ('weeks', '11111111-1111-4111-8111-111111111111', 'autumn:b')");
     await expect(db.query("insert into public.push_log (kind, ref_id, version) values ('weeks', '11111111-1111-4111-8111-111111111111', 'quick:a')")).rejects.toThrow();
   });
+
+  it('keeps the day a line was bought through a later price, and clears it when the mark is taken off', async () => {
+    const mark = (bought: boolean, price: number | null) => asUser(db, SON,
+      "insert into public.shopping_marks (item_id, household_id, bought, by_member, price_real) values ('m:x:картофель', $1, $2, $3, $4) on conflict (item_id) do update set bought = excluded.bought, price_real = excluded.price_real",
+      [hh, bought, id.son, price]);
+    const day = async () => (await rows<{ t: string | null }>(PAPA, 'select bought_at::text as t from public.shopping_marks'))[0].t;
+    await mark(true, null);
+    const first = await day();
+    expect(first).toBeTruthy();
+    await new Promise((r) => setTimeout(r, 20));
+    await mark(true, 189);
+    expect(await day()).toBe(first);
+    await mark(false, 189);
+    expect(await day()).toBeNull();
+  });
 });

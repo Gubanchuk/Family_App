@@ -22,7 +22,8 @@ export type WeekSlot = { week_id: string; household_id: string; day: number; mea
 export type Vote = { week_id: string; member_id: string; household_id: string; value: 'yes' | 'changes'; comment: string; updated_at: string };
 export type DishOffer = { id: string; household_id: string; from_member: string; to_member: string | null; dish_id: string; on_date: string; meal: Meal; how: 'over' | 'instead'; status: 'open' | 'taken' | 'declined'; taken_by: string | null; updated_at: string; deleted_at: string | null };
 export type ShoppingItem = { id: string; household_id: string; week_id: string | null; offer_id: string | null; source: 'menu' | 'manual' | 'offer'; item: string | null; title: string; qty: number | null; unit: string | null; qty_text: string; dept: string; urgent: boolean; est_price: number | null; added_by: string | null; updated_at: string; deleted_at: string | null };
-export type ShoppingMark = { item_id: string; household_id: string; bought: boolean; by_member: string | null; price_real: number | null; updated_at: string };
+// bought_at: set by the server when the line becomes bought (absent before its migration).
+export type ShoppingMark = { item_id: string; household_id: string; bought: boolean; by_member: string | null; price_real: number | null; bought_at?: string | null; updated_at: string };
 export type ShopTrip = { id: string; household_id: string; member_id: string; started_at: string; updated_at: string };
 export type NotEat = { household_id: string; kind: 'item' | 'dish'; ref: string; updated_at: string; deleted_at: string | null };
 export type SyncTable = 'weeks' | 'week_slots' | 'votes' | 'week_templates' | 'template_slots'

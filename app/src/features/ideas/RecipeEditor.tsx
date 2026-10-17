@@ -12,6 +12,9 @@ import PhotoField from '../shell/PhotoField';
 import { dropOldPhoto, photoPathFor, type PhotoEdit } from '../../lib/photos';
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+// Editors open right now, and whether the newest history entry is the editor's own.
+let editorsOpen = 0;
+const ours = () => !!(history.state as { recipeEditor?: boolean } | null)?.recipeEditor;
 const DIMA: Array<[Draft['dima'], string]> = [['ok', 'Можно'], ['adapt', 'С поправкой'], ['skip', 'Нельзя']];
 
 // A family recipe: products come from the app's vocabulary, so lists and prices keep working.
@@ -25,7 +28,27 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
   const [photo, setPhoto] = useState<PhotoEdit>({ kind: 'keep' });
   // A photo uploaded by a save that failed later is reused by the next try instead of uploading twice.
   const uploaded = useRef<{ file: Blob; path: string } | null>(null);
-  const tryClose = () => ((JSON.stringify(d) !== first || photo.kind !== 'keep') && !asking ? setAsking(true) : onClose());
+  const dirty = JSON.stringify(d) !== first || photo.kind !== 'keep';
+  const tryClose = () => (dirty && !asking ? setAsking(true) : onClose());
+  // The phone's Back button closes the editor like the cross does, asking first when something is typed.
+  // A history entry of its own stands in front of the page while the editor is open.
+  const back = useRef(() => {});
+  back.current = () => {
+    if (dirty && !asking) { history.pushState({ recipeEditor: true }, ''); setAsking(true); } else onClose();
+  };
+  useEffect(() => {
+    editorsOpen += 1;
+    if (!ours()) history.pushState({ recipeEditor: true }, '');
+    const onPop = () => back.current();
+    window.addEventListener('popstate', onPop);
+    return () => {
+      editorsOpen -= 1;
+      window.removeEventListener('popstate', onPop);
+      // Closed by the cross or by saving: take the editor's history entry away again. The check waits a
+      // tick, so a remount right away (React's development double run) keeps its entry.
+      setTimeout(() => { if (!editorsOpen && ours()) history.back(); }, 0);
+    };
+  }, []);
   const missing = missingOf(d);
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState(false);

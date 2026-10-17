@@ -65,6 +65,11 @@ describe('money month', () => {
     ]);
     expect(shopUnpriced(items as never, marks as never, '2026-10')).toEqual(new Map([['Здоровье', 1]]));
   });
+  it('counts a purchase on the day it was bought, not when its price was typed, and after it left the list', () => {
+    const item = { id: 'a', household_id: 'h', week_id: null, offer_id: null, source: 'manual' as const, item: null, title: 'Пластырь', qty: null, unit: null, qty_text: '', dept: 'Аптека', urgent: false, est_price: null, added_by: null, updated_at: '', deleted_at: '2026-10-02T09:00:00.000Z' };
+    const mark = { item_id: 'a', household_id: 'h', bought: true, by_member: 'mama', price_real: 300, bought_at: '2026-09-30T10:00:00.000Z', updated_at: '2026-10-01T08:00:00.000Z' };
+    expect(shopSpend([item] as never, [mark] as never).map((e) => [e.category, e.amount, e.on_date])).toEqual([['Здоровье', 300, '2026-09-30']]);
+  });
   it('adds up a month: expenses and paid payments, not income', () => {
     const entries = [entry({ amount: 1200 }), entry({ amount: 300, category: 'Дом' }), entry({ kind: 'income', amount: 90000 }), entry({ amount: 999, on_date: '2026-09-28' })];
     expect(monthTotal(entries, [pay({ id: 'p' })], [mark({ payment_id: 'p', amount: 650 })], '2026-10')).toBe(2150);

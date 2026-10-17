@@ -73,4 +73,15 @@ describe('useAppUpdate', () => {
     await act(async () => { renderHook(() => useAppUpdate(sw, vi.fn(), clock().now)); });
     expect(update).toHaveBeenCalled();
   });
+
+  it('offers a reload instead while someone types, also outside a sheet', () => {
+    const { sw } = fakeContainer({});
+    const reload = vi.fn();
+    document.body.innerHTML = '<input type="email" />';
+    (document.querySelector('input') as HTMLInputElement).focus();
+    const { result } = renderHook(() => useAppUpdate(sw, reload, clock().now));
+    act(() => { sw.dispatchEvent(new Event('controllerchange')); });
+    expect(reload).not.toHaveBeenCalled();
+    expect(result.current).toBe(true);
+  });
 });

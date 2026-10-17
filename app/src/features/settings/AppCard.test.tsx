@@ -26,4 +26,26 @@ describe('AppCard', () => {
     expect(reset).toHaveBeenCalled();
     expect(reload).toHaveBeenCalled();
   });
+
+  it('does not drop the stored copy without internet, the app could not open again', async () => {
+    const reload = vi.fn();
+    const reset = vi.fn(async () => {});
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    render(<AppCard reload={reload} reset={reset} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Сбросить и загрузить заново' }));
+    expect(reset).not.toHaveBeenCalled();
+    expect(screen.getByRole('status')).toHaveTextContent(/Нет интернета/);
+    vi.restoreAllMocks();
+  });
+
+  it('does not reload a page left for another one while the check ran', async () => {
+    const reload = vi.fn();
+    let done: (v: 'updated') => void = () => {};
+    const { unmount } = render(<AppCard reload={reload} check={() => new Promise((r) => { done = r; })} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Проверить обновление' }));
+    unmount();
+    done('updated');
+    await new Promise((r) => setTimeout(r, 0));
+    expect(reload).not.toHaveBeenCalled();
+  });
 });

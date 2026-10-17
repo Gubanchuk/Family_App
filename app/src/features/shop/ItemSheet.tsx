@@ -7,7 +7,13 @@ export default function ItemSheet({ item, mark, onPrice, onRemove, onClose }: {
   item: ShoppingItem; mark?: ShoppingMark; onPrice: (p: number | null) => Promise<void>; onRemove: () => Promise<void>; onClose: () => void;
 }) {
   const [price, setPrice] = useState(mark?.price_real?.toString() ?? '');
-  const save = async () => { const n = Number(price.replace(',', '.')); await onPrice(price.trim() && Number.isFinite(n) ? n : null); onClose(); };
+  // An unchanged price is not written: every write moves the mark's time on the server.
+  const save = async () => {
+    const n = Number(price.replace(',', '.'));
+    const next = price.trim() && Number.isFinite(n) ? n : null;
+    if (next !== (mark?.price_real ?? null)) await onPrice(next);
+    onClose();
+  };
   return (
     <Sheet title={item.title} sub={[item.qty_text, item.est_price !== null ? `примерно ${rub(item.est_price)}` : ''].filter(Boolean).join(' · ')} onClose={onClose}
       actions={<button type="button" className="btn" onClick={save}>Сохранить</button>}>

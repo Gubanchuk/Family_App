@@ -152,4 +152,16 @@ describe('RecipeEditor', () => {
     await screen.findByLabelText('Название');
     expect(screen.queryByLabelText('Добавить фото')).toBeNull();
   });
+
+  it('asks before the phone Back button throws away a typed recipe', async () => {
+    const db = await vocab();
+    const onClose = vi.fn();
+    render(<RecipeEditor me={mama} db={db} onClose={onClose} />);
+    await userEvent.type(screen.getByLabelText('Название'), 'Пирог');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(await screen.findByRole('group', { name: 'Выйти без сохранения?' })).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(onClose).toHaveBeenCalled();
+  });
 });

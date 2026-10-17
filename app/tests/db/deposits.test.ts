@@ -72,4 +72,10 @@ describe('piggy bank deposits', { timeout: 60_000 }, () => {
     await deposit(PAPA, D1, m['Андрей'], 9000, { wish: W }).catch(() => {});
     expect((await rows<{ amount: number }>(PAPA, 'select amount from public.deposits'))[0].amount).toBe(2000);
   });
+
+  it('stamps a deposit with the server time even when the phone sends another', async () => {
+    await asUser(db, MAMA, "insert into public.deposits (id, household_id, wish_id, member_id, amount, created_at) values ($1, $2, $3, $4, 100, '2099-01-01')", [D1, hh, W, m['Оля']]);
+    const [{ late }] = await rows<{ late: boolean }>(MAMA, 'select created_at > now() + interval \'1 hour\' as late from public.deposits where id = $1', [D1]);
+    expect(late).toBe(false);
+  });
 });

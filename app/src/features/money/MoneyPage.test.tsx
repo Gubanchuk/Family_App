@@ -171,6 +171,14 @@ describe('MoneyPage', () => {
     expect(within(list).queryByRole('button', { name: /Молоко/ })).toBeNull();
   });
 
+  it('shows a category whose purchases are all still without a price', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.shopping_items.put({ id: 'u:1', household_id: 'h', week_id: null, offer_id: null, source: 'manual', item: null, title: 'Пластырь', qty: null, unit: null, qty_text: '', dept: 'Аптека', urgent: false, est_price: null, added_by: 'mama', updated_at: 'x', deleted_at: null });
+    await db.shopping_marks.put({ item_id: 'u:1', household_id: 'h', bought: true, by_member: 'mama', price_real: null, updated_at: '2026-10-12T09:00:00.000Z' });
+    render(<MemoryRouter><MoneyPage me={mama} members={[papa, mama]} db={db} today={OCT13} /></MemoryRouter>);
+    expect((await screen.findByText(/ещё 1 без цены/)).closest('button')).toHaveTextContent(/^Здоровье/);
+  });
+
   it('reminds that shopping is counted by itself when adding groceries by hand', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     render(<MemoryRouter><MoneyPage me={mama} members={[papa, mama]} db={db} today={OCT13} /></MemoryRouter>);

@@ -56,7 +56,9 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   const budgetOf = new Map(data.budgets.map((b) => [b.category, b.amount]));
   // Categories with a budget show even before anything is spent in them.
   const spent = spendByCategory(entries, list, month);
-  const cats = [...spent, ...data.budgets.filter((b) => !spent.some((c) => c.cat === b.category)).map((b) => ({ cat: b.category, sum: 0, count: 0 }))];
+  // Categories with a budget or with purchases still without a price show too, so those can be opened and priced.
+  const extra = [...data.budgets.map((b) => b.category), ...unpriced.keys()].filter((cat, i, all) => all.indexOf(cat) === i && !spent.some((c) => c.cat === cat));
+  const cats = [...spent, ...extra.map((cat) => ({ cat, sum: 0, count: 0 }))];
   // Six months ending with the one on screen (or this one, when looking ahead).
   const months = [5, 4, 3, 2, 1, 0].map((n) => shiftMonth(month > current ? current : month, -n));
   const totals = months.map((m) => monthTotal(entries, data.payments, data.marks, m));
@@ -107,7 +109,7 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
           const body = (
             <>
               <div className="cat-top">
-                <span>{c.cat}{c.count ? <small> · {c.count}</small> : null}</span>
+                <span>{c.cat}{c.count ? <small> · {c.count}</small> : null}{unpriced.get(c.cat) ? <small> · ещё {unpriced.get(c.cat)} без цены</small> : null}</span>
                 <span className={`amount ${over ? 'over' : ''}`}>{rub(c.sum)}{budget ? <small> из {rub(budget)}</small> : null}</span>
               </div>
               <span className={`bar ${over ? 'over' : ''}`} style={{ ['--h' as string]: 'var(--k-money)', display: 'block' }} aria-hidden="true"><i style={{ width: `${share * 100}%` }} /></span>
