@@ -5,10 +5,22 @@ import type { Goal, GoalStep, Need, Request, Wish, Deposit } from './types';
 
 const now = () => new Date().toISOString();
 
-export async function saveWish(db: LocalDb, me: Member, w: { id?: string; owner_id: string; title: string; price: number | null }, prev?: Wish) {
+// Columns of later migrations go out only when given or when the stored row already has them:
+// a column the server lacks would make it refuse the whole row.
+type Later = { photo_path?: string | null; visible_to?: string[] | null; dept?: string | null };
+function later(given: Later, prev: object | undefined, keys: Array<keyof Later>) {
+  const out: Record<string, unknown> = {};
+  for (const k of keys) {
+    if (given[k] !== undefined) out[k] = given[k];
+    else if (prev && k in prev) out[k] = (prev as Record<string, unknown>)[k];
+  }
+  return out;
+}
+
+export async function saveWish(db: LocalDb, me: Member, w: { id?: string; owner_id: string; title: string; price: number | null } & Later, prev?: Wish) {
   await writeLocal(db, 'wishes', [{
     id: w.id ?? crypto.randomUUID(), household_id: me.household_id, owner_id: w.owner_id, title: w.title.trim(), price: w.price,
-    saved: prev?.saved ?? 0, done_at: prev?.done_at ?? null, created_by: prev?.created_by ?? me.id, deleted_at: null,
+    saved: prev?.saved ?? 0, done_at: prev?.done_at ?? null, ...later(w, prev, ['photo_path', 'visible_to']), created_by: prev?.created_by ?? me.id, deleted_at: null,
   }]);
 }
 // The piggy bank stays within what the server's integer column holds.
@@ -21,20 +33,18 @@ export const toggleMetoo = (db: LocalDb, w: Wish, me: Member, on: boolean) =>
 export const setGift = (db: LocalDb, w: Wish, me: Member, on: boolean) =>
   writeLocal(db, 'wish_gifts', [{ wish_id: w.id, giver_id: me.id, household_id: w.household_id, deleted_at: on ? null : now() }]);
 
-// dept goes out only when given: the server may not have the column yet.
-export async function saveNeed(db: LocalDb, me: Member, n: { id?: string; for_id: string | null; title: string; note: string; due_on: string | null; price: number | null; dept?: string }, prev?: Need) {
+export async function saveNeed(db: LocalDb, me: Member, n: { id?: string; for_id: string | null; title: string; note: string; due_on: string | null; price: number | null } & Later, prev?: Need) {
   await writeLocal(db, 'needs', [{
     id: n.id ?? crypto.randomUUID(), household_id: me.household_id, for_id: n.for_id, title: n.title.trim(), note: n.note.trim(), due_on: n.due_on, price: n.price,
-    ...(n.dept !== undefined ? { dept: n.dept } : prev && 'dept' in prev ? { dept: prev.dept } : {}),
-    created_by: prev?.created_by ?? me.id, deleted_at: null,
+    ...later(n, prev, ['dept', 'visible_to']), created_by: prev?.created_by ?? me.id, deleted_at: null,
   }]);
 }
 export const removeNeed = (db: LocalDb, n: Need) => writeLocal(db, 'needs', [{ ...n, deleted_at: now() }]);
 
-export async function saveGoal(db: LocalDb, me: Member, g: { id?: string; owner_id: string | null; title: string; target: number; steps: GoalStep[] }, prev?: Goal) {
+export async function saveGoal(db: LocalDb, me: Member, g: { id?: string; owner_id: string | null; title: string; target: number; steps: GoalStep[] } & Later, prev?: Goal) {
   await writeLocal(db, 'goals', [{
     id: g.id ?? crypto.randomUUID(), household_id: me.household_id, owner_id: g.owner_id, title: g.title.trim(), target: Math.round(g.target),
-    saved: prev?.saved ?? 0, steps: g.steps, created_by: prev?.created_by ?? me.id, deleted_at: null,
+    saved: prev?.saved ?? 0, steps: g.steps, ...later(g, prev, ['photo_path']), created_by: prev?.created_by ?? me.id, deleted_at: null,
   }]);
 }
 export const addToGoal = (db: LocalDb, g: Goal, sum: number) => writeLocal(db, 'goals', [{ ...g, saved: Math.min(MAX_SAVED, Math.max(0, g.saved + Math.round(sum))) }]);

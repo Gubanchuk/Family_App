@@ -10,6 +10,8 @@ import { setGift, toggleMetoo } from './boardActions';
 import type { BoardData } from './useBoard';
 import WishSheet from './WishSheet';
 import type { Wish } from './types';
+import { Photo } from '../shell/PhotoField';
+import { seenLine } from './SeenBy';
 
 export default function WishesPanel({ me, members, db, data, adding, onAdded }: { me: Member; members: Member[]; db: LocalDb; data: BoardData; adding: boolean; onAdded: () => void }) {
   const [open, setOpen] = useState<Wish | null>(null);
@@ -27,12 +29,14 @@ export default function WishesPanel({ me, members, db, data, adding, onAdded }: 
             const giver = gift ? members.find((m) => m.id === gift.giver_id) : undefined;
             return (
               <article className="wish" key={w.id}>
+                <Photo path={w.photo_path} className="card-photo" />
                 <button type="button" className="wish-open" aria-label={`${w.title}, открыть`} onClick={() => setOpen(w)} />
                 <div className="w-top">
                   <span className="av sm" style={{ ['--c' as string]: memberColor(owner?.color ?? '#888888') }} aria-hidden="true">{owner ? <AvatarFace member={owner} /> : '?'}</span>
                   {w.price ? <span className="amount">{rub(w.price)}</span> : null}
                 </div>
                 <b>{w.title}</b>
+                {w.visible_to ? <small className="seen-line">{seenLine(w.visible_to, members)}</small> : null}
                 {savedIn(data.bank, w) ? (
                   <>
                     <span className="bar" style={{ ['--h' as string]: memberColor(owner?.color ?? '#888888') }} aria-hidden="true"><i style={{ width: `${progress(savedIn(data.bank, w), w.price) * 100}%` }} /></span>

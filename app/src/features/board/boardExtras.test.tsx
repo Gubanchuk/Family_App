@@ -1,0 +1,83 @@
+import 'fake-indexeddb/auto';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it, vi } from 'vitest';
+import { createLocalDb } from '../../data/db';
+import type { Member } from '../family/useFamily';
+import { setAvatarSigner } from '../family/avatarUrls';
+import BoardPage from './BoardPage';
+
+vi.mock('../../lib/photos', () => ({
+  photoPathFor: vi.fn(async (h: string, k: string, id: string, e: { kind: string }) => (e.kind === 'new' ? `${h}/photos/${k}/${id}/1.jpg` : e.kind === 'remove' ? null : undefined)),
+  dropOldPhoto: vi.fn(async () => {}),
+}));
+
+const mama: Member = { id: 'mama', household_id: 'h', user_id: 'u1', name: 'Оля', color: '#E0457B', role: 'parent', is_owner: true, portion: 1, kin: 'mother' };
+const papa: Member = { ...mama, id: 'papa', user_id: 'u3', name: 'Андрей', is_owner: false, kin: 'father' };
+const son: Member = { ...mama, id: 'son', user_id: 'u2', name: 'Тёма', role: 'child', is_owner: false, kin: 'son' };
+const dima: Member = { ...mama, id: 'dima', user_id: null, name: 'Дима', role: 'child', is_owner: false, kin: 'son' };
+const family = [mama, papa, son, dima];
+const board = async (features: string[], tab = 'wishes', me = mama) => {
+  const db = createLocalDb(`t-${Math.random()}`);
+  await db.meta.put({ key: 'features', value: features });
+  render(<MemoryRouter initialEntries={[`/board?tab=${tab}`]}><BoardPage me={me} members={family} db={db} /></MemoryRouter>);
+  return db;
+};
+
+describe('board: who sees it and photos', () => {
+  it('hides a surprise wish from the person it is for', async () => {
+    const db = await board(['visibility']);
+    await userEvent.click(await screen.findByRole('button', { name: 'Добавить' }));
+    await userEvent.type(await screen.findByLabelText('Что хочется'), 'Подарок Тёме');
+    const seen = screen.getByRole('group', { name: 'Кто видит' });
+    expect(within(seen).getByRole('button', { name: 'Вся семья' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(seen).queryByRole('button', { name: 'Дима' })).toBeNull();
+    await userEvent.click(within(seen).getByRole('button', { name: 'Андрей' }));
+    expect(screen.getByText('Не увидит: Тёма')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    await waitFor(async () => expect((await db.wishes.toArray())[0]).toMatchObject({ visible_to: ['papa'] }));
+    expect(await screen.findByText('видят: Андрей')).toBeInTheDocument();
+  });
+
+  it('keeps a thing to buy to oneself with «Только я»', async () => {
+    const db = await board(['visibility'], 'needs');
+    await userEvent.click(await screen.findByRole('button', { name: 'Добавить' }));
+    await userEvent.type(await screen.findByLabelText('Что купить'), 'Торт');
+    await userEvent.click(within(screen.getByRole('group', { name: 'Кто видит' })).getByRole('button', { name: 'Только я' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    await waitFor(async () => expect((await db.needs.toArray())[0]).toMatchObject({ visible_to: [] }));
+    expect(await screen.findByText(/только вы/)).toBeInTheDocument();
+  });
+
+  it('sends nothing about who sees it before the server keeps it', async () => {
+    const db = await board([]);
+    await userEvent.click(await screen.findByRole('button', { name: 'Добавить' }));
+    await userEvent.type(await screen.findByLabelText('Что хочется'), 'Велосипед');
+    expect(screen.queryByRole('group', { name: 'Кто видит' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    await waitFor(async () => expect((await db.outbox.toArray()).some((o) => o.table === 'wishes' && !('visible_to' in o.row) && !('photo_path' in o.row))).toBe(true));
+  });
+
+  it('puts a photo on a wish and shows it on the board', async () => {
+    setAvatarSigner(async (paths) => new Map(paths.map((p) => [p, `https://files.example/${p}`])));
+    const db = await board(['photos']);
+    await userEvent.click(await screen.findByRole('button', { name: 'Добавить' }));
+    await userEvent.type(await screen.findByLabelText('Что хочется'), 'Самокат');
+    await userEvent.upload(screen.getByLabelText('Добавить фото'), new File(['x'], 'scooter.jpg', { type: 'image/jpeg' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    await waitFor(async () => expect((await db.wishes.toArray())[0].photo_path).toMatch(/^h\/photos\/wishes\/[\w-]+\/1\.jpg$/));
+    const card = (await screen.findByText('Самокат')).closest('article')!;
+    await waitFor(() => expect(card.querySelector('img')).toHaveAttribute('src', expect.stringContaining('/photos/wishes/')));
+  });
+
+  it('puts a photo on a goal', async () => {
+    const db = await board(['photos'], 'goals');
+    await userEvent.click(await screen.findByRole('button', { name: 'Добавить' }));
+    await userEvent.type(await screen.findByLabelText('Цель'), 'Море');
+    await userEvent.type(screen.getByLabelText('Сколько нужно, ₽'), '120000');
+    await userEvent.upload(screen.getByLabelText('Добавить фото'), new File(['x'], 'sea.jpg', { type: 'image/jpeg' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    await waitFor(async () => expect((await db.goals.toArray())[0].photo_path).toMatch(/^h\/photos\/goals\/[\w-]+\/1\.jpg$/));
+  });
+});

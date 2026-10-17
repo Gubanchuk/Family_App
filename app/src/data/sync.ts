@@ -197,6 +197,26 @@ export async function pullTable(db: LocalDb, client: Client, table: SyncTable): 
   }
 }
 
+// A wish or a thing to buy hidden from this member after it reached the phone never comes back in a
+// pull: the server just stops listing it. So the phone asks which ids it may still read and drops the
+// rest, except changes of its own still on the way. An empty answer is never trusted with a wipe.
+const PRUNED: SyncTable[] = ['wishes', 'needs'];
+async function pruneHidden(db: LocalDb, client: Client) {
+  for (const t of PRUNED) {
+    const ids = new Set<string>();
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await (client.from(t).select('id').order('id').range(from, from + PAGE - 1) as unknown as Promise<{ data: Row[] | null; error: ServerError | null }>);
+      if (error) return;
+      for (const r of data ?? []) ids.add(String(r.id));
+      if (!data || data.length < PAGE) break;
+    }
+    if (!ids.size) continue;
+    const pending = await pendingKeys(db, t);
+    const gone = (await tableOf(db, t).toArray()).filter((r) => !ids.has(String(r.id)) && !pending.has(slotKey(t, r)));
+    if (gone.length) await tableOf(db, t).bulkDelete(gone.map((r) => r.id));
+  }
+}
+
 export async function syncNow(db: LocalDb, client: Client) {
   // Without a live session requests go out as an anonymous visitor and every change would look refused.
   if (client.auth && !(await client.auth.getSession()).data.session) return { pushed: 0, pulled: 0, offline: true, rejected: [] as string[] };
@@ -215,6 +235,7 @@ export async function syncNow(db: LocalDb, client: Client) {
   }
   await db.meta.put({ key: 'missing_tables', value: missing });
   try { await probeColumns(db, client); } catch { /* asked again on the next sync */ }
+  try { if ((await features(db)).has('visibility')) await pruneHidden(db, client); } catch { /* tried again on the next sync */ }
   await db.meta.put({ key: 'synced_at', value: new Date().toISOString() });
   return { pushed: push.pushed, pulled, offline: false, rejected: push.rejected };
 }

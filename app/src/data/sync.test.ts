@@ -47,6 +47,32 @@ describe('sync', () => {
     expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'needDept', 'listDays']));
   });
 
+  it('drops a wish that was hidden from this phone after it arrived, keeping its own new one', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const store: Record<string, Array<Record<string, unknown>>> = {};
+    const fake = fakeSupabase(store, KEY_FIELDS);
+    const wish = (id: string) => ({ id, household_id: 'h1', owner_id: 'm1', title: id, price: null, saved: 0, done_at: null, created_by: 'm1', deleted_at: null });
+    fake.serverRow('wishes', wish('w1'));
+    fake.serverRow('wishes', wish('w2'));
+    await syncNow(db, fake.client as never);
+    expect(await db.wishes.count()).toBe(2);
+    store.wishes = store.wishes.filter((r) => r.id !== 'w2');
+    await writeLocal(db, 'wishes', [wish('w3')]);
+    await syncNow(db, fake.client as never);
+    expect((await db.wishes.toArray()).map((w) => w.id).sort()).toEqual(['w1', 'w3']);
+  });
+
+  it('leaves the phone alone when the server lists no rows at all', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const store: Record<string, Array<Record<string, unknown>>> = {};
+    const fake = fakeSupabase(store, KEY_FIELDS);
+    fake.serverRow('wishes', { id: 'w1', household_id: 'h1', owner_id: 'm1', title: 'w1', price: null, saved: 0, done_at: null, created_by: 'm1', deleted_at: null });
+    await syncNow(db, fake.client as never);
+    store.wishes = [];
+    await syncNow(db, fake.client as never);
+    expect(await db.wishes.count()).toBe(1);
+  });
+
   it('keeps board rows on the phone and sends them like any other change', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     const fake = fakeSupabase({}, KEY_FIELDS);

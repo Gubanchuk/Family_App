@@ -8,6 +8,9 @@ import { rub } from '../shop/build';
 import { putIn, removeGoal, saveGoal, takeBack, toggleStep } from './boardActions';
 import type { Deposit, Goal, GoalStep } from './types';
 import DepositHistory from './DepositHistory';
+import PhotoField, { Photo } from '../shell/PhotoField';
+import { useFeature } from '../../data/useFeature';
+import { dropOldPhoto, photoPathFor, type PhotoEdit } from '../../lib/photos';
 
 const sid = () => Math.random().toString(36).slice(2, 8);
 
@@ -24,10 +27,15 @@ export default function GoalSheet({ me, members, db, goal, deposits = [], banked
   const [steps, setSteps] = useState<GoalStep[]>(goal?.steps ?? []);
   const [step, setStep] = useState('');
   const [sum, setSum] = useState('');
+  const hasPhotos = useFeature(db, 'photos');
+  const [id] = useState(() => goal?.id ?? crypto.randomUUID());
+  const [photo, setPhoto] = useState<PhotoEdit>({ kind: 'keep' });
+  const [busy, setBusy] = useState(false);
   if (goal && !editing) {
     return (
       <Sheet title={goal.title} sub={`${rub(banked ?? goal.saved)} из ${rub(goal.target)}`} onClose={onClose}
         actions={canEdit ? <button type="button" className="btn soft" onClick={() => setEditing(true)}>Изменить цель</button> : undefined}>
+        <Photo path={goal.photo_path} className="sheet-photo" />
         <div style={{ margin: '0 16px' }}>
           {goal.steps.map((s) => (
             <label className="row step" key={s.id}>
@@ -49,17 +57,26 @@ export default function GoalSheet({ me, members, db, goal, deposits = [], banked
   const save = async (e: FormEvent) => {
     e.preventDefault();
     const t = parseRub(target);
-    if (!t) return;
-    await saveGoal(db, me, { id: goal?.id, owner_id: owner, title, target: t, steps }, goal ?? undefined);
+    if (!t || busy) return;
+    setBusy(true);
+    let photo_path: string | null | undefined;
+    try { photo_path = hasPhotos ? await photoPathFor(me.household_id, 'goals', id, photo) : undefined; } catch {
+      toast({ text: 'Не получилось загрузить фото: нужен интернет. Попробуйте ещё раз.' });
+      setBusy(false);
+      return;
+    }
+    await saveGoal(db, me, { id, owner_id: owner, title, target: t, steps, photo_path }, goal ?? undefined);
+    await dropOldPhoto(goal?.photo_path, photo_path);
     toast({ text: goal ? 'Цель сохранена' : `Цель «${title.trim()}» на доске` });
     onClose();
   };
   return (
     <Sheet title={goal ? 'Изменить цель' : 'Новая цель'} onClose={onClose} keepOnBackdrop={!!title.trim()}
-      actions={<button type="submit" form="goal-form" className="btn" disabled={!title.trim() || !parseRub(target)}>Сохранить</button>}>
+      actions={<button type="submit" form="goal-form" className="btn" disabled={!title.trim() || !parseRub(target) || busy}>{busy ? 'Сохраняем…' : 'Сохранить'}</button>}>
       <form id="goal-form" style={{ margin: '0 16px' }} onSubmit={save}>
         <label className="field">Цель<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} autoFocus={!goal} placeholder="Например, море летом" /></label>
         <label className="field">Сколько нужно, ₽<input inputMode="numeric" value={target} onChange={(e) => setTarget(e.target.value)} placeholder="120000" /></label>
+        {hasPhotos ? <PhotoField path={goal?.photo_path} value={photo} onChange={setPhoto} /> : null}
         <fieldset className="kin-pick">
           <legend>Чья</legend>
           <div className="picks">

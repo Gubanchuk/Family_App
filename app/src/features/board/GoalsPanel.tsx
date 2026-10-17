@@ -6,6 +6,7 @@ import { memberName, nextStep, progress, savedIn, stepsDone } from './boardMath'
 import GoalSheet from './GoalSheet';
 import type { BoardData } from './useBoard';
 import type { Goal } from './types';
+import { Photo } from '../shell/PhotoField';
 
 export default function GoalsPanel({ me, members, db, data, adding, onAdded }: { me: Member; members: Member[]; db: LocalDb; data: BoardData; adding: boolean; onAdded: () => void }) {
   const [open, setOpen] = useState<Goal | null>(null);
@@ -18,6 +19,7 @@ export default function GoalsPanel({ me, members, db, data, adding, onAdded }: {
         const next = nextStep(g);
         return (
           <section className="card goal" key={g.id}>
+            <Photo path={g.photo_path} className="card-photo goal-photo" />
             <button type="button" className="wish-open" aria-label={`${g.title}, открыть`} onClick={() => setOpen(g)} />
             <div className="card-h"><h2>{g.title}</h2><span className="pill soft" style={{ ['--h' as string]: 'var(--k-goal)' }}>{g.owner_id ? memberName(members, g.owner_id) : 'Семья'}</span></div>
             <div className="cat-top"><span className="amount">{rub(savedIn(data.bank, g))}</span><span className="note" style={{ margin: 0 }}>из {rub(g.target)}</span></div>

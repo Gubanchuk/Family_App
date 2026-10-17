@@ -11,6 +11,7 @@ import { needState, sendNeedToShop } from './needToShop';
 import NeedSheet from './NeedSheet';
 import type { BoardData } from './useBoard';
 import type { Need } from './types';
+import { seenLine } from './SeenBy';
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const by = (d: string) => { const [, mo, day] = d.split('-').map(Number); return `к ${day} ${MONTHS[mo - 1]}`; };
@@ -28,7 +29,7 @@ export default function NeedsPanel({ me, members, db, data, adding, onAdded }: {
   const bought = rows.filter((r) => r.state === 'bought');
   const line = (n: Need, state: string) => {
     const who = members.find((m) => m.id === n.for_id);
-    const sub = [who ? who.name : 'для дома', n.note, n.due_on ? by(n.due_on) : '', n.price ? `≈ ${rub(n.price)}` : '', state === 'in-shop' ? 'в покупках' : ''].filter(Boolean).join(' · ');
+    const sub = [who ? who.name : 'для дома', n.note, n.due_on ? by(n.due_on) : '', n.price ? `≈ ${rub(n.price)}` : '', seenLine(n.visible_to, members) ?? '', state === 'in-shop' ? 'в покупках' : ''].filter(Boolean).join(' · ');
     return (
       <div className={`row ${state === 'bought' ? 'done' : ''}`} key={n.id}>
         <button type="button" className="row-btn" aria-label={`${n.title}, изменить`} onClick={() => setOpen(n)}>
