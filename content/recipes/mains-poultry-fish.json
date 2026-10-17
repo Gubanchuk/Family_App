@@ -2425,7 +2425,10 @@
         "level": "ok",
         "note": "Подходит. Солить умеренно."
       },
-      "source": null
+      "source": {
+        "url": "https://1000.menu/cooking/17422-rassypchataya-grechka-na-garnir",
+        "site": "1000.menu"
+      }
     },
     {
       "id": "side-ris",
@@ -2479,7 +2482,10 @@
         "level": "ok",
         "note": "Подходит. Солить умеренно."
       },
-      "source": null
+      "source": {
+        "url": "https://1000.menu/cooking/44188-rassypchatyi-ris-na-garnir-v-kastrule",
+        "site": "1000.menu"
+      }
     },
     {
       "id": "side-pyure",
@@ -2536,7 +2542,10 @@
         "level": "ok",
         "note": "Подходит. Его порцию отложить до досаливания."
       },
-      "source": null
+      "source": {
+        "url": "https://www.iamcook.ru/showrecipe/573",
+        "site": "iamcook.ru"
+      }
     },
     {
       "id": "side-kartofel-otvarnoy",
@@ -2594,7 +2603,10 @@
         "level": "ok",
         "note": "Подходит. Его порцию отложить до досаливания и размять вилкой."
       },
-      "source": null
+      "source": {
+        "url": "https://1000.menu/cooking/10414-kartofel-otvarnoi",
+        "site": "1000.menu"
+      }
     },
     {
       "id": "side-kartofel-zapechenny",
@@ -2658,7 +2670,10 @@
         "level": "adapt",
         "note": "Его дольки очистить от кожуры и перемешать с маслом и солью отдельно, без чеснока."
       },
-      "source": null
+      "source": {
+        "url": "https://1000.menu/cooking/24356-kartofelnye-dolki-zapechennye-v-duxovke",
+        "site": "1000.menu"
+      }
     },
     {
       "id": "side-makarony",
@@ -2711,7 +2726,10 @@
         "level": "ok",
         "note": "Подходит как есть."
       },
-      "source": null
+      "source": {
+        "url": "https://1000.menu/cooking/11440-makarony-s-maslom",
+        "site": "1000.menu"
+      }
     },
     {
       "id": "side-bulgur",
@@ -2763,7 +2781,10 @@
         "level": "ok",
         "note": "Подходит. Солить умеренно."
       },
-      "source": null
+      "source": {
+        "url": "https://1000.menu/cooking/29189-kak-varit-bulgur-na-vkusnyi-garnir",
+        "site": "1000.menu"
+      }
     },
     {
       "id": "side-perlovka",
@@ -2815,7 +2836,10 @@
         "level": "ok",
         "note": "Подходит, если хорошо разварить."
       },
-      "source": null
+      "source": {
+        "url": "https://1000.menu/cooking/24255-perlovaya-kasha-na-vode",
+        "site": "1000.menu"
+      }
     },
     {
       "id": "side-kapusta-tushenaya",
@@ -2888,7 +2912,10 @@
         "level": "ok",
         "note": "Подходит, если капуста мягкая. Лавровый лист вынуть."
       },
-      "source": null
+      "source": {
+        "url": "https://menunedeli.ru/recipe/tushenaya-kapusta-s-tomatnoj-pastoj/",
+        "site": "menunedeli.ru"
+      }
     },
     {
       "id": "side-ovoshchnoe-ragu",
@@ -2968,7 +2995,10 @@
         "level": "adapt",
         "note": "Подходит. Его порцию отложить до чеснока и соли."
       },
-      "source": null
+      "source": {
+        "url": "https://menunedeli.ru/recipe/ragu-iz-ovoshhej-so-sladkim-percem/",
+        "site": "menunedeli.ru"
+      }
     },
     {
       "id": "side-ovoshchi-zapechenye",
@@ -3042,7 +3072,10 @@
         "level": "ok",
         "note": "Запечённые овощи подходят. Нарезать мелко или размять."
       },
-      "source": null
+      "source": {
+        "url": "https://www.edimdoma.ru/retsepty/112801-ovoschi-prosto-ovoschi",
+        "site": "edimdoma.ru"
+      }
     },
     {
       "id": "side-brokkoli",

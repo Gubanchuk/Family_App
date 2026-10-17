@@ -170,5 +170,10 @@
   {"item": "сок гранатовый", "unit": "мл", "dept": "Бакалея", "group": "other", "pieceWeight": null, "pieceName": null, "pantry": false},
   {"item": "перец чили", "unit": "г", "dept": "Овощи и фрукты", "group": "spice", "pieceWeight": 15, "pieceName": "стручок", "pantry": false},
   {"item": "квас", "unit": "мл", "dept": "Бакалея", "group": "other", "pieceWeight": null, "pieceName": null, "pantry": false},
-  {"item": "базилик свежий", "unit": "г", "dept": "Овощи и фрукты", "group": "veg", "pieceWeight": null, "pieceName": null, "pantry": false}
+  {"item": "базилик свежий", "unit": "г", "dept": "Овощи и фрукты", "group": "veg", "pieceWeight": null, "pieceName": null, "pantry": false},
+  {"item": "ячневая крупа", "unit": "г", "dept": "Бакалея", "group": "cereal", "pieceWeight": null, "pieceName": null, "pantry": false},
+  {"item": "мята свежая", "unit": "г", "dept": "Овощи и фрукты", "group": "veg", "pieceWeight": null, "pieceName": null, "pantry": false},
+  {"item": "ананасы консервированные", "unit": "г", "dept": "Консервы и соусы", "group": "fruit", "pieceWeight": null, "pieceName": null, "pantry": false},
+  {"item": "горбуша консервированная", "unit": "г", "dept": "Консервы и соусы", "group": "fish", "pieceWeight": null, "pieceName": null, "pantry": false},
+  {"item": "нут консервированный", "unit": "г", "dept": "Консервы и соусы", "group": "legume", "pieceWeight": null, "pieceName": null, "pantry": false}
 ]

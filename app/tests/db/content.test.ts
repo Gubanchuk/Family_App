@@ -15,7 +15,7 @@ describe('seed content', { timeout: 60_000 }, () => {
   });
 
   it('has the whole recipe base readable by any signed-in person', async () => {
-    expect(Number((await one<{ n: number }>('select count(*) as n from public.recipes where household_id is null')).n)).toBe(229);
+    expect(Number((await one<{ n: number }>('select count(*) as n from public.recipes where household_id is null')).n)).toBe(368);
   });
   it('keeps every recipe ingredient in the vocabulary', async () => {
     expect(Number((await one<{ n: number }>('select count(*) as n from public.recipe_ingredients ri left join public.ingredients i using (item) where i.item is null')).n)).toBe(0);

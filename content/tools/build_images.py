@@ -38,8 +38,10 @@ def main(root):
     images = json.load(io.open(os.path.join(root, 'content', 'images.json'), encoding='utf-8'))
     out = os.path.join(root, 'content', '.images')
     os.makedirs(out, exist_ok=True)
+    # Photos already made are kept; delete a file to make it again.
+    todo = [(rid, url, out) for rid, url in images.items() if not os.path.exists(os.path.join(out, f'{rid}.jpg'))]
     with ThreadPoolExecutor(8) as pool:
-        results = list(pool.map(small, [(rid, url, out) for rid, url in images.items()]))
+        results = list(pool.map(small, todo))
     ok = [r for r in results if not r[2]]
     for rid, _, err in results:
         if err:
