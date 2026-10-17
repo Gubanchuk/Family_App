@@ -264,9 +264,19 @@ describe('ShopPage', () => {
   it('hints a line whose product is at home', async () => {
     const db = await ready();
     await db.meta.put({ key: 'features', value: ['homeCart'] });
-    await db.home_stock.put({ household_id: 'h1', key: 'творог', item: 'творог', title: 'Творог', dept: 'Молочное и яйца', state: 'have', by_member: 'm-mama', updated_at: 'x', deleted_at: null });
+    // Marked «есть» after the line was listed: worth a look before buying.
+    await db.home_stock.put({ household_id: 'h1', key: 'творог', item: 'творог', title: 'Творог', dept: 'Молочное и яйца', state: 'have', by_member: 'm-mama', updated_at: '2030-01-01T00:00:00.000Z', deleted_at: null });
     show(db);
     expect(await screen.findByRole('button', { name: /^Творог, 1,8 кг/ })).toHaveTextContent('дома есть');
+  });
+
+  it('does not hint from a purchase made before the line was listed', async () => {
+    const db = await ready();
+    await db.meta.put({ key: 'features', value: ['homeCart'] });
+    // Bought last week, so «есть» then; this week's line knows nothing newer.
+    await db.home_stock.put({ household_id: 'h1', key: 'творог', item: 'творог', title: 'Творог', dept: 'Молочное и яйца', state: 'have', by_member: 'm-mama', updated_at: '2026-01-01T00:00:00.000Z', deleted_at: null });
+    show(db);
+    expect(await screen.findByRole('button', { name: /^Творог, 1,8 кг/ })).not.toHaveTextContent('дома есть');
   });
 
   it('names a line that ran out at home', async () => {

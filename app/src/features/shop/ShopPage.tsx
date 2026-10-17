@@ -65,8 +65,9 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const extra = new Map((cart ?? []).map((r) => [r.item.id, r]));
   const list = inCart ? cart.map((r) => r.item) : shown;
   const totals = listTotals(list.map((i) => ({ est: i.est_price, real: marks.get(i.id)?.price_real ?? null, bought: !!marks.get(i.id)?.bought, home: !!marks.get(i.id)?.at_home })));
-  // Products the family has at home: a line still to buy says so, the person decides.
-  const atHome = new Set(data.stock.filter((s) => s.state === 'have').map((s) => s.key));
+  // Products marked «есть» since a line was listed: the line says so, the person decides. An older «есть»
+  // (bought last week) says nothing about this week, so it gives no hint.
+  const atHome = new Map(data.stock.filter((s) => s.state === 'have').map((s) => [s.key, s.updated_at]));
   const name = (id: string | null) => members.find((m) => m.id === id)?.name ?? 'Кто-то';
   const added = (id: string | null) => {
     const m = members.find((x) => x.id === id);
@@ -90,7 +91,8 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
     // Kept «at home»: closed without buying; a tap puts it back on the list.
     const home = !!m?.at_home;
     const price = m?.price_real ?? i.est_price;
-    const hint = !done && !home && atHome.has(stockKey(i)) ? 'дома есть' : '';
+    const since = atHome.get(stockKey(i));
+    const hint = !done && !home && since && since > (i.created_at ?? i.updated_at) ? 'дома есть' : '';
     // In the cart a line says how much the chosen meals need, or who added it from home.
     const c = inCart ? extra.get(i.id) : undefined;
     const sub = c ? c.hint ?? (c.addedBy ? added(c.addedBy) : origin(i)) : origin(i);
