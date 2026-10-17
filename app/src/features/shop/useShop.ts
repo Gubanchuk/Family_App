@@ -17,7 +17,7 @@ export function useShop(db: LocalDb, householdId: string, today: Date) {
     const dishes = new Map((await db.recipes.bulkGet([...new Set([...offers.values()].map((o) => o.dish_id))])).filter((r): r is Recipe => !!r).map((r) => [r.id, r.name]));
     const trips = (await db.shop_trips.where('household_id').equals(householdId).toArray()).sort((a, b) => b.started_at.localeCompare(a.started_at));
     const stock = (await db.home_stock.where('household_id').equals(householdId).toArray()).filter((s) => !s.deleted_at) as HomeStock[];
-    return { weeks, items, marks, offers, dishes, lastTrip: trips[0] ?? null, stock, start };
+    return { weeks, items, marks, offers, dishes, trips, stock, start };
   }, [db, householdId, start]);
 }
 

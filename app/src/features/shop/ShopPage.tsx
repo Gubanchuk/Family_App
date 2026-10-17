@@ -11,7 +11,9 @@ import { weekLabel } from '../menu/week';
 import { listTotals, rub } from './build';
 import { closed, groupByDept, useShop, visibleItems } from './useShop';
 import { setAtHome, stockKey } from './stock';
-import { addManualItem, goShopping, removeItem, setBought, setRealPrice } from './shopActions';
+import { addManualItem, endTrip, goShopping, removeItem, setBought, setRealPrice } from './shopActions';
+import { activeTrips, cartRows } from './tripCart';
+import TripSheet from './TripSheet';
 import { listText } from './listText';
 import AddItemSheet from './AddItemSheet';
 import ItemSheet from './ItemSheet';
@@ -23,7 +25,6 @@ import { useFeature } from '../../data/useFeature';
 import { setListDays } from '../menu/weekActions';
 import { dayOfWeek } from '../menu/week';
 
-const TRIP_MS = 3 * 3600 * 1000;
 const hhmm = (iso: string) => new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 type Clip = { writeText: (t: string) => Promise<void> };
 
@@ -37,6 +38,9 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const [weekPick, setWeekPick] = useState<string | null>(params.get('week'));
   const [sheet, setSheet] = useState<'add' | ShoppingItem | null>(params.get('add') === '1' ? 'add' : null);
   const [note, setNote] = useState('');
+  const [picking, setPicking] = useState(false);
+  // In the shop with a cart: the cart first, the whole list a tap away.
+  const [cartView, setCartView] = useState(true);
   const toast = useToast();
   const folds = useFolds();
   const hasDays = useFeature(db, 'listDays');
@@ -50,13 +54,23 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   }, [data, weekId]);
   if (!data) return <><Header title="Покупки" /><p className="note" style={{ margin: 16 }}>Загружаем список…</p></>;
 
-  const { marks, lastTrip } = data;
-  const totals = listTotals(shown.map((i) => ({ est: i.est_price, real: marks.get(i.id)?.price_real ?? null, bought: !!marks.get(i.id)?.bought, home: !!marks.get(i.id)?.at_home })));
+  const { marks } = data;
+  // Who is in the shop now; my own trip may carry a cart.
+  const active = activeTrips(data.trips, today);
+  const mine = active.find((t) => t.member_id === me.id);
+  const others = active.filter((t) => t.member_id !== me.id);
+  const cart = hasHome && mine?.items ? cartRows(mine, shown, marks) : null;
+  const inCart = cart && cartView;
+  const extra = new Map((cart ?? []).map((r) => [r.item.id, r]));
+  const list = inCart ? cart.map((r) => r.item) : shown;
+  const totals = listTotals(list.map((i) => ({ est: i.est_price, real: marks.get(i.id)?.price_real ?? null, bought: !!marks.get(i.id)?.bought, home: !!marks.get(i.id)?.at_home })));
   // Products the family has at home: a line still to buy says so, the person decides.
   const atHome = new Set(data.stock.filter((s) => s.state === 'have').map((s) => s.key));
   const name = (id: string | null) => members.find((m) => m.id === id)?.name ?? 'Кто-то';
-  const tripFresh = lastTrip && today.getTime() - new Date(lastTrip.started_at).getTime() < TRIP_MS;
-  const meShopping = tripFresh && lastTrip!.member_id === me.id;
+  const added = (id: string | null) => {
+    const m = members.find((x) => x.id === id);
+    return `${m && ['mother', 'grandmother', 'daughter'].includes(m.kin ?? '') ? 'добавила' : 'добавил'} ${name(id)}`;
+  };
   const week = data.weeks.find((w) => w.id === weekId);
   // The dish is named once its offer and recipe are on this phone.
   const offered = (i: ShoppingItem) => {
@@ -67,7 +81,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const origin = (i: ShoppingItem) => (i.source === 'menu' ? 'из меню' : i.source === 'offer' ? offered(i) : i.source === 'home' ? `закончилось дома · ${name(i.added_by)}` : `вручную · ${name(i.added_by)}`);
 
   // Urgent lines still to buy get their own card on top; once bought they go back to their department.
-  const urgent = shown.filter((i) => i.urgent && !closed(marks.get(i.id)));
+  const urgent = inCart ? [] : shown.filter((i) => i.urgent && !closed(marks.get(i.id)));
   const urgentIds = new Set(urgent.map((i) => i.id));
   const row = (i: ShoppingItem) => {
     const m = marks.get(i.id);
@@ -76,12 +90,15 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
     const home = !!m?.at_home;
     const price = m?.price_real ?? i.est_price;
     const hint = !done && !home && atHome.has(stockKey(i)) ? 'дома есть' : '';
+    // In the cart a line says how much the chosen meals need, or who added it from home.
+    const c = inCart ? extra.get(i.id) : undefined;
+    const sub = c ? c.hint ?? (c.addedBy ? added(c.addedBy) : origin(i)) : origin(i);
     return (
       <div className={`row ${done || home ? 'done' : ''}`} key={i.id}>
         <button type="button" className="row-btn" aria-pressed={done} aria-label={`${i.title}${i.qty_text ? `, ${i.qty_text}` : ''}${i.urgent ? ', срочно' : ''}${home ? ', есть дома' : ''}`}
           onClick={() => (home ? setAtHome(db, i, me, false, m) : setBought(db, i, me, !done, m, hasHome && vocab ? { vocab } : undefined))}>
           <span className="check" aria-hidden="true"><Icon name="check" /></span>
-          <span className="row-main"><b>{i.title}</b><small>{home ? 'есть дома' : [i.qty_text, origin(i), hint].filter(Boolean).join(' · ')}</small></span>
+          <span className="row-main"><b>{i.title}</b><small>{home ? 'есть дома' : [i.qty_text, sub, hint].filter(Boolean).join(' · ')}</small></span>
           {i.urgent ? <span className="pill">срочно</span> : null}
         </button>
         <button type="button" className="amount amount-btn" aria-label={`${i.title}: ${price !== null ? `цена ${rub(price)}` : 'цена не указана'}`} onClick={() => setSheet(i)}>{price !== null ? rub(price) : '—'}</button>
@@ -119,8 +136,11 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
       <Header title="Покупки" subtitle={`Отмечено ${totals.doneCount} из ${totals.count}`}
         action={<button type="button" className="head-pill" onClick={() => setSheet('add')}><Icon name="plus" />Добавить</button>} />
       {views}
-      {tripFresh && !meShopping ? (
-        <section className="notice" aria-live="polite"><span className="row-main"><b>{name(lastTrip!.member_id)} в магазине с {hhmm(lastTrip!.started_at)}</b><small>Добавьте, что нужно купить.</small></span></section>
+      {others.length ? (
+        <section className="notice" aria-live="polite"><span className="row-main">
+          {others.map((t) => <b key={t.id}>{`${name(t.member_id)} в магазине с ${hhmm(t.started_at)}${t.label ? `: ${t.label}` : ''}`}</b>)}
+          <small>Добавьте, что нужно купить.</small>
+        </span></section>
       ) : null}
       {data.weeks.length > 1 ? (
         <div className="segs" role="tablist" aria-label="Неделя">
@@ -136,11 +156,23 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
           <button type="button" className="btn soft sm" onClick={sync.dismiss}>Понятно</button></section>
       ) : null}
       <div className="btns fill" style={{ margin: '0 16px 14px' }}>
-        <button type="button" className="btn" disabled={!!meShopping} onClick={() => goShopping(db, me, today)}><Icon name="bag" />{meShopping ? 'Вы в магазине' : 'Иду в магазин'}</button>
+        {mine && hasHome ? (
+          <button type="button" className="btn" onClick={() => endTrip(db, mine)}><Icon name="check" />Закончить поход</button>
+        ) : (
+          <button type="button" className="btn" disabled={!!mine} onClick={() => (hasHome ? setPicking(true) : goShopping(db, me, today))}><Icon name="bag" />{mine ? 'Вы в магазине' : 'Иду в магазин'}</button>
+        )}
         <button type="button" className="btn soft" onClick={copy}><Icon name="copy" />Скопировать</button>
       </div>
       {note ? <p className="note" role="status" style={{ margin: '0 16px 12px' }}>{note}</p> : null}
-      {shown.length === 0 ? (
+      {cart ? (
+        <div className="segs" role="tablist" aria-label="Что показать">
+          <button type="button" role="tab" aria-selected={cartView} onClick={() => setCartView(true)}>Корзина</button>
+          <button type="button" role="tab" aria-selected={!cartView} onClick={() => setCartView(false)}>Весь список</button>
+        </div>
+      ) : null}
+      {inCart && list.length === 0 ? (
+        <section className="card"><p className="note" style={{ margin: 0 }}>В корзине ничего не осталось. Всё остальное — во «Весь список».</p></section>
+      ) : list.length === 0 ? (
         <section className="card"><p className="note" style={{ margin: 0 }}>Список соберётся сам, когда родитель утвердит неделю в Меню. Срочное можно добавить вручную.</p></section>
       ) : (
         <>
@@ -155,7 +187,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
               {urgent.map(row)}
             </section>
           ) : null}
-          {groupByDept(shown.filter((i) => !urgentIds.has(i.id)), marks).map((g) => {
+          {groupByDept(list.filter((i) => !urgentIds.has(i.id)), marks).map((g) => {
             const id = `dept-${g.dept.replace(/\s+/g, '-')}`;
             const got = g.items.filter((i) => closed(marks.get(i.id))).length;
             const done = got === g.items.length;
@@ -180,6 +212,10 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
         const title = capitalize(a.title.trim());
         toast({ text: a.urgent ? `«${title}» — в «Срочно» наверху списка` : `«${title}» в списке, отдел «${dept}»` });
       }} /> : null}
+      {picking && vocab ? (
+        <TripSheet db={db} me={me} weekId={weekId} weekStart={week?.starts_on ?? data.start} today={(week?.starts_on ?? data.start) === data.start ? dayOfWeek(today) : null}
+          lines={shown} marks={marks} vocab={vocab} onStart={(c) => goShopping(db, me, today, c).then(() => setCartView(true))} onClose={() => setPicking(false)} />
+      ) : null}
       {sheet && sheet !== 'add' ? (
         <ItemSheet item={sheet} mark={marks.get(sheet.id)} onPrice={(p) => setRealPrice(db, sheet, me, p, marks.get(sheet.id))} onRemove={() => removeItem(db, sheet)}
           onHome={hasHome ? (on) => setAtHome(db, sheet, me, on, marks.get(sheet.id)) : undefined} onClose={() => setSheet(null)} />

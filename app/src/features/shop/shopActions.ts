@@ -1,5 +1,5 @@
-import { writeLocal } from '../../data/sync';
-import type { Ingredient, LocalDb, ShoppingItem, ShoppingMark } from '../../data/db';
+import { features, writeLocal } from '../../data/sync';
+import type { Ingredient, LocalDb, ShopTrip, ShoppingItem, ShoppingMark, TripLine } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { capitalize } from './menuList';
 import { stockFromBought } from './stock';
@@ -72,12 +72,13 @@ export function guessDept(title: string, vocab: Map<string, Ingredient>): string
   return nonFood ? nonFood[0] : 'Другое';
 }
 
-export async function addManualItem(db: LocalDb, me: Member, a: { title: string; qtyText: string; urgent: boolean; vocab: Map<string, Ingredient>; dept?: string }): Promise<string> {
+// id: given when the caller needs the line right away (a trip cart takes it before the list reloads).
+export async function addManualItem(db: LocalDb, me: Member, a: { title: string; qtyText: string; urgent: boolean; vocab: Map<string, Ingredient>; dept?: string; id?: string }): Promise<string> {
   const title = a.title.trim();
   const g = guessIngredient(title, a.vocab);
   const dept = a.dept ?? guessDept(title, a.vocab);
   await writeLocal(db, 'shopping_items', [{
-    id: `u:${crypto.randomUUID()}`, household_id: me.household_id, week_id: null, offer_id: null, source: 'manual',
+    id: a.id ?? `u:${crypto.randomUUID()}`, household_id: me.household_id, week_id: null, offer_id: null, source: 'manual',
     item: g?.item && g.dept === dept ? g.item : null, title: capitalize(title), qty: null, unit: null, qty_text: a.qtyText.trim(), dept,
     urgent: a.urgent, est_price: null, added_by: me.id, deleted_at: null,
   }]);
@@ -88,6 +89,14 @@ export async function removeItem(db: LocalDb, item: ShoppingItem) {
   await writeLocal(db, 'shopping_items', [{ ...item, deleted_at: new Date().toISOString() }]);
 }
 
-export async function goShopping(db: LocalDb, me: Member, at = new Date()) {
-  await writeLocal(db, 'shop_trips', [{ id: crypto.randomUUID(), household_id: me.household_id, member_id: me.id, started_at: at.toISOString() }]);
+// A trip may carry a cart: what it is for and which lines it takes. Both travel only once the server keeps them;
+// without a cart the trip takes the whole list, as before.
+export async function goShopping(db: LocalDb, me: Member, at = new Date(), cart?: { label: string; items: TripLine[] }) {
+  const withCart = cart && (await features(db)).has('homeCart') ? { label: cart.label || null, items: cart.items } : {};
+  await writeLocal(db, 'shop_trips', [{ id: crypto.randomUUID(), household_id: me.household_id, member_id: me.id, started_at: at.toISOString(), ...withCart }]);
+}
+
+export async function endTrip(db: LocalDb, trip: ShopTrip, at = new Date()) {
+  const { updated_at: _u, ...rest } = trip;
+  await writeLocal(db, 'shop_trips', [{ ...rest, ended_at: at.toISOString() }]);
 }
