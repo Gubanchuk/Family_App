@@ -47,3 +47,18 @@ describe('theme', () => {
     expect(getThemeChoice()).toBe('auto');
   });
 });
+
+describe('accent', () => {
+  beforeEach(() => { localStorage.clear(); delete document.documentElement.dataset.accent; document.head.innerHTML = '<meta name="theme-color" content="#C92A62">'; });
+
+  it('is Ягода until another colour is chosen, and remembers the choice on the phone', async () => {
+    const { getAccent, setAccent } = await import('./theme');
+    expect(getAccent()).toBe('berry');
+    setAccent('forest');
+    expect(getAccent()).toBe('forest');
+    expect(document.documentElement.dataset.accent).toBe('forest');
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#137A52');
+    setAccent('berry');
+    expect(document.documentElement.dataset.accent).toBeUndefined();
+  });
+});

@@ -68,3 +68,21 @@
 }
 
 :root { --k-bg: color-mix(in oklab, var(--k-bgtint) 7%, var(--k-base)); --k-hero: var(--k-primary); --k-hero-ink: var(--k-primary-ink); }
+
+/* The other three colours of the mockups («Ягода» is the default above). Only hues change; neutrals,
+   tints and the day/night themes stay. */
+:root[data-accent="mandarin"] {
+  --k-primary: #FF7A21; --k-primary-ink: #1A1206; --k-bgtint: #FF9A3D;
+  --k-meal: #F08A24; --k-shop: #1FA463; --k-goal: #2F6FDB; --k-money: #8A55E6; --tp-hero: #FF7A21;
+}
+@media (prefers-color-scheme: dark) { :root[data-accent="mandarin"]:not([data-theme="light"]) { --k-hero: #D9621A; --k-hero-ink: #FFFFFF; } }
+:root[data-accent="mandarin"][data-theme="dark"] { --k-hero: #D9621A; --k-hero-ink: #FFFFFF; }
+:root[data-accent="forest"] {
+  --k-primary: #137A52; --k-primary-ink: #FFFFFF; --k-bgtint: #137A52;
+  --k-meal: #E3803A; --k-shop: #137A52; --k-goal: #2C7AD6; --k-money: #7B5BC6; --tp-hero: #137A52;
+}
+:root[data-accent="indigo"] {
+  --k-primary: #3E40D8; --k-primary-ink: #FFFFFF; --k-bgtint: #3E40D8;
+  --k-hero: #17193A; --k-hero-ink: #FFFFFF;
+  --k-meal: #F2994A; --k-shop: #22A85A; --k-goal: #3E40D8; --k-money: #9A50DE; --tp-hero: #17193A;
+}

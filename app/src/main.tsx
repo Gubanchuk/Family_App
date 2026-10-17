@@ -9,9 +9,10 @@ import './styles/tokens.css';
 import './styles/base.css';
 import './styles/components.css';
 import App from './app/App';
-import { applyTheme } from './lib/theme';
+import { applyAccent, applyTheme } from './lib/theme';
 
 applyTheme();
+applyAccent();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

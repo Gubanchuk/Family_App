@@ -500,3 +500,8 @@ a.more, a.av { text-decoration: none; }
 .re-link { display: grid; gap: 8px; margin-bottom: 14px; }
 .re-link .field { margin-bottom: 0; }
 .re-link .btn { justify-self: start; }
+/* The app's colour: four swatches under day and night. */
+.accent-pick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 12px 0 4px; }
+.accent { display: grid; justify-items: center; gap: 6px; padding: 10px 0; border: 2px solid transparent; border-radius: 16px; background: color-mix(in oklab, var(--k-ink) 4%, var(--k-card)); color: var(--k-ink); font: 600 13px var(--font); cursor: pointer; }
+.accent i { width: 30px; height: 30px; border-radius: 50%; background: var(--a); }
+.accent[aria-checked="true"] { border-color: var(--a); }

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import Icon from '../shell/Icon';
-import { getThemeChoice, isDarkNow, setThemeChoice, watchSystemTheme, type ThemeChoice } from '../../lib/theme';
+import { ACCENTS, getAccent, getThemeChoice, isDarkNow, setAccent, setThemeChoice, watchSystemTheme, type Accent, type ThemeChoice } from '../../lib/theme';
 
 export default function ThemePicker({ onPick }: { onPick?: (c: ThemeChoice) => void } = {}) {
   const [choice, setChoice] = useState<ThemeChoice>(getThemeChoice());
   const [dark, setDark] = useState(isDarkNow());
+  const [accent, setAccentState] = useState<Accent>(getAccent());
   useEffect(() => watchSystemTheme(() => setDark(isDarkNow())), []);
 
   const pick = (c: ThemeChoice) => {
@@ -29,6 +30,14 @@ export default function ThemePicker({ onPick }: { onPick?: (c: ThemeChoice) => v
       <div className="theme-pick" role="radiogroup" aria-label="Тема">
         {card('light', 'День', 'sun')}
         {card('dark', 'Ночь', 'moon')}
+      </div>
+      <div className="accent-pick" role="radiogroup" aria-label="Цвет">
+        {ACCENTS.map((a) => (
+          <button key={a.id} type="button" role="radio" aria-checked={accent === a.id} className="accent" style={{ ['--a' as string]: a.hex }}
+            onClick={() => { setAccent(a.id); setAccentState(a.id); }}>
+            <i aria-hidden="true" />{a.name}
+          </button>
+        ))}
       </div>
       <div className="row">
         <span className="row-main"><b>Как в телефоне</b><small>сама переключится вечером, если так настроен телефон</small></span>
