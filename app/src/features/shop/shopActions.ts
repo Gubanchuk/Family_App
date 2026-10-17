@@ -2,19 +2,27 @@ import { writeLocal } from '../../data/sync';
 import type { Ingredient, LocalDb, ShoppingItem, ShoppingMark } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { capitalize } from './menuList';
+import { stockFromBought } from './stock';
 
 // The server stamps bought_at; a mark that already has it keeps a local copy right away, so Money does not
 // move a purchase until the next sync. A mark without it (no column on the server yet) never sends one.
 const boughtAt = (prev: ShoppingMark | undefined, bought: boolean) =>
   prev && 'bought_at' in prev ? { bought_at: bought ? (prev.bought ? prev.bought_at : new Date().toISOString()) : null } : {};
 
-export async function setBought(db: LocalDb, item: ShoppingItem, me: Member, bought: boolean, prev?: ShoppingMark) {
-  await writeLocal(db, 'shopping_marks', [{ item_id: item.id, household_id: item.household_id, bought, by_member: me.id, price_real: prev?.price_real ?? null, ...boughtAt(prev, bought) }]);
+// at_home travels only on marks that already have it, for the same reason. A bought line is never at home.
+const atHome = (prev: ShoppingMark | undefined, value: boolean) => (prev && 'at_home' in prev ? { at_home: value } : {});
+
+// With home (the vocabulary) a bought line also puts its product «at home».
+export async function setBought(db: LocalDb, item: ShoppingItem, me: Member, bought: boolean, prev?: ShoppingMark, home?: { vocab: Map<string, Ingredient> }) {
+  await writeLocal(db, 'shopping_marks', [{ item_id: item.id, household_id: item.household_id, bought, by_member: me.id, price_real: prev?.price_real ?? null, ...boughtAt(prev, bought), ...atHome(prev, false) }]);
+  if (bought && home) await stockFromBought(db, me, item, home.vocab);
 }
 
 export async function setRealPrice(db: LocalDb, item: ShoppingItem, me: Member, price: number | null, prev?: ShoppingMark) {
-  const bought = prev?.bought ?? true;
-  await writeLocal(db, 'shopping_marks', [{ item_id: item.id, household_id: item.household_id, bought, by_member: prev?.by_member ?? me.id, price_real: price, ...boughtAt(prev, bought) }]);
+  // A price on a line kept as «есть дома» leaves it at home, not bought.
+  const home = !!prev?.at_home;
+  const bought = home ? false : prev?.bought ?? true;
+  await writeLocal(db, 'shopping_marks', [{ item_id: item.id, household_id: item.household_id, bought, by_member: prev?.by_member ?? me.id, price_real: price, ...boughtAt(prev, bought), ...atHome(prev, home) }]);
 }
 
 // A hand-typed line goes to the department a shopper expects: «хлеб» to Хлеб, «сыр» to dairy.
