@@ -496,3 +496,7 @@ a.more, a.av { text-decoration: none; }
 .idea.wide .card-photo { width: calc(100% + 32px); margin: -16px -16px 6px; aspect-ratio: 16 / 9; }
 .goal .goal-photo { width: calc(100% + 32px); margin: -16px -16px 12px; aspect-ratio: 16 / 9; }
 .seen-line { font-size: 12px; font-weight: 600; color: color-mix(in oklab, var(--k-primary) 70%, var(--k-ink)); }
+/* «Заполнить по ссылке»: the link, then the button under it. */
+.re-link { display: grid; gap: 8px; margin-bottom: 14px; }
+.re-link .field { margin-bottom: 0; }
+.re-link .btn { justify-self: start; }

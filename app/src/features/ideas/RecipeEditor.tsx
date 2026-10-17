@@ -10,6 +10,7 @@ import { norm } from './search';
 import { useFeature } from '../../data/useFeature';
 import PhotoField from '../shell/PhotoField';
 import { dropOldPhoto, photoPathFor, type PhotoEdit } from '../../lib/photos';
+import { fetchRecipe, fromPage } from './recipeImport';
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 // Editors open right now, and whether the newest history entry is the editor's own.
@@ -53,6 +54,20 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // «Заполнить по ссылке»: what the page gave, and its lines the vocabulary has no product for.
+  const [reading, setReading] = useState(false);
+  const [unmatched, setUnmatched] = useState<string[] | null>(null);
+  const [readError, setReadError] = useState('');
+  const fill = async () => {
+    setReading(true);
+    setReadError('');
+    const page = await fetchRecipe(d.source.trim());
+    setReading(false);
+    if (!page) { setReadError('Не получилось прочитать рецепт с этой страницы. Заполните вручную.'); return; }
+    const { patch, unmatched: rest } = fromPage(page, vocab, d.source.trim());
+    set({ ...patch, name: patch.name || d.name });
+    setUnmatched(rest);
+  };
   const uid = useId();
   // One id for the whole session: a retry after a failed save updates the same recipe instead of adding a twin.
   const [id] = useState(() => start?.id ?? `own-${crypto.randomUUID()}`);
@@ -111,7 +126,13 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
       {/* Enter on a phone keyboard never saves this long form: in the product search it adds the first match. */}
       <form id="recipe-form" style={{ margin: '0 16px' }} onSubmit={save}
         onKeyDown={(e) => { if (e.key === 'Enter' && e.target instanceof HTMLInputElement && !e.nativeEvent.isComposing) e.preventDefault(); }}>
-        <label className="field">Название<input value={d.name} onChange={(e) => set({ name: e.target.value })} maxLength={80} autoFocus={!d.id} placeholder="Например, мамины сырники" /></label>
+        <div className="re-link">
+          <label className="field">Ссылка на рецепт<input value={d.source} onChange={(e) => set({ source: e.target.value })} inputMode="url" placeholder="https://… — можно не писать" /></label>
+            <button type="button" className="btn soft" disabled={!/^https?:\/\/\S+\.\S+/.test(d.source.trim()) || reading} onClick={fill}>{reading ? 'Читаем…' : 'Заполнить по ссылке'}</button>
+        </div>
+        {readError ? <p className="form-error" role="alert">{readError}</p> : null}
+        {unmatched ? <p className="note" role="status">{unmatched.length ? `Заполнили. Не нашли в списке продуктов: ${unmatched.join('; ')}. Добавьте их поиском ниже.` : 'Заполнили. Проверьте и сохраните.'}</p> : null}
+        <label className="field">Название<input value={d.name} onChange={(e) => set({ name: e.target.value })} maxLength={80} placeholder="Например, мамины сырники" /></label>
         <label className="field">Пара слов о блюде<input value={d.about} onChange={(e) => set({ about: e.target.value })} maxLength={120} placeholder="Можно не писать" /></label>
         {hasPhotos ? <PhotoField path={d.photo} value={photo} onChange={setPhoto} /> : null}
         <fieldset className="kin-pick"><legend>Что это</legend><div className="picks">
@@ -157,7 +178,6 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
           </div>
         ))}
         <button type="button" className="btn soft sm" onClick={() => set({ steps: [...d.steps, ''] })}>Добавить шаг</button>
-        <label className="field">Ссылка на рецепт<input value={d.source} onChange={(e) => set({ source: e.target.value })} inputMode="url" placeholder="Можно не писать" /></label>
         {error ? <p className="form-error" role="alert">{error}</p> : null}
       </form>
     </Sheet>

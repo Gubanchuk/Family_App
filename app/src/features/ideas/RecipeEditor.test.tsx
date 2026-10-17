@@ -8,6 +8,10 @@ import RecipeEditor from './RecipeEditor';
 import { saveRecipe } from './recipeApi';
 
 vi.mock('./recipeApi', () => ({ saveRecipe: vi.fn(async () => 'own-1'), deleteRecipe: vi.fn(async () => {}) }));
+vi.mock('./recipeImport', async (orig) => ({
+  ...(await orig<typeof import('./recipeImport')>()),
+  fetchRecipe: vi.fn(async (url: string) => (url.includes('eda.ru') ? { name: 'Сырники', servings: 4, minutes: 25, ingredients: ['Творог — 500 г', 'Яйца — 2 шт.', 'Ванилин — щепотка'], steps: ['Смешать.', 'Обжарить.'], site: 'eda.ru' } : null)),
+}));
 vi.mock('../../lib/photos', () => ({
   photoPathFor: vi.fn(async (h: string, k: string, id: string, e: { kind: string }) => (e.kind === 'new' ? `${h}/photos/${k}/${id}/1.jpg` : e.kind === 'remove' ? null : undefined)),
   dropOldPhoto: vi.fn(async () => {}),
@@ -163,5 +167,26 @@ describe('RecipeEditor', () => {
     expect(onClose).not.toHaveBeenCalled();
     window.dispatchEvent(new PopStateEvent('popstate'));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('fills a recipe from a link and names what it could not place', async () => {
+    const db = await vocab();
+    render(<RecipeEditor me={mama} db={db} onClose={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Ссылка на рецепт'), 'https://eda.ru/recepty/1');
+    await userEvent.click(screen.getByRole('button', { name: 'Заполнить по ссылке' }));
+    expect(await screen.findByRole('status')).toHaveTextContent('Не нашли в списке продуктов: Ванилин — щепотка');
+    expect(screen.getByLabelText('Название')).toHaveValue('Сырники');
+    expect(screen.getByLabelText('Порций')).toHaveValue('4');
+    expect(screen.getByLabelText('Творог, г')).toHaveValue('500');
+    expect(screen.getByLabelText('Яйца, шт')).toHaveValue('2');
+    expect(screen.getByLabelText('Шаг 2')).toHaveValue('Обжарить.');
+  });
+
+  it('says plainly when a page has no recipe to read', async () => {
+    const db = await vocab();
+    render(<RecipeEditor me={mama} db={db} onClose={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Ссылка на рецепт'), 'https://example.com/blog');
+    await userEvent.click(screen.getByRole('button', { name: 'Заполнить по ссылке' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Не получилось прочитать рецепт с этой страницы. Заполните вручную.');
   });
 });
