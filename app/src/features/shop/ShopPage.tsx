@@ -147,7 +147,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
           {data.weeks.map((w) => <button key={w.id} type="button" role="tab" aria-selected={w.id === weekId} onClick={() => setWeekPick(w.id)}>{weekLabel(w.starts_on)}</button>)}
         </div>
       ) : null}
-      {week && hasDays && me.role === 'parent' ? (
+      {week && hasDays && me.role === 'parent' && !inCart ? (
         <ListDays key={`${week.id}-${(week.list_days ?? []).join()}`} week={week} today={week.starts_on === data.start ? dayOfWeek(today) : null}
           onSave={(days) => setListDays(db, week, days)} />
       ) : null}

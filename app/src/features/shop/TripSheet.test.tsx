@@ -69,6 +69,8 @@ describe('a cart for one trip', () => {
     show(db);
     const sheet = await pickBreakfastTomorrow();
     expect(await within(sheet).findByText('Всё для этого уже куплено или есть дома')).toBeInTheDocument();
+    // Why each product is left out, grouped by the reason.
+    expect(within(sheet).getByText('Уже куплено: творог, яйца. Всегда есть дома: мука.')).toBeInTheDocument();
     expect(within(sheet).getByRole('button', { name: 'Пошли' })).toBeDisabled();
     expect(within(sheet).getByRole('button', { name: 'Беру весь список' })).toBeEnabled();
   });

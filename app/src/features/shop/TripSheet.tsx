@@ -10,7 +10,8 @@ import { cartFromPicks, dishesOf, pickLabel, type Pick } from './tripCart';
 import { closed, groupByDept } from './useShop';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-const WHY: Record<string, string> = { bought: 'куплено', home: 'есть дома', pantry: 'всегда есть дома', absent: 'нет в списке' };
+// Why a product of the chosen meals stays out of the cart, one sentence per reason.
+const WHY: Array<[string, string]> = [['bought', 'Уже куплено'], ['home', 'Есть дома'], ['pantry', 'Всегда есть дома'], ['absent', 'Нет в списке']];
 const same = (a: Pick, b: Pick) => a.day === b.day && a.kind === b.kind && (a.kind === 'meal' ? a.meal === (b as typeof a).meal : a.dish_id === (b as typeof a).dish_id);
 
 // «Что берём»: a cart for this trip from a meal of a day, a dish, lines of the list or a line of one's own.
@@ -89,10 +90,10 @@ export default function TripSheet({ db, me, weekId, weekStart, today, lines, mar
           <button type="button" className="btn soft" disabled={busy} onClick={() => start()}>Беру весь список</button>
         </div>
       )}>
+      <div className="col-chips sheet-chips" role="group" aria-label="День">
+        {days.map((d) => <button key={d} type="button" aria-pressed={d === day} onClick={() => setDay(d)}>{dayName(d)}</button>)}
+      </div>
       <div style={{ display: 'grid', gap: 12, margin: '0 16px' }}>
-        <div className="col-chips sheet-chips" role="group" aria-label="День">
-          {days.map((d) => <button key={d} type="button" aria-pressed={d === day} onClick={() => setDay(d)}>{dayName(d)}</button>)}
-        </div>
         <fieldset className="kin-pick"><legend>Приём пищи</legend><div className="picks">
           {MEALS.map((m: Meal) => <button key={m} type="button" className="pick" aria-pressed={pickOn({ kind: 'meal', day, meal: m })} onClick={() => toggle({ kind: 'meal', day, meal: m })}>{MEAL_LABEL[m]}</button>)}
         </div></fieldset>
@@ -103,7 +104,10 @@ export default function TripSheet({ db, me, weekId, weekStart, today, lines, mar
         ) : null}
         {nothing ? <p className="note" role="status" style={{ margin: 0 }}>Всё для этого уже куплено или есть дома</p> : null}
         {picks.length && result.skipped.length ? (
-          <p className="note" style={{ margin: 0 }}>Не берём: {result.skipped.map((s) => `${s.item} — ${WHY[s.why]}`).join('; ')}</p>
+          <p className="note" style={{ margin: 0 }}>{WHY.map(([why, text]) => {
+            const names = result.skipped.filter((s) => s.why === why).map((s) => s.item);
+            return names.length ? `${text}: ${names.join(', ')}.` : '';
+          }).filter(Boolean).join(' ')}</p>
         ) : null}
         <div className="row" style={{ gap: 8 }}>
           <label className="field" style={{ flex: 1, margin: 0 }}>Дописать своё<input value={own} onChange={(e) => setOwn(e.target.value)} maxLength={80} placeholder="Например, хлеб" enterKeyHint="done"
