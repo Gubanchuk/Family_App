@@ -500,6 +500,8 @@ a.more, a.av { text-decoration: none; }
 /* The sheet's width less its side margins, never the picture's own: photos come 640 to 1280 px wide. */
 .sheet-photo { width: calc(100% - 32px); margin: 0 16px 14px; }
 .locked { display: grid; gap: 10px; }
+/* «Дома»: a product that ran out reads like an urgent line. */
+.row.stock-out .row-main small { color: color-mix(in oklab, var(--k-urgent) 82%, var(--k-ink)); }
 .card-photo { display: block; width: calc(100% + 28px); margin: -14px -14px 4px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 22px 22px 0 0; }
 .idea.wide .card-photo { width: calc(100% + 32px); margin: -16px -16px 6px; aspect-ratio: 16 / 9; }
 .goal .goal-photo { width: calc(100% + 32px); margin: -16px -16px 12px; aspect-ratio: 16 / 9; }

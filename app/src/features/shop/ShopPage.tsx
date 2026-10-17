@@ -15,6 +15,7 @@ import { addManualItem, goShopping, removeItem, setBought, setRealPrice } from '
 import { listText } from './listText';
 import AddItemSheet from './AddItemSheet';
 import ItemSheet from './ItemSheet';
+import HomePanel from './HomePanel';
 import { useToast } from '../shell/toastContext';
 import { capitalize } from './menuList';
 import ListDays from './ListDays';
@@ -88,6 +89,25 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
     );
   };
 
+  // «Список · Дома», once the server keeps what is at home (?view=home).
+  const view = hasHome && params.get('view') === 'home' ? 'home' : 'list';
+  const views = hasHome ? (
+    <div className="segs" role="tablist" aria-label="Покупки">
+      <button type="button" role="tab" aria-selected={view === 'list'} onClick={() => setParams({}, { replace: true })}>Список</button>
+      <button type="button" role="tab" aria-selected={view === 'home'} onClick={() => setParams({ view: 'home' }, { replace: true })}>Дома</button>
+    </div>
+  ) : null;
+  if (view === 'home') {
+    return (
+      <>
+        <Header title="Покупки" subtitle="Что есть дома" />
+        {views}
+        <HomePanel db={db} me={me} stock={data.stock} vocab={vocab ?? new Map()} items={shown} marks={marks}
+          weekStart={data.weeks.find((w) => w.id === weekId)?.starts_on ?? data.start} />
+      </>
+    );
+  }
+
   const copy = async () => {
     const text = listText(week ? `Покупки на ${weekLabel(week.starts_on)}` : 'Покупки', shown.filter((i) => !closed(marks.get(i.id))));
     const clip = clipboard ?? navigator.clipboard;
@@ -98,6 +118,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
     <>
       <Header title="Покупки" subtitle={`Отмечено ${totals.doneCount} из ${totals.count}`}
         action={<button type="button" className="head-pill" onClick={() => setSheet('add')}><Icon name="plus" />Добавить</button>} />
+      {views}
       {tripFresh && !meShopping ? (
         <section className="notice" aria-live="polite"><span className="row-main"><b>{name(lastTrip!.member_id)} в магазине с {hhmm(lastTrip!.started_at)}</b><small>Добавьте, что нужно купить.</small></span></section>
       ) : null}
