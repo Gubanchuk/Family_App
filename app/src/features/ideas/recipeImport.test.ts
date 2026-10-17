@@ -15,7 +15,10 @@ describe('recipe by link', () => {
     expect(matchLine('Соль по вкусу', vocab)).toMatchObject({ item: 'соль', toTaste: true, qty: '' });
     expect(matchLine('Фасоль консервированная — 1 банка', vocab)).toMatchObject({ item: 'фасоль', qty: '', note: '1 банка' });
     expect(matchLine('Лук репчатый — 1 шт.', vocab)).toMatchObject({ item: 'лук репчатый' });
-    expect(matchLine('Сахар 2 ст. л.', vocab)).toMatchObject({ item: 'сахар', qty: '', note: '2 ст. л.' });
+    expect(matchLine('Сахар 2 ст. л.', vocab)).toMatchObject({ item: 'сахар', qty: '40', note: '2 ст. л.' });
+    expect(matchLine('Молоко — 1 стакан', vocab)).toMatchObject({ item: 'молоко', qty: '250', note: '1 стакан' });
+    expect(matchLine('Мука 1 чайн.л.', vocab)).toMatchObject({ item: 'мука', qty: '7' });
+    expect(matchLine('Сливочное масло - 20 гр', [...vocab, v('масло сливочное')])).toMatchObject({ item: 'масло сливочное', qty: '20' });
     expect(matchLine('Ванилин на кончике ножа', vocab)).toBeNull();
   });
 

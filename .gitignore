@@ -24,3 +24,4 @@ app/.vercel/
 .superpowers/
 __pycache__/
 content/.images/
+content/harvest/
