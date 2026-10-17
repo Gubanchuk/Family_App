@@ -24,6 +24,7 @@ import { daysTo, dueText, nextDue } from '../money/month';
 import { memberColor } from '../family/colors';
 import AvatarFace from '../family/AvatarFace';
 import FamilyRow from './FamilyRow';
+import PushPrompt from './PushPrompt';
 
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 const mins = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
@@ -100,6 +101,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
     <>
       {head}
       <FamilyRow me={me} members={members} todo={openTo(data.requests)} />
+      <PushPrompt me={me} />
       <section className="hero" aria-label="Главное сейчас">
         {main.kind === 'offer' ? (
           <>

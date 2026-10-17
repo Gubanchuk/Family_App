@@ -31,4 +31,25 @@ describe('subscribePush', () => {
     await refreshPush(me, { from: () => ({ upsert }) } as never);
     expect(upsert).toHaveBeenCalledWith({ endpoint: 'https://push.example/2', household_id: 'h1', member_id: 'm-papa', p256dh: 'P2', auth: 'A2' });
   });
+
+  it('subscribes on start when the phone allows notifications but has no subscription (after a reset or cleared data)', async () => {
+    const sub = { endpoint: 'https://push.example/3', toJSON: () => ({ keys: { p256dh: 'P3', auth: 'A3' } }) };
+    const pushManager = { getSubscription: vi.fn(() => Promise.resolve(null)), subscribe: vi.fn(() => Promise.resolve(sub)) };
+    vi.stubGlobal('Notification', { permission: 'granted' });
+    vi.stubGlobal('PushManager', function PushManager() {});
+    Object.defineProperty(navigator, 'serviceWorker', { value: { ready: Promise.resolve({ pushManager }) }, configurable: true });
+    const upsert = vi.fn(() => Promise.resolve({ error: null }));
+    await refreshPush(me, { from: () => ({ upsert }) } as never);
+    expect(pushManager.subscribe).toHaveBeenCalled();
+    expect(upsert).toHaveBeenCalledWith({ endpoint: 'https://push.example/3', household_id: 'h1', member_id: 'm-papa', p256dh: 'P3', auth: 'A3' });
+  });
+
+  it('leaves a phone alone when notifications were never allowed', async () => {
+    const pushManager = { getSubscription: vi.fn(() => Promise.resolve(null)), subscribe: vi.fn() };
+    vi.stubGlobal('Notification', { permission: 'default' });
+    vi.stubGlobal('PushManager', function PushManager() {});
+    Object.defineProperty(navigator, 'serviceWorker', { value: { ready: Promise.resolve({ pushManager }) }, configurable: true });
+    await refreshPush(me, { from: vi.fn() } as never);
+    expect(pushManager.subscribe).not.toHaveBeenCalled();
+  });
 });

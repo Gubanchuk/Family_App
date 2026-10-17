@@ -483,3 +483,6 @@ a.more, a.av { text-decoration: none; }
 .col-chips + .col-chips { margin-top: -6px; }
 .col-chips button.soft:not([aria-pressed="true"]) { background: color-mix(in oklab, var(--k-ink) 5%, var(--k-bg)); box-shadow: none; }
 .idea-count { margin: 0 16px 8px; }
+/* A notice with its own actions: the words first, the buttons on a row under them. */
+.notice.stack { flex-direction: column; align-items: stretch; gap: 10px; }
+.notice.stack .btns { display: flex; align-items: center; gap: 12px; }
