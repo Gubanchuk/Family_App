@@ -117,6 +117,13 @@ describe('HomePage', () => {
     expect(within(sheet).queryByRole('button', { name: 'Приготовлю я' })).not.toBeInTheDocument();
   });
 
+  it('does not count a line kept at home as left to buy', async () => {
+    const db = await ready();
+    await db.shopping_marks.put({ item_id: 'm:w-cur:творог', household_id: 'h1', bought: false, by_member: 'm-papa', price_real: null, at_home: true, updated_at: 'x' });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('link', { name: /Покупки/ })).toHaveTextContent('8');
+  });
+
   it('names a breakfast taken instead in its row, and opens an offered dish from its row', async () => {
     const db = await ready();
     await db.dish_offers.put({ id: 'o5', household_id: 'h1', from_member: 'm-mama', to_member: 'm-papa', dish_id: 'br-syrniki', on_date: '2026-10-13', meal: 'breakfast', how: 'instead', status: 'taken', taken_by: 'm-papa', updated_at: 'x', deleted_at: null });

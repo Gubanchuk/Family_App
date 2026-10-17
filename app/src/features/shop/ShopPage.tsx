@@ -9,7 +9,8 @@ import { localDb, type LocalDb, type ShoppingItem } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { weekLabel } from '../menu/week';
 import { listTotals, rub } from './build';
-import { groupByDept, useShop, visibleItems } from './useShop';
+import { closed, groupByDept, useShop, visibleItems } from './useShop';
+import { setAtHome, stockKey } from './stock';
 import { addManualItem, goShopping, removeItem, setBought, setRealPrice } from './shopActions';
 import { listText } from './listText';
 import AddItemSheet from './AddItemSheet';
@@ -38,6 +39,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const toast = useToast();
   const folds = useFolds();
   const hasDays = useFeature(db, 'listDays');
+  const hasHome = useFeature(db, 'homeCart');
   // A linked week that is no longer in the list falls back to the first one.
   const weekId = data?.weeks.find((w) => w.id === weekPick)?.id ?? data?.weeks[0]?.id ?? null;
   const shown = useMemo(() => {
@@ -48,7 +50,9 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   if (!data) return <><Header title="Покупки" /><p className="note" style={{ margin: 16 }}>Загружаем список…</p></>;
 
   const { marks, lastTrip } = data;
-  const totals = listTotals(shown.map((i) => ({ est: i.est_price, real: marks.get(i.id)?.price_real ?? null, bought: !!marks.get(i.id)?.bought })));
+  const totals = listTotals(shown.map((i) => ({ est: i.est_price, real: marks.get(i.id)?.price_real ?? null, bought: !!marks.get(i.id)?.bought, home: !!marks.get(i.id)?.at_home })));
+  // Products the family has at home: a line still to buy says so, the person decides.
+  const atHome = new Set(data.stock.filter((s) => s.state === 'have').map((s) => s.key));
   const name = (id: string | null) => members.find((m) => m.id === id)?.name ?? 'Кто-то';
   const tripFresh = lastTrip && today.getTime() - new Date(lastTrip.started_at).getTime() < TRIP_MS;
   const meShopping = tripFresh && lastTrip!.member_id === me.id;
@@ -59,20 +63,24 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
     const dish = o ? data.dishes.get(o.dish_id) : undefined;
     return dish ? `к блюду «${dish}»` : 'к предложенному блюду';
   };
-  const origin = (i: ShoppingItem) => (i.source === 'menu' ? 'из меню' : i.source === 'offer' ? offered(i) : `вручную · ${name(i.added_by)}`);
+  const origin = (i: ShoppingItem) => (i.source === 'menu' ? 'из меню' : i.source === 'offer' ? offered(i) : i.source === 'home' ? `закончилось дома · ${name(i.added_by)}` : `вручную · ${name(i.added_by)}`);
 
   // Urgent lines still to buy get their own card on top; once bought they go back to their department.
-  const urgent = shown.filter((i) => i.urgent && !marks.get(i.id)?.bought);
+  const urgent = shown.filter((i) => i.urgent && !closed(marks.get(i.id)));
   const urgentIds = new Set(urgent.map((i) => i.id));
   const row = (i: ShoppingItem) => {
     const m = marks.get(i.id);
     const done = !!m?.bought;
+    // Kept «at home»: closed without buying; a tap puts it back on the list.
+    const home = !!m?.at_home;
     const price = m?.price_real ?? i.est_price;
+    const hint = !done && !home && atHome.has(stockKey(i)) ? 'дома есть' : '';
     return (
-      <div className={`row ${done ? 'done' : ''}`} key={i.id}>
-        <button type="button" className="row-btn" aria-pressed={done} aria-label={`${i.title}${i.qty_text ? `, ${i.qty_text}` : ''}${i.urgent ? ', срочно' : ''}`} onClick={() => setBought(db, i, me, !done, m)}>
+      <div className={`row ${done || home ? 'done' : ''}`} key={i.id}>
+        <button type="button" className="row-btn" aria-pressed={done} aria-label={`${i.title}${i.qty_text ? `, ${i.qty_text}` : ''}${i.urgent ? ', срочно' : ''}${home ? ', есть дома' : ''}`}
+          onClick={() => (home ? setAtHome(db, i, me, false, m) : setBought(db, i, me, !done, m, hasHome && vocab ? { vocab } : undefined))}>
           <span className="check" aria-hidden="true"><Icon name="check" /></span>
-          <span className="row-main"><b>{i.title}</b><small>{[i.qty_text, origin(i)].filter(Boolean).join(' · ')}</small></span>
+          <span className="row-main"><b>{i.title}</b><small>{home ? 'есть дома' : [i.qty_text, origin(i), hint].filter(Boolean).join(' · ')}</small></span>
           {i.urgent ? <span className="pill">срочно</span> : null}
         </button>
         <button type="button" className="amount amount-btn" aria-label={`${i.title}: ${price !== null ? `цена ${rub(price)}` : 'цена не указана'}`} onClick={() => setSheet(i)}>{price !== null ? rub(price) : '—'}</button>
@@ -81,7 +89,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   };
 
   const copy = async () => {
-    const text = listText(week ? `Покупки на ${weekLabel(week.starts_on)}` : 'Покупки', shown.filter((i) => !marks.get(i.id)?.bought));
+    const text = listText(week ? `Покупки на ${weekLabel(week.starts_on)}` : 'Покупки', shown.filter((i) => !closed(marks.get(i.id))));
     const clip = clipboard ?? navigator.clipboard;
     try { await clip.writeText(text); setNote('Список скопирован'); } catch { setNote('Не получилось скопировать. Выделите список вручную.'); }
   };
@@ -128,11 +136,11 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
           ) : null}
           {groupByDept(shown.filter((i) => !urgentIds.has(i.id)), marks).map((g) => {
             const id = `dept-${g.dept.replace(/\s+/g, '-')}`;
-            const got = g.items.filter((i) => marks.get(i.id)?.bought).length;
+            const got = g.items.filter((i) => closed(marks.get(i.id))).length;
             const done = got === g.items.length;
             const folded = folds.isFolded(g.dept, done);
             // What the department costs: what is left to buy, or what it took once all is bought.
-            const sum = listTotals(g.items.map((i) => ({ est: i.est_price, real: marks.get(i.id)?.price_real ?? null, bought: !!marks.get(i.id)?.bought })));
+            const sum = listTotals(g.items.map((i) => ({ est: i.est_price, real: marks.get(i.id)?.price_real ?? null, bought: !!marks.get(i.id)?.bought, home: !!marks.get(i.id)?.at_home })));
             const money = done ? (sum.bought ? ` · ${rub(sum.bought)}` : '') : sum.left ? ` · ≈ ${rub(sum.left)}` : '';
             return (
               <section className="card" key={g.dept} aria-labelledby={id}>
@@ -152,7 +160,8 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
         toast({ text: a.urgent ? `«${title}» — в «Срочно» наверху списка` : `«${title}» в списке, отдел «${dept}»` });
       }} /> : null}
       {sheet && sheet !== 'add' ? (
-        <ItemSheet item={sheet} mark={marks.get(sheet.id)} onPrice={(p) => setRealPrice(db, sheet, me, p, marks.get(sheet.id))} onRemove={() => removeItem(db, sheet)} onClose={() => setSheet(null)} />
+        <ItemSheet item={sheet} mark={marks.get(sheet.id)} onPrice={(p) => setRealPrice(db, sheet, me, p, marks.get(sheet.id))} onRemove={() => removeItem(db, sheet)}
+          onHome={hasHome ? (on) => setAtHome(db, sheet, me, on, marks.get(sheet.id)) : undefined} onClose={() => setSheet(null)} />
       ) : null}
     </>
   );

@@ -246,6 +246,44 @@ describe('ShopPage', () => {
     expect(screen.getByText('Сервер не принял изменение. Вернули как было.')).toBeInTheDocument();
   });
 
+  it('closes a line as at home from its sheet', async () => {
+    const db = await ready();
+    await db.meta.put({ key: 'features', value: ['homeCart'] });
+    show(db);
+    await userEvent.click(await screen.findByRole('button', { name: /^Творог: цена/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Есть дома' }));
+    await waitFor(async () => expect(await db.shopping_marks.get(menuItemId('w-cur', 'творог'))).toMatchObject({ bought: false, at_home: true }));
+    expect((await db.home_stock.get(['h1', 'творог']))?.state).toBe('have');
+    expect(await screen.findByText('Отмечено 1 из 9')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Творог.*есть дома/ })).toHaveTextContent('есть дома');
+    // A tap on it puts it back on the list.
+    await userEvent.click(screen.getByRole('button', { name: /^Творог.*есть дома/ }));
+    await waitFor(async () => expect((await db.shopping_marks.get(menuItemId('w-cur', 'творог')))?.at_home).toBe(false));
+  });
+
+  it('hints a line whose product is at home', async () => {
+    const db = await ready();
+    await db.meta.put({ key: 'features', value: ['homeCart'] });
+    await db.home_stock.put({ household_id: 'h1', key: 'творог', item: 'творог', title: 'Творог', dept: 'Молочное и яйца', state: 'have', by_member: 'm-mama', updated_at: 'x', deleted_at: null });
+    show(db);
+    expect(await screen.findByRole('button', { name: /^Творог, 1,8 кг/ })).toHaveTextContent('дома есть');
+  });
+
+  it('names a line that ran out at home', async () => {
+    const db = await ready();
+    await db.shopping_items.put({ id: 'h:2026-10-12:0:t:хлеб', household_id: 'h1', week_id: null, offer_id: null, source: 'home', item: null, title: 'Хлеб', qty: null, unit: null, qty_text: '', dept: 'Хлеб', urgent: false, est_price: null, added_by: 'm-mama', updated_at: 'x', deleted_at: null });
+    show(db);
+    expect(await screen.findByText('закончилось дома · Мама')).toBeInTheDocument();
+  });
+
+  it('no home buttons before the server has them', async () => {
+    const db = await ready();
+    show(db);
+    await userEvent.click(await screen.findByRole('button', { name: /^Творог: цена/ }));
+    expect(await screen.findByRole('button', { name: 'Сохранить' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Есть дома' })).toBeNull();
+  });
+
   it('reads out the price with the line', async () => {
     const db = await ready();
     show(db);

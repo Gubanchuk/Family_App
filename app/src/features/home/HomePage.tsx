@@ -99,7 +99,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const pay = nextPay && daysTo(data.todayIso, nextPay.due) <= 7 ? nextPay : undefined;
   const nowMin = today.getHours() * 60 + today.getMinutes();
   const next = MEALS.find((m) => mins(times[m]) > nowMin);
-  const totals = listTotals(data.items.map((i) => ({ est: i.est_price, real: data.marks.get(i.id)?.price_real ?? null, bought: !!data.marks.get(i.id)?.bought })));
+  const totals = listTotals(data.items.map((i) => ({ est: i.est_price, real: data.marks.get(i.id)?.price_real ?? null, bought: !!data.marks.get(i.id)?.bought, home: !!data.marks.get(i.id)?.at_home })));
   const who = (id: string) => members.find((m) => m.id === id)?.name ?? 'Кто-то';
   const offerRows = data.offers.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} onOpen={() => setDish(o.dish_id)} />);
 

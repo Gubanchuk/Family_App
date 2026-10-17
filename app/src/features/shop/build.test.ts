@@ -79,3 +79,10 @@ describe('formatQty and money', () => {
     expect(line(l, 'творог')?.qty).toBeCloseTo(500 * 0.875);
   });
 });
+
+describe('listTotals with lines kept at home', () => {
+  it('counts an at-home line as done without money', () => {
+    expect(listTotals([{ est: 100, real: null, bought: false, home: true }, { est: 50, real: null, bought: false }]))
+      .toEqual({ count: 2, doneCount: 1, bought: 0, left: 50, unpriced: 0 });
+  });
+});

@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { DishOffer, LocalDb, Recipe, ShoppingItem, ShoppingMark } from '../../data/db';
+import type { DishOffer, HomeStock, LocalDb, Recipe, ShoppingItem, ShoppingMark } from '../../data/db';
 import { addDaysIso, mondayOf } from '../menu/week';
 import { deptRank } from './build';
 
@@ -16,7 +16,8 @@ export function useShop(db: LocalDb, householdId: string, today: Date) {
     // Recipe names of offered dishes, so a line for one can say which dish it is for.
     const dishes = new Map((await db.recipes.bulkGet([...new Set([...offers.values()].map((o) => o.dish_id))])).filter((r): r is Recipe => !!r).map((r) => [r.id, r.name]));
     const trips = (await db.shop_trips.where('household_id').equals(householdId).toArray()).sort((a, b) => b.started_at.localeCompare(a.started_at));
-    return { weeks, items, marks, offers, dishes, lastTrip: trips[0] ?? null, start };
+    const stock = (await db.home_stock.where('household_id').equals(householdId).toArray()).filter((s) => !s.deleted_at) as HomeStock[];
+    return { weeks, items, marks, offers, dishes, lastTrip: trips[0] ?? null, stock, start };
   }, [db, householdId, start]);
 }
 
@@ -27,7 +28,8 @@ export function visibleItems(items: ShoppingItem[], weekId: string | null, ctx: 
   const weekEnd = addDaysIso(ctx.weekStart, 6);
   return items.filter((i) => {
     if (i.source === 'menu') return i.week_id === weekId;
-    if (i.source === 'manual') { const m = ctx.marks.get(i.id); return !m?.bought || m.updated_at >= ctx.weekStart; }
+    // A hand-added line, or one for a product that ran out at home, shows until it is closed, then through the week.
+    if (i.source === 'manual' || i.source === 'home') { const m = ctx.marks.get(i.id); return !(m?.bought || m?.at_home) || m.updated_at >= ctx.weekStart; }
     const o = i.offer_id ? ctx.offers.get(i.offer_id) : undefined;
     return !!o && o.status !== 'declined' && !o.deleted_at && o.on_date >= ctx.weekStart && o.on_date <= weekEnd;
   });
@@ -36,8 +38,11 @@ export function visibleItems(items: ShoppingItem[], weekId: string | null, ctx: 
 export function groupByDept(items: ShoppingItem[], marks: Map<string, ShoppingMark>) {
   const groups = new Map<string, ShoppingItem[]>();
   for (const i of items) groups.set(i.dept, [...(groups.get(i.dept) ?? []), i]);
-  const done = (i: ShoppingItem) => Number(!!marks.get(i.id)?.bought);
+  const done = (i: ShoppingItem) => Number(closed(marks.get(i.id)));
   return [...groups.entries()]
     .sort(([a], [b]) => deptRank(a) - deptRank(b))
     .map(([dept, list]) => ({ dept, items: list.sort((a, b) => done(a) - done(b) || Number(b.urgent) - Number(a.urgent) || a.title.localeCompare(b.title, 'ru')) }));
 }
+
+// A line is off the list when it is bought or kept «at home».
+export const closed = (m: ShoppingMark | undefined) => !!(m?.bought || m?.at_home);

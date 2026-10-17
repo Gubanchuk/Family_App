@@ -68,10 +68,11 @@ export function formatQty(qty: number | null, unit: string): string {
 // The sign never wraps away from the number.
 export const rub = (n: number) => `${Math.round(n).toLocaleString('ru-RU')}\u00A0₽`;
 
-export function listTotals(rows: Array<{ est: number | null; real: number | null; bought: boolean }>) {
+// A line kept «at home» is done without money: neither bought nor left to buy.
+export function listTotals(rows: Array<{ est: number | null; real: number | null; bought: boolean; home?: boolean }>) {
   let bought = 0; let left = 0; let unpriced = 0; let doneCount = 0;
   for (const r of rows) {
-    if (r.bought) { doneCount += 1; bought += r.real ?? r.est ?? 0; } else if (r.est === null) unpriced += 1; else left += r.est;
+    if (r.bought) { doneCount += 1; bought += r.real ?? r.est ?? 0; } else if (r.home) doneCount += 1; else if (r.est === null) unpriced += 1; else left += r.est;
   }
   return { count: rows.length, doneCount, bought: Math.round(bought), left: Math.round(left), unpriced };
 }
