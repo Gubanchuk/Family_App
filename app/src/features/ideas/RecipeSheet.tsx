@@ -5,6 +5,7 @@ import type { Member } from '../family/useFamily';
 import { MEAL_LABEL, type Meal } from '../menu/week';
 import { rub } from '../shop/build';
 import RecipeBody, { DimaLine } from './RecipeBody';
+import { Photo } from '../shell/PhotoField';
 export type OfferDraft = { to: string | null; when: 'today' | 'tomorrow' | 'weekend'; meal: Meal; how: 'over' | 'instead' };
 const defaultMeal = (r: Recipe): Meal => (r.category === 'breakfast' ? 'breakfast' : r.category === 'soup' ? 'lunch' : ['snack', 'dessert', 'drink'].includes(r.category) ? 'snack' : r.meals.includes('dinner') ? 'dinner' : (r.meals[0] as Meal) ?? 'dinner');
 
@@ -40,6 +41,7 @@ export default function RecipeSheet({ recipe, rows, vocab, prices, portions, me,
   return (
     <Sheet title={recipe.name} sub={recipe.about} onClose={onClose}
       actions={<div className="btns fill"><button type="button" className="btn" onClick={() => send(false)}>Предложить</button><button type="button" className="btn soft" onClick={() => send(true)}>Приготовлю я</button></div>}>
+      <Photo path={recipe.photo_path} className="sheet-photo" />
       <p className="meta-line"><span>{recipe.time_total} минут</span><span>{recipe.servings} {recipe.servings < 5 ? 'порции' : 'порций'}</span>{cost ? <span>≈&nbsp;{rub(cost)}{missing ? ' без части продуктов' : ''}</span> : null}</p>
       <DimaLine recipe={recipe} />
       {onEdit && onDelete ? (

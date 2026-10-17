@@ -13,6 +13,7 @@ import RecipeSheet from './RecipeSheet';
 import RecipeEditor from './RecipeEditor';
 import { draftFrom, type Draft } from './recipeDraft';
 import { deleteRecipe } from './recipeApi';
+import { Photo } from '../shell/PhotoField';
 
 const DIMA = { ok: 'Диме можно', adapt: 'Диме с поправкой', skip: 'Диме нельзя' } as const;
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -109,6 +110,7 @@ export default function IdeasPanel({ me, members, db, today }: { me: Member; mem
       <div className="idea-grid">
         {list.map((r, i) => (
           <button key={r.id} type="button" className={`idea ${i === 0 && !q.trim() && !col && !meal ? 'wide' : ''}`} onClick={() => setOpen(r.id)}>
+            <Photo path={r.photo_path} className="card-photo" />
             <b>{r.name}</b>{i === 0 && !q.trim() && !col && !meal ? <span className="i-about">{r.about}</span> : null}
             <span className="i-meta"><span className="i-min">{r.time_total}<small>мин</small></span></span>
             <span className="i-dima">{DIMA[r.dima_level]}</span>

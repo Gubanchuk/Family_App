@@ -486,3 +486,11 @@ a.more, a.av { text-decoration: none; }
 /* A notice with its own actions: the words first, the buttons on a row under them. */
 .notice.stack { flex-direction: column; align-items: stretch; gap: 10px; }
 .notice.stack .btns { display: flex; align-items: center; gap: 12px; }
+/* Photos of recipes, wishes and goals: 4:3 in sheets and forms, a cover on cards. */
+.photo-add { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 96px; margin: 0 0 14px; border: 2px dashed color-mix(in oklab, var(--k-primary) 45%, var(--k-bg)); border-radius: 18px; color: color-mix(in oklab, var(--k-primary) 82%, var(--k-ink)); font: 600 15px var(--font); cursor: pointer; }
+.photo-add .ic { width: 20px; height: 20px; }
+.photo-field { display: grid; gap: 10px; margin: 0 0 14px; }
+.photo-field img, .photo-wait, .sheet-photo { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 18px; background: color-mix(in oklab, var(--k-ink) 6%, var(--k-card)); }
+.sheet-photo { width: auto; margin: 0 16px 14px; }
+.card-photo { display: block; width: calc(100% + 28px); margin: -14px -14px 4px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 22px 22px 0 0; }
+.idea.wide .card-photo { width: calc(100% + 32px); margin: -16px -16px 6px; aspect-ratio: 16 / 9; }

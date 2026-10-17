@@ -8,6 +8,10 @@ import RecipeEditor from './RecipeEditor';
 import { saveRecipe } from './recipeApi';
 
 vi.mock('./recipeApi', () => ({ saveRecipe: vi.fn(async () => 'own-1'), deleteRecipe: vi.fn(async () => {}) }));
+vi.mock('../../lib/photos', () => ({
+  photoPathFor: vi.fn(async (h: string, k: string, id: string, e: { kind: string }) => (e.kind === 'new' ? `${h}/photos/${k}/${id}/1.jpg` : e.kind === 'remove' ? null : undefined)),
+  dropOldPhoto: vi.fn(async () => {}),
+}));
 const mama: Member = { id: 'mama', household_id: 'h', user_id: 'u', name: 'Оля', color: '#E0457B', role: 'parent', is_owner: true, portion: 1 };
 
 async function vocab() {
@@ -113,5 +117,39 @@ describe('RecipeEditor', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Закрыть' }));
     await userEvent.click(screen.getByRole('button', { name: 'Выйти' }));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('adds a photo to a new recipe once the server keeps photos', async () => {
+    const db = await vocab();
+    await db.meta.put({ key: 'features', value: ['photos'] });
+    render(<RecipeEditor me={mama} db={db} onClose={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Название'), 'Пирог');
+    await userEvent.click(screen.getByRole('button', { name: 'Десерт' }));
+    await userEvent.type(screen.getByLabelText('Порций'), '6');
+    await userEvent.type(screen.getByLabelText('Найти продукт'), 'тво');
+    await userEvent.click(await screen.findByRole('button', { name: 'Добавить: творог' }));
+    await userEvent.type(screen.getByLabelText('Творог, г'), '400');
+    await userEvent.type(screen.getByLabelText('Шаг 1'), 'Испечь');
+    await userEvent.upload(await screen.findByLabelText('Добавить фото'), new File(['x'], 'pie.jpg', { type: 'image/jpeg' }));
+    expect(screen.getByRole('button', { name: 'Убрать фото' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    expect(saveRecipe).toHaveBeenLastCalledWith('h', expect.objectContaining({ name: 'Пирог' }), true, { photo_path: expect.stringMatching(/^h\/photos\/recipes\/own-[\w-]+\/1\.jpg$/) });
+  });
+
+  it('removes the photo of a recipe being changed', async () => {
+    const db = await vocab();
+    await db.meta.put({ key: 'features', value: ['photos'] });
+    const draft = { id: 'own-7', name: 'Пирог', about: '', category: 'dessert' as const, time: '40', servings: '6', dima: 'ok' as const, dimaNote: '', rows: [{ item: 'творог', qty: '400', toTaste: false, note: '' }], steps: ['Испечь'], source: '', photo: 'h/photos/recipes/own-7/1.jpg' };
+    render(<RecipeEditor me={mama} db={db} draft={draft} onClose={vi.fn()} />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Убрать фото' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    expect(saveRecipe).toHaveBeenLastCalledWith('h', expect.objectContaining({ id: 'own-7' }), false, { photo_path: null });
+  });
+
+  it('offers no photo before the server keeps photos', async () => {
+    const db = await vocab();
+    render(<RecipeEditor me={mama} db={db} onClose={vi.fn()} />);
+    await screen.findByLabelText('Название');
+    expect(screen.queryByLabelText('Добавить фото')).toBeNull();
   });
 });

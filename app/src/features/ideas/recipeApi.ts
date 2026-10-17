@@ -5,11 +5,12 @@ import { toRows, type Draft } from './recipeDraft';
 
 // Phones reload the recipe base when its newest updated_at moves. So the recipe and its products go in
 // first, and updated_at moves last: no phone reloads into a recipe whose products are still missing.
-export async function saveRecipe(householdId: string, d: Draft, isNew = !d.id): Promise<string> {
+// extra: columns sent only when the server has them (photo_path).
+export async function saveRecipe(householdId: string, d: Draft, isNew = !d.id, extra: { photo_path?: string | null } = {}): Promise<string> {
   if (!navigator.onLine) throw new Error('offline');
   const { recipe, ingredients } = toRows(d);
   const id = recipe.id as string;
-  const r = await supabase.from('recipes').upsert({ ...recipe, household_id: householdId, deleted_at: null });
+  const r = await supabase.from('recipes').upsert({ ...recipe, ...extra, household_id: householdId, deleted_at: null });
   if (r.error) throw new Error(r.error.message);
   try {
     const del = await supabase.from('recipe_ingredients').delete().eq('recipe_id', id);

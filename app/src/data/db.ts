@@ -7,7 +7,7 @@ export type Recipe = {
   id: string; household_id: string | null; name: string; about: string; category: string; meals: string[];
   time_active: number; time_total: number; servings: number; keeps_days: number; protein: string; tags: string[];
   season: string[]; collections: string[]; dima_level: 'ok' | 'adapt' | 'skip'; dima_note: string; steps: string[];
-  source_url: string | null; source_site: string | null; updated_at: string; deleted_at: string | null;
+  source_url: string | null; source_site: string | null; photo_path?: string | null; updated_at: string; deleted_at: string | null;
 };
 export type RecipeIngredient = { recipe_id: string; pos: number; item: string; qty: number | null; to_taste: boolean; note: string; optional: boolean };
 export type RecipeSide = { recipe_id: string; side_id: string };

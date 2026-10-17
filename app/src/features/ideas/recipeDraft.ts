@@ -5,6 +5,8 @@ export type DraftRow = { item: string; qty: string; toTaste: boolean; note: stri
 export type Draft = {
   id?: string; name: string; about: string; category: Category | null; time: string; servings: string;
   dima: 'ok' | 'adapt' | 'skip'; dimaNote: string; rows: DraftRow[]; steps: string[]; source: string;
+  // The stored photo; a new one travels apart from the draft, as a file.
+  photo?: string | null;
 };
 
 export const CATEGORY_NAME: Record<Category, string> = {
@@ -23,7 +25,7 @@ export const emptyDraft = (): Draft => ({ name: '', about: '', category: null, t
 export function draftFrom(r: Recipe, rows: RecipeIngredient[]): Draft {
   return {
     id: r.id, name: r.name, about: r.about, category: r.category as Category, time: String(r.time_total), servings: String(r.servings),
-    dima: r.dima_level, dimaNote: r.dima_note, steps: r.steps.length ? r.steps : [''], source: r.source_url ?? '',
+    dima: r.dima_level, dimaNote: r.dima_note, steps: r.steps.length ? r.steps : [''], source: r.source_url ?? '', photo: r.photo_path ?? null,
     rows: [...rows].sort((a, b) => a.pos - b.pos).map((x) => ({ item: x.item, qty: x.qty === null ? '' : String(x.qty), toTaste: x.to_taste || x.qty === null, note: x.note })),
   };
 }

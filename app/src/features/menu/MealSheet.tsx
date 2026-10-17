@@ -4,6 +4,7 @@ import Sheet from './Sheet';
 import Icon from '../shell/Icon';
 import type { Ingredient, LocalDb, Recipe, SimpleSnack } from '../../data/db';
 import RecipeBody, { DimaLine } from '../ideas/RecipeBody';
+import { Photo } from '../shell/PhotoField';
 import { formatQty } from '../shop/build';
 
 export type MealParts = { dish_id: string | null; side_id: string | null; salad_id: string | null; simple: SimpleSnack | null };
@@ -53,6 +54,7 @@ export default function MealSheet({ db, parts, recipes, onReplace, onClose }: {
   const pot = recipe.category === 'soup';
   return (
     <Sheet title={recipe.name} sub={recipe.about} onClose={onClose} actions={actions}>
+      <Photo path={recipe.photo_path} className="sheet-photo" />
       {ids.length > 1 ? (
         <div className="col-chips sheet-chips" role="group" aria-label="Что входит">
           {ids.map((id) => <button key={id} type="button" aria-pressed={id === pick} onClick={() => setPick(id)}>{recipes.get(id)!.name}</button>)}

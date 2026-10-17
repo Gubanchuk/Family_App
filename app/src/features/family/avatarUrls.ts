@@ -68,3 +68,6 @@ export function useAvatarUrl(path: string | null | undefined): string | null {
   if (!path) return null;
   return got?.path === path ? got.url : read()[path]?.url ?? null;
 }
+
+// Photos of recipes, wishes and goals live in the same bucket and use the same remembered links.
+export const usePhotoUrl = useAvatarUrl;

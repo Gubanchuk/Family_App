@@ -7,6 +7,9 @@ import { useToast } from '../shell/toastContext';
 import { CATEGORY_NAME, emptyDraft, missingOf, rowReady, type Category, type Draft, type DraftRow } from './recipeDraft';
 import { saveRecipe } from './recipeApi';
 import { norm } from './search';
+import { useFeature } from '../../data/useFeature';
+import PhotoField from '../shell/PhotoField';
+import { dropOldPhoto, photoPathFor, type PhotoEdit } from '../../lib/photos';
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const DIMA: Array<[Draft['dima'], string]> = [['ok', 'Можно'], ['adapt', 'С поправкой'], ['skip', 'Нельзя']];
@@ -18,7 +21,11 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
   const [first] = useState(() => JSON.stringify(start ?? emptyDraft()));
   // Closing a recipe with something typed in it asks first: a whole recipe is a lot to lose to one tap.
   const [asking, setAsking] = useState(false);
-  const tryClose = () => (JSON.stringify(d) !== first && !asking ? setAsking(true) : onClose());
+  const hasPhotos = useFeature(db, 'photos');
+  const [photo, setPhoto] = useState<PhotoEdit>({ kind: 'keep' });
+  // A photo uploaded by a save that failed later is reused by the next try instead of uploading twice.
+  const uploaded = useRef<{ file: Blob; path: string } | null>(null);
+  const tryClose = () => ((JSON.stringify(d) !== first || photo.kind !== 'keep') && !asking ? setAsking(true) : onClose());
   const missing = missingOf(d);
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState(false);
@@ -44,7 +51,15 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
     setBusy(true);
     setError('');
     try {
-      await saveRecipe(me.household_id, { ...d, id, steps: d.steps.filter((s) => s.trim()) }, !start?.id);
+      let photo_path: string | null | undefined;
+      if (hasPhotos) {
+        photo_path = photo.kind === 'new' && uploaded.current?.file === photo.file ? uploaded.current.path : await photoPathFor(me.household_id, 'recipes', id, photo);
+        if (photo.kind === 'new' && photo_path) uploaded.current = { file: photo.file, path: photo_path };
+      }
+      const draft = { ...d, id, steps: d.steps.filter((s) => s.trim()) };
+      if (photo_path === undefined) await saveRecipe(me.household_id, draft, !start?.id);
+      else await saveRecipe(me.household_id, draft, !start?.id, { photo_path });
+      await dropOldPhoto(start?.photo, photo_path);
       toast({ text: `Рецепт «${d.name.trim()}» сохранён` });
       onClose();
     } catch (err) {
@@ -75,6 +90,7 @@ export default function RecipeEditor({ me, db, draft: start, onClose }: { me: Me
         onKeyDown={(e) => { if (e.key === 'Enter' && e.target instanceof HTMLInputElement && !e.nativeEvent.isComposing) e.preventDefault(); }}>
         <label className="field">Название<input value={d.name} onChange={(e) => set({ name: e.target.value })} maxLength={80} autoFocus={!d.id} placeholder="Например, мамины сырники" /></label>
         <label className="field">Пара слов о блюде<input value={d.about} onChange={(e) => set({ about: e.target.value })} maxLength={120} placeholder="Можно не писать" /></label>
+        {hasPhotos ? <PhotoField path={d.photo} value={photo} onChange={setPhoto} /> : null}
         <fieldset className="kin-pick"><legend>Что это</legend><div className="picks">
           {(Object.keys(CATEGORY_NAME) as Category[]).map((c) => <button key={c} type="button" className="pick" aria-pressed={d.category === c} onClick={() => set({ category: c })}>{CATEGORY_NAME[c]}</button>)}
         </div></fieldset>

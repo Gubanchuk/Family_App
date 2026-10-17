@@ -9,6 +9,7 @@ import { seedMenu } from '../menu/testData';
 import MenuPage from '../menu/MenuPage';
 import ToastProvider from '../shell/Toast';
 import { deleteRecipe } from './recipeApi';
+import { setAvatarSigner } from '../family/avatarUrls';
 
 vi.mock('./recipeApi', () => ({ saveRecipe: vi.fn(async () => 'own-1'), deleteRecipe: vi.fn(async () => {}) }));
 const never = () => new Promise<void>(() => {});
@@ -51,6 +52,18 @@ describe('Что покушать', () => {
     expect(screen.getByText('2 блюда')).toBeInTheDocument();
     await userEvent.click(within(meals).getByRole('button', { name: 'Ужин' }));
     expect(screen.getByRole('button', { name: /^Сырники/ })).toBeInTheDocument();
+  });
+
+  it('shows the photo of a family dish on its card and in its recipe', async () => {
+    setAvatarSigner(async (paths) => new Map(paths.map((p) => [p, `https://files.example/${p}`])));
+    const db = await open();
+    const base = (await db.recipes.toArray()).find((r) => r.collections.includes('sweet'))!;
+    await db.recipes.put({ ...base, id: 'own-2', household_id: 'h1', name: 'Бабушкин пирог', collections: ['ours'], photo_path: 'h1/photos/recipes/own-2/1.jpg' });
+    const card = await screen.findByRole('button', { name: /^Бабушкин пирог/ });
+    await waitFor(() => expect(card.querySelector('img')).toHaveAttribute('src', 'https://files.example/h1/photos/recipes/own-2/1.jpg'));
+    await userEvent.click(card);
+    const sheet = screen.getByRole('dialog', { name: 'Бабушкин пирог' });
+    await waitFor(() => expect(sheet.querySelector('img')).toHaveAttribute('src', 'https://files.example/h1/photos/recipes/own-2/1.jpg'));
   });
 
   it('shows a recipe for the family and offers it to a member', async () => {
