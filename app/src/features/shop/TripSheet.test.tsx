@@ -128,6 +128,33 @@ describe('a cart for one trip', () => {
     expect((await screen.findByText(/добавил Сын/)).closest('button')).toHaveAccessibleName('Хлеб');
   });
 
+  it('on Sunday tomorrow is next Monday, and the cart keeps its lines whatever week tab is open', async () => {
+    const db = await ready();
+    const slots = await db.week_slots.where('week_id').equals('w-cur').toArray();
+    await db.weeks.put({ id: 'w-next', household_id: 'h1', starts_on: '2026-10-19', template_id: 'autumn', status: 'approved', proposed_by: null, approved_by: 'm-papa', updated_at: 'x', deleted_at: null });
+    await db.week_slots.bulkPut(slots.map((s) => ({ ...s, week_id: 'w-next' })));
+    await regenerateWeekList(db, 'w-next');
+    render(<MemoryRouter><ShopPage me={papa} members={[papa, mama, son]} db={db} today={new Date(2026, 9, 18, 10, 0)} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Иду в магазин' }));
+    const sheet = await screen.findByRole('dialog', { name: 'Что берём' });
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Завтра' }));
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Завтрак' }));
+    await go(sheet);
+    expect(await screen.findByRole('tab', { name: 'Корзина', selected: true })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Творог,/ })).toHaveTextContent('на завтрак');
+    expect((await db.shop_trips.toArray())[0].items?.map((l) => l.id)).toContain(menuItemId('w-next', 'творог'));
+    expect((await db.shop_trips.toArray())[0].label).toBe('завтрак на завтра');
+  });
+
+  it('a meal with nothing on the menu says so', async () => {
+    const db = await ready();
+    await db.week_slots.where('week_id').equals('w-cur').modify({ dish_id: null, side_id: null, salad_id: null, simple: null });
+    show(db);
+    const sheet = await pickBreakfastTomorrow();
+    expect(await within(sheet).findByText('На это в меню ничего не выбрано')).toBeInTheDocument();
+    expect(within(sheet).queryByText('Всё для этого уже куплено или есть дома')).toBeNull();
+  });
+
   it('without the server column the button works as before', async () => {
     const db = await ready(false);
     show(db);

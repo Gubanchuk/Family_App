@@ -68,7 +68,8 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
     if (m === 'snack' && !s?.dish_id && s?.simple) return s.simple.simple;
     return [name(s?.dish_id), s?.side_id ? lower(name(s.side_id)) : ''].filter(Boolean).join(' + ');
   };
-  const urgent = data.items.filter((i) => i.urgent && !data.marks.get(i.id)?.bought);
+  // A line kept «at home» is not to buy, however urgent it was.
+  const urgent = data.items.filter((i) => i.urgent && !data.marks.get(i.id)?.bought && !data.marks.get(i.id)?.at_home);
   // A dish someone took «instead» of dinner is what the family eats tonight.
   const swap = data.offers.find((o) => o.meal === 'dinner' && o.how === 'instead' && o.status === 'taken');
   const swapOf = (m: Meal) => data.offers.find((o) => o.meal === m && o.how === 'instead' && o.status === 'taken');

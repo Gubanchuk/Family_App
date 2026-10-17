@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import Sheet from '../menu/Sheet';
-import type { Ingredient, LocalDb, ShoppingItem, ShoppingMark, TripLine } from '../../data/db';
+import type { Ingredient, LocalDb, ShoppingItem, ShoppingMark, TripLine, Week } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { addDaysIso, MEAL_LABEL, MEALS, type Meal } from '../menu/week';
 import { capitalize } from './menuList';
@@ -15,14 +15,17 @@ const WHY: Array<[string, string]> = [['bought', 'Уже куплено'], ['hom
 const same = (a: Pick, b: Pick) => a.day === b.day && a.kind === b.kind && (a.kind === 'meal' ? a.meal === (b as typeof a).meal : a.dish_id === (b as typeof a).dish_id);
 
 // «Что берём»: a cart for this trip from a meal of a day, a dish, lines of the list or a line of one's own.
-// «Беру весь список» goes as before, with no cart.
-export default function TripSheet({ db, me, weekId, weekStart, today, lines, marks, vocab, onStart, onClose }: {
-  db: LocalDb; me: Member; weekId: string | null; weekStart: string; today: number | null;
-  lines: ShoppingItem[]; marks: Map<string, ShoppingMark>; vocab: Map<string, Ingredient>;
+// «Беру весь список» goes as before, with no cart. Days run from today through the next week when it is set
+// (on Sunday «Завтра» is next Monday). lines: the open tab, to pick from; cartLines: both weeks' lists.
+export default function TripSheet({ db, me, weeks, base, today, lines, cartLines, marks, vocab, onStart, onClose }: {
+  db: LocalDb; me: Member; weeks: Week[]; base: string; today: number;
+  lines: ShoppingItem[]; cartLines: ShoppingItem[]; marks: Map<string, ShoppingMark>; vocab: Map<string, Ingredient>;
   onStart: (cart?: { label: string; items: TripLine[] }) => Promise<void>; onClose: () => void;
 }) {
-  const first = today ?? 0;
-  const [day, setDay] = useState(first);
+  const weekA = weeks.find((w) => w.starts_on === base) ?? null;
+  const weekB = weeks.find((w) => w.starts_on === addDaysIso(base, 7)) ?? null;
+  const days = Array.from({ length: 14 - today }, (_, k) => today + k).filter((d) => (d < 7 ? weekA : weekB));
+  const [day, setDay] = useState(() => days[0] ?? today);
   const [picks, setPicks] = useState<Pick[]>([]);
   const [chosen, setChosen] = useState<string[]>([]);
   const [own, setOwn] = useState('');
@@ -30,9 +33,11 @@ export default function TripSheet({ db, me, weekId, weekStart, today, lines, mar
   const [busy, setBusy] = useState(false);
 
   const menu = useLiveQuery(async () => {
-    const slots = weekId ? await db.week_slots.where('week_id').equals(weekId).toArray() : [];
+    // Next week's days count on from 7.
+    const of = async (w: Week | null, off: number) => (w ? (await db.week_slots.where('week_id').equals(w.id).toArray()).map((s) => ({ ...s, day: s.day + off })) : []);
+    const slots = [...await of(weekA, 0), ...await of(weekB, 7)];
     const offers = (await db.dish_offers.where('household_id').equals(me.household_id).toArray())
-      .filter((o) => !o.deleted_at && o.status !== 'declined' && o.on_date >= weekStart && o.on_date <= addDaysIso(weekStart, 6));
+      .filter((o) => !o.deleted_at && o.status !== 'declined' && o.on_date >= base && o.on_date <= addDaysIso(base, 13));
     const ids = [...new Set([...slots.flatMap((s) => [s.dish_id, s.side_id, s.salad_id]), ...offers.map((o) => o.dish_id)].filter((x): x is string => !!x))];
     const recipes = (await db.recipes.bulkGet(ids)).filter((r) => !!r);
     const rows = ids.length ? await db.recipe_ingredients.where('recipe_id').anyOf(ids).toArray() : [];
@@ -41,33 +46,36 @@ export default function TripSheet({ db, me, weekId, weekStart, today, lines, mar
     const prices = new Map((await db.prices.toArray()).map((p) => [p.item, Number(p.price_per_unit)]));
     const portions = Number((await db.meta.get('family_portions'))?.value ?? 3.5);
     return { slots, offers, recipes: new Map(recipes.map((r) => [r!.id, r!])), ingredientsOf, prices, portions };
-  }, [db, weekId, weekStart, me.household_id]);
+  }, [db, weekA?.id, weekB?.id, base, me.household_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const dishName = (id: string) => menu?.recipes.get(id)?.name ?? 'Блюдо';
   const result = useMemo(() => {
     if (!menu) return { lines: [] as TripLine[], skipped: [] as Array<{ item: string; why: string }> };
     return cartFromPicks({
-      picks, slots: menu.slots, offers: menu.offers.filter((o) => o.status === 'taken'), weekStart, lines, marks, dishName,
+      picks, slots: menu.slots, offers: menu.offers.filter((o) => o.status === 'taken'), weekStart: base, lines: cartLines, marks, dishName,
+      weekIds: [weekA?.id ?? null, weekB?.id ?? null],
       build: { servings: new Map([...menu.recipes.values()].map((r) => [r.id, r.servings])), ingredientsOf: menu.ingredientsOf, vocab, prices: menu.prices, portions: menu.portions,
         isSoup: (id) => menu.recipes.get(id)?.category === 'soup' },
     });
-  }, [menu, picks, weekStart, lines, marks, vocab]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [menu, picks, base, cartLines, marks, vocab]); // eslint-disable-line react-hooks/exhaustive-deps
   const items: TripLine[] = [...result.lines, ...chosen.filter((id) => !result.lines.some((l) => l.id === id)).map((id) => ({ id, hint: null }))];
   const toggle = (p: Pick) => setPicks((x) => (x.some((y) => same(y, p)) ? x.filter((y) => !same(y, p)) : [...x, p]));
   const pickOn = (p: Pick) => picks.some((y) => same(y, p));
 
-  const days = Array.from({ length: 7 - first }, (_, k) => first + k);
-  const dayName = (d: number) => (today !== null && d === today ? 'Сегодня' : today !== null && d === today + 1 ? 'Завтра' : `${DAY_SHORT[d]} ${Number(addDaysIso(weekStart, d).slice(8))}`);
+  const dayName = (d: number) => (d === today ? 'Сегодня' : d === today + 1 ? 'Завтра' : `${DAY_SHORT[d % 7]} ${Number(addDaysIso(base, d).slice(8))}`);
   // The day's dishes: every meal of the menu, plus dishes offered for the day.
   const dayDishes = menu ? [...new Set([
-    ...MEALS.flatMap((m) => dishesOf({ kind: 'meal', day, meal: m }, menu.slots, [], weekStart)),
-    ...menu.offers.filter((o) => o.on_date === addDaysIso(weekStart, day)).map((o) => o.dish_id),
+    ...MEALS.flatMap((m) => dishesOf({ kind: 'meal', day, meal: m }, menu.slots, [], base)),
+    ...menu.offers.filter((o) => o.on_date === addDaysIso(base, day)).map((o) => o.dish_id),
   ])] : [];
   const open = lines.filter((l) => !closed(marks.get(l.id)));
   const titleOf = (id: string) => lines.find((l) => l.id === id)?.title;
-  const label = [pickLabel(picks, today ?? -1, dishName), ...chosen.map((id) => titleOf(id)?.toLowerCase()).filter(Boolean)].filter(Boolean).join(', ').slice(0, 80);
-  // Said only once the menu is read: before that an empty cart means nothing.
+  const label = [pickLabel(picks, today, dishName), ...chosen.map((id) => titleOf(id)?.toLowerCase()).filter(Boolean)].filter(Boolean).join(', ').slice(0, 80);
+  // Said only once the menu is read: before that an empty cart means nothing. A pick with no dish on the menu
+  // (an empty meal of a week set by days) is told apart from one whose products are all bought.
   const nothing = !!menu && picks.length > 0 && items.length === 0;
+  const anyFood = !!menu && picks.some((p) => p.kind === 'dish' || dishesOf(p, menu.slots, menu.offers.filter((o) => o.status === 'taken'), base).length > 0
+    || menu.slots.some((s) => s.day === p.day && s.meal === p.meal && s.simple));
 
   const addOwn = async () => {
     const title = own.trim();
@@ -90,19 +98,23 @@ export default function TripSheet({ db, me, weekId, weekStart, today, lines, mar
           <button type="button" className="btn soft" disabled={busy} onClick={() => start()}>Беру весь список</button>
         </div>
       )}>
-      <div className="col-chips sheet-chips" role="group" aria-label="День">
-        {days.map((d) => <button key={d} type="button" aria-pressed={d === day} onClick={() => setDay(d)}>{dayName(d)}</button>)}
-      </div>
+      {days.length ? (
+        <div className="col-chips sheet-chips" role="group" aria-label="День">
+          {days.map((d) => <button key={d} type="button" aria-pressed={d === day} onClick={() => setDay(d)}>{dayName(d)}</button>)}
+        </div>
+      ) : null}
       <div style={{ display: 'grid', gap: 12, margin: '0 16px' }}>
-        <fieldset className="kin-pick"><legend>Приём пищи</legend><div className="picks">
-          {MEALS.map((m: Meal) => <button key={m} type="button" className="pick" aria-pressed={pickOn({ kind: 'meal', day, meal: m })} onClick={() => toggle({ kind: 'meal', day, meal: m })}>{MEAL_LABEL[m]}</button>)}
-        </div></fieldset>
-        {dayDishes.length ? (
+        {days.length ? (
+          <fieldset className="kin-pick"><legend>Приём пищи</legend><div className="picks">
+            {MEALS.map((m: Meal) => <button key={m} type="button" className="pick" aria-pressed={pickOn({ kind: 'meal', day, meal: m })} onClick={() => toggle({ kind: 'meal', day, meal: m })}>{MEAL_LABEL[m]}</button>)}
+          </div></fieldset>
+        ) : <p className="note" style={{ margin: 0 }}>Меню на эти дни не выбрано: возьмите строки из списка или допишите своё.</p>}
+        {days.length && dayDishes.length ? (
           <fieldset className="kin-pick"><legend>Или одно блюдо</legend><div className="picks">
             {dayDishes.map((id) => <button key={id} type="button" className="pick" aria-pressed={pickOn({ kind: 'dish', day, dish_id: id })} onClick={() => toggle({ kind: 'dish', day, dish_id: id })}>{dishName(id)}</button>)}
           </div></fieldset>
         ) : null}
-        {nothing ? <p className="note" role="status" style={{ margin: 0 }}>Всё для этого уже куплено или есть дома</p> : null}
+        {nothing ? <p className="note" role="status" style={{ margin: 0 }}>{anyFood ? 'Всё для этого уже куплено или есть дома' : 'На это в меню ничего не выбрано'}</p> : null}
         {picks.length && result.skipped.length ? (
           <p className="note" style={{ margin: 0 }}>{WHY.map(([why, text]) => {
             const names = result.skipped.filter((s) => s.why === why).map((s) => s.item);

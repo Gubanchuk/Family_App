@@ -66,6 +66,19 @@ describe('trip cart', () => {
     expect(cart([{ kind: 'dish', day: 2, dish_id: 'mn-plov' }]).lines).toEqual([{ id: 'm:w:рис', hint: 'на «Плов»: 300 г' }]);
   });
 
+  it('a day of next week reads its own soup pot', () => {
+    // Days run on from this week: 7 is next Monday. Next week's pot starts on Monday, so Monday's lunch buys it.
+    const next = [slot(7, 'lunch', 'sp-borsch'), slot(8, 'lunch', 'sp-borsch')];
+    const r = cartFromPicks({ picks: [{ kind: 'meal', day: 7, meal: 'lunch' }], slots: next, offers: [], weekStart: WEEK, build, lines, marks: new Map(), dishName: () => '' });
+    expect(r.lines.map((l) => l.id)).toEqual(['m:w:свёкла']);
+    expect(cartFromPicks({ picks: [{ kind: 'meal', day: 8, meal: 'lunch' }], slots: next, offers: [], weekStart: WEEK, build, lines, marks: new Map(), dishName: () => '' }).lines).toEqual([]);
+  });
+
+  it('labels a trip on Sunday for Monday as tomorrow', () => {
+    expect(pickLabel([{ kind: 'meal', day: 7, meal: 'breakfast' }], 6, () => '')).toBe('завтрак на завтра');
+    expect(pickLabel([{ kind: 'meal', day: 8, meal: 'dinner' }], 6, () => '')).toBe('ужин на вторник');
+  });
+
   it('labels a trip by what it is for', () => {
     const name = (id: string) => (id === 'mn-plov' ? 'Плов' : id);
     expect(pickLabel([{ kind: 'meal', day: 2, meal: 'breakfast' }], 1, name)).toBe('завтрак на завтра');
@@ -98,6 +111,10 @@ describe('who is shopping', () => {
     const bread = line('хлеб', { id: 'u:1', source: 'manual', item: null, title: 'Хлеб', dept: 'Хлеб', added_by: 'son', created_at: '2026-10-13T09:20:00Z' });
     const before = line('хлеб', { id: 'u:2', source: 'manual', item: null, title: 'Батон', dept: 'Хлеб', added_by: 'son', created_at: '2026-10-13T08:20:00Z' });
     const own = line('хлеб', { id: 'u:3', source: 'manual', item: null, title: 'Сок', dept: 'Другое', added_by: 'papa', created_at: '2026-10-13T09:25:00Z' });
-    expect(cartRows(t, [bread, before, own], new Map())).toEqual([{ item: bread, hint: null, addedBy: 'son' }]);
+    // The shopper's own line added in the shop is in the cart too, unnamed; one not synced yet counts by its local time.
+    const unsynced = line('сок', { id: 'u:4', source: 'manual', item: null, title: 'Вода', dept: 'Другое', added_by: 'papa', updated_at: '2026-10-13T09:30:00Z' });
+    expect(cartRows(t, [bread, before, own, unsynced], new Map())).toEqual([
+      { item: bread, hint: null, addedBy: 'son' }, { item: own, hint: null, addedBy: null }, { item: unsynced, hint: null, addedBy: null },
+    ]);
   });
 });

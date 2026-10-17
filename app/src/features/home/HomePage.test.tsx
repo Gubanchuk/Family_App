@@ -117,6 +117,15 @@ describe('HomePage', () => {
     expect(within(sheet).queryByRole('button', { name: 'Приготовлю я' })).not.toBeInTheDocument();
   });
 
+  it('does not nag about an urgent line kept at home', async () => {
+    const db = await ready();
+    await db.shopping_items.put({ id: 'u:1', household_id: 'h1', week_id: null, offer_id: null, source: 'manual', item: null, title: 'Молоко', qty: null, unit: null, qty_text: '2 л', dept: 'Другое', urgent: true, est_price: null, added_by: 'm-mama', updated_at: 'x', deleted_at: null });
+    await db.shopping_marks.put({ item_id: 'u:1', household_id: 'h1', bought: false, by_member: 'm-mama', price_real: null, at_home: true, updated_at: 'x' });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('heading', { name: /^Ужин в 19:00/ })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Срочно купить: Молоко' })).toBeNull();
+  });
+
   it('does not count a line kept at home as left to buy', async () => {
     const db = await ready();
     await db.shopping_marks.put({ item_id: 'm:w-cur:творог', household_id: 'h1', bought: false, by_member: 'm-papa', price_real: null, at_home: true, updated_at: 'x' });

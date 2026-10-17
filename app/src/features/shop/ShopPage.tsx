@@ -59,7 +59,8 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const active = activeTrips(data.trips, today);
   const mine = active.find((t) => t.member_id === me.id);
   const others = active.filter((t) => t.member_id !== me.id);
-  const cart = hasHome && mine?.items ? cartRows(mine, shown, marks) : null;
+  // The cart reads every line, not only the week tab that happens to be open.
+  const cart = hasHome && mine?.items ? cartRows(mine, data.items, marks) : null;
   const inCart = cart && cartView;
   const extra = new Map((cart ?? []).map((r) => [r.item.id, r]));
   const list = inCart ? cart.map((r) => r.item) : shown;
@@ -142,7 +143,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
           <small>Добавьте, что нужно купить.</small>
         </span></section>
       ) : null}
-      {data.weeks.length > 1 ? (
+      {data.weeks.length > 1 && !inCart ? (
         <div className="segs" role="tablist" aria-label="Неделя">
           {data.weeks.map((w) => <button key={w.id} type="button" role="tab" aria-selected={w.id === weekId} onClick={() => setWeekPick(w.id)}>{weekLabel(w.starts_on)}</button>)}
         </div>
@@ -213,8 +214,9 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
         toast({ text: a.urgent ? `«${title}» — в «Срочно» наверху списка` : `«${title}» в списке, отдел «${dept}»` });
       }} /> : null}
       {picking && vocab ? (
-        <TripSheet db={db} me={me} weekId={weekId} weekStart={week?.starts_on ?? data.start} today={(week?.starts_on ?? data.start) === data.start ? dayOfWeek(today) : null}
-          lines={shown} marks={marks} vocab={vocab} onStart={(c) => goShopping(db, me, today, c).then(() => setCartView(true))} onClose={() => setPicking(false)} />
+        <TripSheet db={db} me={me} weeks={data.weeks} base={data.start} today={dayOfWeek(today)} lines={shown} marks={marks} vocab={vocab}
+          cartLines={[...new Map(data.weeks.flatMap((w) => visibleItems(data.items, w.id, { weekStart: w.starts_on, marks, offers: data.offers })).map((i) => [i.id, i])).values()]}
+          onStart={(c) => goShopping(db, me, today, c).then(() => setCartView(true))} onClose={() => setPicking(false)} />
       ) : null}
       {sheet && sheet !== 'add' ? (
         <ItemSheet item={sheet} mark={marks.get(sheet.id)} onPrice={(p) => setRealPrice(db, sheet, me, p, marks.get(sheet.id))} onRemove={() => removeItem(db, sheet)}

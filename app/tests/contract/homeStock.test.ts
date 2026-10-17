@@ -48,5 +48,12 @@ describe('home stock and trip carts reach the server', { timeout: 120_000 }, () 
     await push();
     expect(await one("select state from public.home_stock where key = 'молоко'")).toEqual({ state: 'have' });
     expect(await one('select label, ended_at is not null as ended, jsonb_array_length(items) as n from public.shop_trips')).toEqual({ label: 'молоко', ended: true, n: 1 });
+
+    // Another phone never saw «есть дома» on the bread and buys it with a plain mark: the server takes the purchase.
+    const other = createLocalDb(`c-${Math.random()}`);
+    await setBought(other, bread, mama, true);
+    const r = await pushOutbox(other, pgClient(pg, MAMA) as never);
+    expect(r.rejected).toEqual([]);
+    expect(await one("select bought, at_home from public.shopping_marks where item_id = 'u:bread'")).toEqual({ bought: true, at_home: false });
   });
 });

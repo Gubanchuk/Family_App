@@ -40,8 +40,16 @@ describe('home stock, at-home marks and trip carts', { timeout: 60_000 }, () => 
 
   it('keeps a line bought or at home, never both', async () => {
     await asUser(db, MAMA, "insert into public.shopping_items (id, household_id, source, title, dept) values ('u:1', $1, 'manual', 'Молоко', 'Молочное и яйца')", [hh]);
+    await asUser(db, MAMA, "insert into public.shopping_marks (item_id, household_id, bought, at_home) values ('u:1', $1, true, true)", [hh]);
+    expect(await rows(MAMA, 'select bought, at_home from public.shopping_marks')).toEqual([{ bought: true, at_home: false }]);
+  });
+
+  it('lets a purchase win over «есть дома» from a phone that never saw it', async () => {
+    await asUser(db, MAMA, "insert into public.shopping_items (id, household_id, source, title, dept) values ('u:1', $1, 'manual', 'Молоко', 'Молочное и яйца')", [hh]);
     await asUser(db, MAMA, "insert into public.shopping_marks (item_id, household_id, bought, at_home) values ('u:1', $1, false, true)", [hh]);
-    await expect(asUser(db, MAMA, "update public.shopping_marks set bought = true where item_id = 'u:1'")).rejects.toThrow();
+    // Dad's phone sends a plain mark without at_home, as PostgREST's merge upsert does.
+    await asUser(db, PAPA, "insert into public.shopping_marks (item_id, household_id, bought) values ('u:1', $1, true) on conflict (item_id) do update set bought = excluded.bought", [hh]);
+    expect(await rows(MAMA, 'select bought, at_home from public.shopping_marks')).toEqual([{ bought: true, at_home: false }]);
   });
 
   it('takes a line that ran out at home', async () => {

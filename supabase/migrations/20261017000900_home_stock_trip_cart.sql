@@ -34,6 +34,15 @@ grant select, insert, update on public.home_stock to authenticated;
 -- A line closed as «есть дома»: not bought, so it is no spending, and never both at once.
 alter table public.shopping_marks add column at_home boolean not null default false;
 alter table public.shopping_marks add constraint shopping_marks_bought_or_home check (not (bought and at_home));
+-- A purchase wins: a phone that never saw «есть дома» (or runs an older build) sends a mark without at_home,
+-- and the merge upsert would keep the old true and break the rule above, refusing a real purchase.
+create function public.bought_not_home() returns trigger language plpgsql set search_path = '' as $$
+begin
+  if new.bought then new.at_home := false; end if;
+  return new;
+end $$;
+revoke execute on function public.bought_not_home() from public, anon;
+create trigger shopping_marks_bought_not_home before insert or update on public.shopping_marks for each row execute function public.bought_not_home();
 
 -- A line that ran out at home has its own source, so the list can say so.
 do $$
