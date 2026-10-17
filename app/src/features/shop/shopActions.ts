@@ -3,12 +3,18 @@ import type { Ingredient, LocalDb, ShoppingItem, ShoppingMark } from '../../data
 import type { Member } from '../family/useFamily';
 import { capitalize } from './menuList';
 
+// The server stamps bought_at; a mark that already has it keeps a local copy right away, so Money does not
+// move a purchase until the next sync. A mark without it (no column on the server yet) never sends one.
+const boughtAt = (prev: ShoppingMark | undefined, bought: boolean) =>
+  prev && 'bought_at' in prev ? { bought_at: bought ? (prev.bought ? prev.bought_at : new Date().toISOString()) : null } : {};
+
 export async function setBought(db: LocalDb, item: ShoppingItem, me: Member, bought: boolean, prev?: ShoppingMark) {
-  await writeLocal(db, 'shopping_marks', [{ item_id: item.id, household_id: item.household_id, bought, by_member: me.id, price_real: prev?.price_real ?? null }]);
+  await writeLocal(db, 'shopping_marks', [{ item_id: item.id, household_id: item.household_id, bought, by_member: me.id, price_real: prev?.price_real ?? null, ...boughtAt(prev, bought) }]);
 }
 
 export async function setRealPrice(db: LocalDb, item: ShoppingItem, me: Member, price: number | null, prev?: ShoppingMark) {
-  await writeLocal(db, 'shopping_marks', [{ item_id: item.id, household_id: item.household_id, bought: prev?.bought ?? true, by_member: prev?.by_member ?? me.id, price_real: price }]);
+  const bought = prev?.bought ?? true;
+  await writeLocal(db, 'shopping_marks', [{ item_id: item.id, household_id: item.household_id, bought, by_member: prev?.by_member ?? me.id, price_real: price, ...boughtAt(prev, bought) }]);
 }
 
 // A hand-typed line goes to the department a shopper expects: «хлеб» to Хлеб, «сыр» to dairy.

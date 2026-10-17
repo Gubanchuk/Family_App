@@ -10,7 +10,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useFeature } from '../../data/useFeature';
 import { NON_FOOD_DEPTS, guessDept } from '../shop/shopActions';
 import { DEPT_ORDER } from '../shop/build';
-import SeenBy from './SeenBy';
+import SeenBy, { seenToSave } from './SeenBy';
 
 
 export default function NeedSheet({ me, members, db, need, onClose }: { me: Member; members: Member[]; db: LocalDb; need: Need | null; onClose: () => void }) {
@@ -32,7 +32,7 @@ export default function NeedSheet({ me, members, db, need, onClose }: { me: Memb
   const depts = allDepts ? DEPT_ORDER : [...new Set([dept, ...NON_FOOD_DEPTS])];
   const save = async (e: FormEvent) => {
     e.preventDefault();
-    await saveNeed(db, me, { id: need?.id, for_id: forId, title, note, due_on: due || null, price: parseRub(price), ...(hasDept ? { dept } : {}), ...(hasSeen ? { visible_to: seen } : {}) }, need ?? undefined);
+    await saveNeed(db, me, { id: need?.id, for_id: forId, title, note, due_on: due || null, price: parseRub(price), ...(hasDept ? { dept } : {}), ...(hasSeen ? { visible_to: seenToSave(seen, me, need?.created_by ?? me.id) } : {}) }, need ?? undefined);
     toast({ text: need ? 'Сохранено' : `«${title.trim()}» на доске` });
     onClose();
   };
@@ -57,7 +57,7 @@ export default function NeedSheet({ me, members, db, need, onClose }: { me: Memb
         <label className="field">Пометка<input value={note} onChange={(e) => setNote(e.target.value)} maxLength={40} placeholder="Размер, рост, цвет" /></label>
         <label className="field">К какому числу<input type="date" value={due} onChange={(e) => setDue(e.target.value)} /></label>
         <label className="field">Примерно стоит, ₽<input inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Можно не писать" /></label>
-        {hasSeen ? <SeenBy me={me} members={members} value={seen} onChange={setSeen} /> : null}
+        {hasSeen ? <SeenBy me={me} members={members} author={need?.created_by ?? me.id} value={seen} onChange={setSeen} /> : null}
         {hasSeen && seen ? <p className="note" style={{ margin: '-6px 0 14px' }}>В списке покупок эту строку увидит вся семья.</p> : null}
         {need ? <button type="button" className="more" onClick={async () => { await removeNeed(db, need); toast({ text: 'Удалено' }); onClose(); }}>Удалить</button> : null}
       </form>

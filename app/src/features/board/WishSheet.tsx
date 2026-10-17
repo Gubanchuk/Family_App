@@ -8,10 +8,12 @@ import { rub } from '../shop/build';
 import { putIn, removeWish, saveWish, takeBack, wishDone } from './boardActions';
 import type { Deposit, Wish } from './types';
 import DepositHistory from './DepositHistory';
-import SeenBy from './SeenBy';
+import SeenBy, { seenToSave } from './SeenBy';
 import PhotoField, { Photo } from '../shell/PhotoField';
 import { useFeature } from '../../data/useFeature';
-import { dropOldPhoto, photoPathFor, type PhotoEdit } from '../../lib/photos';
+// The old photo is not removed here: the change may wait offline, and other phones still show the old
+// file until it arrives. A replaced photo stays in storage.
+import { photoPathFor, type PhotoEdit } from '../../lib/photos';
 
 
 // A new wish, or an open one: its piggy bank, «Сбылось», edit and delete for the owner and parents.
@@ -43,8 +45,7 @@ export default function WishSheet({ me, members, db, wish, deposits = [], banked
       setBusy(false);
       return;
     }
-    await saveWish(db, me, { id, owner_id: owner, title, price: parseRub(price), photo_path, ...(hasSeen ? { visible_to: seen } : {}) }, wish ?? undefined);
-    await dropOldPhoto(wish?.photo_path, photo_path);
+    await saveWish(db, me, { id, owner_id: owner, title, price: parseRub(price), photo_path, ...(hasSeen ? { visible_to: seenToSave(seen, me, wish?.created_by ?? me.id) } : {}) }, wish ?? undefined);
     toast({ text: wish ? 'Хотелка сохранена' : 'Хотелка на доске' });
     onClose();
   };
@@ -80,7 +81,7 @@ export default function WishSheet({ me, members, db, wish, deposits = [], banked
             <div className="picks">{members.map((m) => <button key={m.id} type="button" className="pick" aria-pressed={owner === m.id} onClick={() => setOwner(m.id)}>{m.id === me.id ? 'Моя' : m.name}</button>)}</div>
           </fieldset>
         ) : null}
-        {hasSeen ? <SeenBy me={me} members={members} value={seen} onChange={setSeen} /> : null}
+        {hasSeen ? <SeenBy me={me} members={members} author={wish?.created_by ?? me.id} value={seen} onChange={setSeen} /> : null}
       </form>
     </Sheet>
   );

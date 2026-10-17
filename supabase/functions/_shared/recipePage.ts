@@ -3,22 +3,33 @@
 
 export type PageRecipe = { name: string; servings: number | null; minutes: number | null; ingredients: string[]; steps: string[]; site: string };
 
-// Only public web pages: http(s), no localhost, no private or link-local addresses written as numbers.
-// (A host name that resolves to a private address is stopped by Supabase's own egress rules.)
+// An address that is not on the public internet: loopback, private, link-local (cloud metadata), CGNAT,
+// multicast, and their IPv6 forms (IPv4-mapped ones included).
+export function privateIp(ip: string): boolean {
+  const h = ip.toLowerCase().replace(/^\[|\]$/g, '');
+  const v4 = h.replace(/^::ffff:/, '').match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4) {
+    const [a, b] = [Number(v4[1]), Number(v4[2])];
+    return a === 0 || a === 10 || a === 127 || a >= 224 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127);
+  }
+  if (!h.includes(':')) return false;
+  return h === '::1' || h === '::' || /^f[cd]/.test(h) || /^fe[89ab]/.test(h) || h.startsWith('::ffff:') || h.startsWith('64:ff9b:');
+}
+
+export const hostOf = (u: URL) => u.hostname.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '');
+export const isIp = (h: string) => /^\d{1,3}(\.\d{1,3}){3}$/.test(h) || h.includes(':');
+
+// Only public web pages: http(s), no local names, no private addresses written as numbers. A name that
+// resolves to a private address is stopped by the function, which looks the name up before each request.
 export function safeUrl(raw: string): URL | null {
   let u: URL;
   try { u = new URL(raw.trim()); } catch { return null; }
   if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
   if (u.username || u.password) return null;
-  const h = u.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  const h = hostOf(u);
   if (!h.includes('.') && !h.includes(':')) return null;
   if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local') || h.endsWith('.internal')) return null;
-  const v4 = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-  if (v4) {
-    const [a, b] = [Number(v4[1]), Number(v4[2])];
-    if (a === 0 || a === 10 || a === 127 || a >= 224 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127)) return null;
-  }
-  if (h.includes(':') && (h === '::1' || h === '::' || /^f[cd]/.test(h) || h.startsWith('fe80') || h.startsWith('::ffff:'))) return null;
+  if (isIp(h) && privateIp(h)) return null;
   return u;
 }
 

@@ -27,8 +27,8 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   const toast = useToast();
   const [params, setParams] = useSearchParams();
   const current = monthKey(today);
-  // Up to a year ahead: payments added for later months must be found somewhere.
-  const last = shiftMonth(current, 12);
+  // Up to three years ahead, like the month picker: payments added for later months must be found somewhere.
+  const last = shiftMonth(current, 36);
   const asked = params.get('m') ?? '';
   const month = /^\d{4}-(0[1-9]|1[0-2])$/.test(asked) && asked <= last ? asked : current;
   const add = params.get('add') as 'expense' | 'income' | 'payment' | null;

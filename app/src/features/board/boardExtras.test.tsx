@@ -80,4 +80,18 @@ describe('board: who sees it and photos', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
     await waitFor(async () => expect((await db.goals.toArray())[0].photo_path).toMatch(/^h\/photos\/goals\/[\w-]+\/1\.jpg$/));
   });
+
+  it('keeps the parent who edits a child\u2019s wish among those who see it', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.meta.put({ key: 'features', value: ['visibility'] });
+    await db.wishes.put({ id: 'w1', household_id: 'h', owner_id: 'son', title: 'Лего', price: null, saved: 0, done_at: null, created_by: 'son', visible_to: null, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter initialEntries={['/board?tab=wishes']}><BoardPage me={mama} members={family} db={db} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Лего, открыть' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Изменить' }));
+    const seen = screen.getByRole('group', { name: 'Кто видит' });
+    expect(within(seen).queryByRole('button', { name: 'Тёма' })).toBeNull();
+    await userEvent.click(within(seen).getByRole('button', { name: 'Только я и Тёма' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    await waitFor(async () => expect((await db.wishes.get('w1'))?.visible_to).toEqual(['mama']));
+  });
 });

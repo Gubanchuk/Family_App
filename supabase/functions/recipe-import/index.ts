@@ -1,7 +1,8 @@
 // «Заполнить по ссылке»: downloads a recipe page for a signed-in member and returns the recipe markup
 // found in it. Deployed with JWT checks on, so only the app's users can make the server fetch pages.
 // Limits: http(s) to public addresses only, 10 seconds, 2 MB, at most 3 redirects, each one checked.
-import { readRecipe, safeUrl } from '../_shared/recipePage.ts';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import { hostOf, isIp, privateIp, readRecipe, safeUrl } from '../_shared/recipePage.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -11,9 +12,21 @@ const CORS = {
 const MAX_BYTES = 2 * 1024 * 1024;
 const answer = (body: unknown, status = 200) => Response.json(body, { status, headers: CORS });
 
+// The name is looked up first: a public-looking name may point at an internal address.
+async function publicHost(url: URL): Promise<boolean> {
+  const host = hostOf(url);
+  if (isIp(host)) return !privateIp(host);
+  const ips: string[] = [];
+  for (const type of ['A', 'AAAA'] as const) {
+    try { ips.push(...(await Deno.resolveDns(host, type))); } catch { /* no records of this type */ }
+  }
+  return ips.length > 0 && ips.every((ip) => !privateIp(ip));
+}
+
 async function fetchPage(start: URL, signal: AbortSignal): Promise<{ html: string; url: URL } | null> {
   let url = start;
   for (let hop = 0; hop < 4; hop += 1) {
+    if (!(await publicHost(url))) return null;
     const res = await fetch(url, { redirect: 'manual', signal, headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 14) FamilyApp recipe import', Accept: 'text/html' } });
     if (res.status >= 300 && res.status < 400) {
       const next = res.headers.get('location');
@@ -53,6 +66,12 @@ Deno.serve(async (req) => {
   try { raw = String(((await req.json()) as { url?: unknown }).url ?? ''); } catch { /* empty body */ }
   const url = safeUrl(raw);
   if (!url) return answer({ error: 'bad_url' }, 400);
+  // Only a member of a family: a Google account that never joined one gets nothing fetched.
+  const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } }, auth: { persistSession: false },
+  });
+  const { data: member } = await db.from('members').select('id').limit(1);
+  if (!member?.length) return answer({ error: 'not_member' }, 403);
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 10_000);
   try {

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { isoMinutes, readRecipe, safeUrl } from '../../../supabase/functions/_shared/recipePage';
+import { isoMinutes, privateIp, readRecipe, safeUrl } from '../../../supabase/functions/_shared/recipePage';
 
 const page = (ld: unknown) => `<html><head><script type="application/ld+json">${JSON.stringify(ld)}</script></head><body></body></html>`;
 const at = new URL('https://www.eda.ru/recepty/syrniki-1');
@@ -44,8 +44,10 @@ describe('reading a recipe page', () => {
 
   it('goes only to public web pages', () => {
     expect(safeUrl('https://eda.ru/recepty/1')?.hostname).toBe('eda.ru');
-    for (const bad of ['ftp://eda.ru/x', 'http://localhost:3000', 'http://127.0.0.1/', 'http://10.0.0.5/', 'http://192.168.1.1/', 'http://169.254.169.254/latest', 'http://[::1]/', 'http://intranet/', 'не ссылка']) {
+    for (const bad of ['ftp://eda.ru/x', 'http://localhost:3000', 'http://localhost./', 'http://127.0.0.1/', 'http://10.0.0.5/', 'http://192.168.1.1/', 'http://169.254.169.254/latest', 'http://[::1]/', 'http://[::ffff:127.0.0.1]/', 'http://intranet/', 'не ссылка']) {
       expect(safeUrl(bad)).toBeNull();
     }
+    expect(['10.1.2.3', '172.20.0.1', '169.254.169.254', '100.64.0.1', '::1', 'fd00::1', 'fe80::1', '::ffff:10.0.0.1'].every(privateIp)).toBe(true);
+    expect(['93.184.216.34', '2a00:1450:4010::64'].some(privateIp)).toBe(false);
   });
 });

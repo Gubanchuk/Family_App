@@ -8,13 +8,15 @@ const pad = (n: number) => String(n).padStart(2, '0');
 // on desktop Firefox and Safari («2026-11»).
 export default function MonthPicker({ label, value, onChange }: { label: string; value: string; onChange: (month: string) => void }) {
   const [year, setYear] = useState(() => Number(value.slice(0, 4)) || new Date().getFullYear());
+  // Money shows months up to three years ahead; a later start could not be shown.
+  const maxYear = new Date().getFullYear() + 2;
   return (
     <fieldset className="kin-pick">
       <legend>{label}</legend>
       <div className="mp-year">
         <button type="button" className="round-btn" aria-label="Предыдущий год" onClick={() => setYear((y) => y - 1)}><Icon name="back" /></button>
         <b>{year}</b>
-        <button type="button" className="round-btn" aria-label="Следующий год" onClick={() => setYear((y) => y + 1)}><Icon name="chev" /></button>
+        <button type="button" className="round-btn" aria-label="Следующий год" disabled={year >= maxYear} onClick={() => setYear((y) => y + 1)}><Icon name="chev" /></button>
       </div>
       <div className="mp-grid">
         {MONTHS.map((m, i) => {

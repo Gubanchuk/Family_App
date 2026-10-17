@@ -10,7 +10,9 @@ import type { Deposit, Goal, GoalStep } from './types';
 import DepositHistory from './DepositHistory';
 import PhotoField, { Photo } from '../shell/PhotoField';
 import { useFeature } from '../../data/useFeature';
-import { dropOldPhoto, photoPathFor, type PhotoEdit } from '../../lib/photos';
+// The old photo is not removed here: the change may wait offline, and other phones still show the old
+// file until it arrives. A replaced photo stays in storage.
+import { photoPathFor, type PhotoEdit } from '../../lib/photos';
 
 const sid = () => Math.random().toString(36).slice(2, 8);
 
@@ -66,7 +68,6 @@ export default function GoalSheet({ me, members, db, goal, deposits = [], banked
       return;
     }
     await saveGoal(db, me, { id, owner_id: owner, title, target: t, steps, photo_path }, goal ?? undefined);
-    await dropOldPhoto(goal?.photo_path, photo_path);
     toast({ text: goal ? 'Цель сохранена' : `Цель «${title.trim()}» на доске` });
     onClose();
   };

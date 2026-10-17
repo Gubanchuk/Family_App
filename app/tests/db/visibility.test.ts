@@ -59,4 +59,13 @@ describe('who sees a wish or a thing to buy', { timeout: 60_000 }, () => {
     const [{ id: stranger }] = await rows<{ id: string }>(STRANGER, 'select id from public.members');
     await expect(asUser(db, MAMA, "insert into public.needs (household_id, title, created_by, visible_to) values ($1, 'Торт', $2, $3)", [hh, m['Оля'], [stranger]])).rejects.toThrow(/wrong_household/);
   });
+
+  it('keeps the author: nobody adds a record as someone else or takes it over later', async () => {
+    await expect(asUser(db, SON, "insert into public.needs (household_id, title, created_by, visible_to) values ($1, 'Торт', $2, '{}')", [hh, m['Оля']])).rejects.toThrow(/not_yours/);
+    await asUser(db, SON, "insert into public.needs (id, household_id, title, visible_to) values ('00000000-0000-0000-0000-00000000d002', $1, 'Торт', '{}')", [hh]);
+    expect(await titles(SON, 'needs')).toEqual(['Торт']);
+    await hiddenWish();
+    await asUser(db, PAPA, 'update public.wishes set created_by = $2 where id = $1', [W, m['Андрей']]);
+    expect(await rows(MAMA, 'select created_by from public.wishes')).toEqual([{ created_by: m['Оля'] }]);
+  });
 });

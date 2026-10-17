@@ -62,6 +62,21 @@ describe('sync', () => {
     expect((await db.wishes.toArray()).map((w) => w.id).sort()).toEqual(['w1', 'w3']);
   });
 
+  it('brings the piggy bank of a wish that is shown to this phone again', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    const store: Record<string, Array<Record<string, unknown>>> = {};
+    const fake = fakeSupabase(store, KEY_FIELDS);
+    const wish = (id: string) => ({ id, household_id: 'h1', owner_id: 'm1', title: id, price: null, saved: 0, done_at: null, created_by: 'm1', deleted_at: null });
+    fake.serverRow('wishes', wish('w0'));
+    fake.serverRow('deposits', { id: 'd0', household_id: 'h1', wish_id: 'w0', goal_id: null, member_id: 'm2', amount: 100, deleted_at: null });
+    await syncNow(db, fake.client as never);
+    // While w1 was hidden, its deposit was made: this phone's cursor for deposits went past it.
+    store.deposits.push({ id: 'd1', household_id: 'h1', wish_id: 'w1', goal_id: null, member_id: 'm2', amount: 3000, deleted_at: null, updated_at: '2026-01-01T00:00:00.000Z' });
+    fake.serverRow('wishes', wish('w1'));
+    await syncNow(db, fake.client as never);
+    expect((await db.deposits.get('d1'))?.amount).toBe(3000);
+  });
+
   it('leaves the phone alone when the server lists no rows at all', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     const store: Record<string, Array<Record<string, unknown>>> = {};

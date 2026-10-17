@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { refreshPush, subscribePush } from './push';
+import { refreshPush, subscribePush, unsubscribePush } from './push';
 import type { Member } from '../features/family/useFamily';
 
 const me: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: 'Папа', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1 };
@@ -51,5 +51,16 @@ describe('subscribePush', () => {
     Object.defineProperty(navigator, 'serviceWorker', { value: { ready: Promise.resolve({ pushManager }) }, configurable: true });
     await refreshPush(me, { from: vi.fn() } as never);
     expect(pushManager.subscribe).not.toHaveBeenCalled();
+  });
+
+  it('keeps pushes off on a phone where someone turned them off in Settings', async () => {
+    const pushManager = { getSubscription: vi.fn(() => Promise.resolve(null)), subscribe: vi.fn() };
+    vi.stubGlobal('Notification', { permission: 'granted' });
+    vi.stubGlobal('PushManager', function PushManager() {});
+    Object.defineProperty(navigator, 'serviceWorker', { value: { ready: Promise.resolve({ pushManager }) }, configurable: true });
+    await unsubscribePush({ from: vi.fn() } as never);
+    await refreshPush(me, { from: vi.fn() } as never);
+    expect(pushManager.subscribe).not.toHaveBeenCalled();
+    localStorage.clear();
   });
 });

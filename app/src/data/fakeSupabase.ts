@@ -39,6 +39,7 @@ export function fakeSupabase(store: Store, keyFields: Record<string, string[]>) 
       select: (c?: string) => { cols = c && c !== '*' ? c.split(',').map((x) => x.trim()) : []; return q; },
       gt: (c: string, v: string) => { filters.push((r) => String(r[c]) > v); return q; },
       eq: (c: string, v: unknown) => { filters.push((r) => r[c] === v); return q; },
+      in: (c: string, vs: unknown[]) => { filters.push((r) => vs.includes(r[c])); return q; },
       order: (c: string, o?: { ascending?: boolean }) => { order.push({ k: c, asc: o?.ascending !== false }); return q; },
       range: (a: number, b: number) => { range = [a, b]; return q; },
       maybeSingle: () => Promise.resolve(((r) => (r.error ? r : { data: r.data?.[0] ?? null, error: null }))(exec())),

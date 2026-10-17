@@ -217,6 +217,23 @@ async function pruneHidden(db: LocalDb, client: Client) {
   }
 }
 
+// A wish shown again to this member after it was hidden comes back in the pull, but its deposits, me-too
+// marks and gifts were passed by while it was hidden (each table pulls from its own cursor). So for every
+// wish new to this phone they are asked for once by the wish's id.
+const WISH_PARTS: SyncTable[] = ['deposits', 'wish_metoo', 'wish_gifts'];
+async function backfillWishes(db: LocalDb, client: Client, ids: string[]) {
+  for (let i = 0; i < ids.length; i += 50) {
+    const chunk = ids.slice(i, i + 50);
+    for (const t of WISH_PARTS) {
+      const { data, error } = await (client.from(t).select('*').in('wish_id', chunk) as unknown as Promise<{ data: Row[] | null; error: ServerError | null }>);
+      if (error) return;
+      const pending = await pendingKeys(db, t);
+      const fresh = (data ?? []).filter((r) => !pending.has(slotKey(t, r)));
+      if (fresh.length) await tableOf(db, t).bulkPut(fresh);
+    }
+  }
+}
+
 export async function syncNow(db: LocalDb, client: Client) {
   // Without a live session requests go out as an anonymous visitor and every change would look refused.
   if (client.auth && !(await client.auth.getSession()).data.session) return { pushed: 0, pulled: 0, offline: true, rejected: [] as string[] };
@@ -224,6 +241,7 @@ export async function syncNow(db: LocalDb, client: Client) {
   if (push.stopped === 'network') return { pushed: push.pushed, pulled: 0, offline: true, rejected: push.rejected };
   let pulled = 0;
   const missing: string[] = [];
+  const wishesBefore = new Set((await db.wishes.toCollection().primaryKeys()) as string[]);
   try {
     for (const t of TABLES) {
       const n = await pullTable(db, client, t);
@@ -235,7 +253,14 @@ export async function syncNow(db: LocalDb, client: Client) {
   }
   await db.meta.put({ key: 'missing_tables', value: missing });
   try { await probeColumns(db, client); } catch { /* asked again on the next sync */ }
-  try { if ((await features(db)).has('visibility')) await pruneHidden(db, client); } catch { /* tried again on the next sync */ }
+  try {
+    if ((await features(db)).has('visibility')) {
+      await pruneHidden(db, client);
+      // The very first sync brings every wish with its parts anyway.
+      const appeared = wishesBefore.size ? ((await db.wishes.toCollection().primaryKeys()) as string[]).filter((id) => !wishesBefore.has(id)) : [];
+      if (appeared.length) await backfillWishes(db, client, appeared);
+    }
+  } catch { /* tried again on the next sync */ }
   await db.meta.put({ key: 'synced_at', value: new Date().toISOString() });
   return { pushed: push.pushed, pulled, offline: false, rejected: push.rejected };
 }
