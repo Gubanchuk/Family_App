@@ -2,6 +2,7 @@ import { writeLocal } from '../../data/sync';
 import type { LocalDb, ShoppingItem, ShoppingMark } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import type { Need } from './types';
+import { guessNonFood } from '../shop/shopActions';
 
 // One shopping line per need, keyed by the need, so a second tap finds it instead of adding another.
 // The shopping list keeps at most 40 characters under a line; «для …» stays whole, the note gives way.
@@ -16,7 +17,9 @@ function qtyText(note: string, forName: string | null) {
 
 export function needLine(n: Need, forName: string | null) {
   const qty = qtyText(n.note, forName);
-  return { id: `n:${n.id}`, dept: n.for_id ? 'Одежда и обувь' : 'Для дома', title: n.title, qty_text: qty, est_price: n.price };
+  // The chosen department, else one the name points to; a thing for a person is not clothes by default.
+  const dept = n.dept || guessNonFood(n.title) || (n.for_id ? 'Другое' : 'Для дома');
+  return { id: `n:${n.id}`, dept, title: n.title, qty_text: qty, est_price: n.price };
 }
 
 export async function sendNeedToShop(db: LocalDb, me: Member, n: Need, forName: string | null): Promise<'added' | 'already'> {

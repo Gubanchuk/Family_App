@@ -21,9 +21,11 @@ export const toggleMetoo = (db: LocalDb, w: Wish, me: Member, on: boolean) =>
 export const setGift = (db: LocalDb, w: Wish, me: Member, on: boolean) =>
   writeLocal(db, 'wish_gifts', [{ wish_id: w.id, giver_id: me.id, household_id: w.household_id, deleted_at: on ? null : now() }]);
 
-export async function saveNeed(db: LocalDb, me: Member, n: { id?: string; for_id: string | null; title: string; note: string; due_on: string | null; price: number | null }, prev?: Need) {
+// dept goes out only when given: the server may not have the column yet.
+export async function saveNeed(db: LocalDb, me: Member, n: { id?: string; for_id: string | null; title: string; note: string; due_on: string | null; price: number | null; dept?: string }, prev?: Need) {
   await writeLocal(db, 'needs', [{
     id: n.id ?? crypto.randomUUID(), household_id: me.household_id, for_id: n.for_id, title: n.title.trim(), note: n.note.trim(), due_on: n.due_on, price: n.price,
+    ...(n.dept !== undefined ? { dept: n.dept } : prev && 'dept' in prev ? { dept: prev.dept } : {}),
     created_by: prev?.created_by ?? me.id, deleted_at: null,
   }]);
 }

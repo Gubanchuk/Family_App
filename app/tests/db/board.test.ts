@@ -108,5 +108,10 @@ describe('board', { timeout: 60_000 }, () => {
     await expect(upsertRequest(SON, 'Вынести мусор', 'done')).rejects.toThrow(/not_yours/);
     expect(await rows(MAMA, 'select status from public.requests')).toEqual([{ status: 'cancelled' }]);
   });
-});
 
+  it('keeps the department chosen for a thing to buy', async () => {
+    await asUser(db, SON, "insert into public.needs (household_id, for_id, title, dept, created_by) values ($1, $2, 'Процессор', 'Техника', $2)", [hh, m['Тёма']]);
+    expect(await rows(MAMA, 'select dept from public.needs')).toEqual([{ dept: 'Техника' }]);
+    await expect(asUser(db, SON, "update public.needs set dept = ''")).rejects.toThrow();
+  });
+});

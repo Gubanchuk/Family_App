@@ -6,6 +6,10 @@ import type { Member } from '../family/useFamily';
 import { useToast } from '../shell/toastContext';
 import { removeNeed, saveNeed } from './boardActions';
 import type { Need } from './types';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { useFeature } from '../../data/useFeature';
+import { NON_FOOD_DEPTS, guessDept } from '../shop/shopActions';
+import { DEPT_ORDER } from '../shop/build';
 
 
 export default function NeedSheet({ me, members, db, need, onClose }: { me: Member; members: Member[]; db: LocalDb; need: Need | null; onClose: () => void }) {
@@ -15,9 +19,17 @@ export default function NeedSheet({ me, members, db, need, onClose }: { me: Memb
   const [note, setNote] = useState(need?.note ?? '');
   const [due, setDue] = useState(need?.due_on ?? '');
   const [price, setPrice] = useState(need?.price ? String(need.price) : '');
+  // The department follows the name until someone picks one, like in the shopping list.
+  const hasDept = useFeature(db, 'needDept');
+  const vocab = useLiveQuery(async () => new Map((await db.ingredients.toArray()).map((v) => [v.item, v])), [db]);
+  const [picked, setPicked] = useState<string | null>(need?.dept ?? null);
+  const [allDepts, setAllDepts] = useState(false);
+  const guessed = title.trim() && vocab ? guessDept(title, vocab) : null;
+  const dept = picked ?? (guessed && guessed !== 'Другое' ? guessed : forId ? 'Другое' : 'Для дома');
+  const depts = allDepts ? DEPT_ORDER : [...new Set([dept, ...NON_FOOD_DEPTS])];
   const save = async (e: FormEvent) => {
     e.preventDefault();
-    await saveNeed(db, me, { id: need?.id, for_id: forId, title, note, due_on: due || null, price: parseRub(price) }, need ?? undefined);
+    await saveNeed(db, me, { id: need?.id, for_id: forId, title, note, due_on: due || null, price: parseRub(price), ...(hasDept ? { dept } : {}) }, need ?? undefined);
     toast({ text: need ? 'Сохранено' : `«${title.trim()}» на доске` });
     onClose();
   };
@@ -33,6 +45,12 @@ export default function NeedSheet({ me, members, db, need, onClose }: { me: Memb
             {members.map((m) => <button key={m.id} type="button" className="pick" aria-pressed={forId === m.id} onClick={() => setFor(m.id)}>{m.name}</button>)}
           </div>
         </fieldset>
+        {hasDept && title.trim() ? (
+          <fieldset className="kin-pick"><legend>Отдел</legend><div className="picks">
+            {depts.map((d) => <button key={d} type="button" className="pick" aria-pressed={dept === d} onClick={() => setPicked(d)}>{d}</button>)}
+            {allDepts ? null : <button type="button" className="pick more-pick" onClick={() => setAllDepts(true)}>Все отделы</button>}
+          </div></fieldset>
+        ) : null}
         <label className="field">Пометка<input value={note} onChange={(e) => setNote(e.target.value)} maxLength={40} placeholder="Размер, рост, цвет" /></label>
         <label className="field">К какому числу<input type="date" value={due} onChange={(e) => setDue(e.target.value)} /></label>
         <label className="field">Примерно стоит, ₽<input inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Можно не писать" /></label>

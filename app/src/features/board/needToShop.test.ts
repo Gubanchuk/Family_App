@@ -11,7 +11,12 @@ const need: Need = { id: 'n1', household_id: 'h', for_id: 'son', title: 'Зим�
 describe('things to buy → shopping list', () => {
   it('puts clothes for a person and things for the house into the right departments', () => {
     expect(needLine(need, 'Тёма')).toEqual({ id: 'n:n1', dept: 'Одежда и обувь', title: 'Зимние ботинки', qty_text: 'размер 37 · для Тёма', est_price: 6000 });
-    expect(needLine({ ...need, for_id: null, note: '' }, null)).toMatchObject({ dept: 'Для дома', qty_text: '' });
+    expect(needLine({ ...need, for_id: null, title: 'Лампа в коридор', note: '' }, null)).toMatchObject({ dept: 'Для дома', qty_text: '' });
+  });
+  it('takes the department chosen for the thing, else guesses it by its name, never clothes for anything bought for a person', () => {
+    expect(needLine({ ...need, dept: 'Аптека' }, 'Тёма').dept).toBe('Аптека');
+    expect(needLine({ ...need, title: 'Процессор для компьютера', for_id: 'papa' }, 'Андрей').dept).toBe('Техника');
+    expect(needLine({ ...need, title: 'Подарок бабушке', for_id: 'papa' }, 'Андрей').dept).toBe('Другое');
   });
   it('keeps the shopping line within its 40 characters even with a long note and name', () => {
     const line = needLine({ ...need, note: 'рост 98, цвет тёмно-синий, без капюшона' }, 'Константин');

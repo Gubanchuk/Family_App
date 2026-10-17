@@ -28,6 +28,7 @@ export const COLUMN_FEATURES = {
   photos: ['wishes', 'photo_path'],
   visibility: ['wishes', 'visible_to'],
   listDays: ['weeks', 'list_days'],
+  needDept: ['needs', 'dept'],
 } as const;
 export type Feature = keyof typeof COLUMN_FEATURES;
 export const features = async (db: LocalDb) => new Set(((await db.meta.get('features'))?.value as Feature[] | undefined) ?? []);

@@ -41,10 +41,10 @@ describe('sync', () => {
     const fake = fakeSupabase({}, KEY_FIELDS);
     fake.missingColumn('weeks', 'list_days');
     await syncNow(db, fake.client as never);
-    expect(await features(db)).toEqual(new Set(['photos', 'visibility']));
+    expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'needDept']));
     fake.missingColumn('weeks', 'list_days', false);
     await syncNow(db, fake.client as never);
-    expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'listDays']));
+    expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'needDept', 'listDays']));
   });
 
   it('keeps board rows on the phone and sends them like any other change', async () => {

@@ -102,7 +102,7 @@ export const incomeOf = (entries: MoneyEntry[], month: string) => entries.filter
 
 // What was bought from the shopping list counts as spending by itself: food departments go to «Продукты»,
 // the others to the money category of the same kind. The day is when the line was marked bought.
-const DEPT_CATEGORY: Record<string, string> = { 'Для дома': 'Дом', 'Аптека': 'Здоровье', 'Одежда и обувь': 'Одежда', 'Другое': 'Другое' };
+const DEPT_CATEGORY: Record<string, string> = { 'Для дома': 'Дом', 'Аптека': 'Здоровье', 'Одежда и обувь': 'Одежда', 'Техника': 'Другое', 'Другое': 'Другое' };
 export const categoryOfDept = (dept: string) => DEPT_CATEGORY[dept] ?? 'Продукты';
 const localDay = (iso: string) => { const d = iso ? new Date(iso) : new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 export type ShopEntry = MoneyEntry & { fromShop: true };

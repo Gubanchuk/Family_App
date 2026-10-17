@@ -30,13 +30,21 @@ export function guessIngredient(title: string, vocab: Map<string, Ingredient>): 
 const NON_FOOD: Array<[string, RegExp]> = [
   ['Аптека', /(^|\s)(таблет|лекарс|сироп|пластыр|бинт|витамин|капли|мазь|мази|градусник|термометр|аспирин|парацетам|ибупроф|нурофен|йод(?=\s|$)|зел[её]нк|антисепт|спрей от|спрей в нос)/],
   ['Одежда и обувь', /(^|\s)(носк|колгот|футболк|майк|трус|куртк|штан|брюки|джинс|шапк|шарф|варежк|перчатк|кроссовк|ботин|сапог|туфл|кеды|тапк|тапоч|плать|юбк|свитер|кофт|пижам|шорт|рубаш|комбинезон|обувь|одежд)/],
+  ['Техника', /(^|\s)(процессор|видеокарт|ноутбук|компьютер|телефон|смартфон|наушник|зарядк|кабел|мышк|клавиатур|монитор|планшет|колонк|телевизор|флешк|роутер|принтер|картридж|приставк|джойстик|геймпад|фен(?=\s|$)|утюг|чайник электр|пылесос)/],
   ['Для дома', /(^|\s)(средств|порош|мыл|шампун|бумаг|салфет|губк|пакеты для|мешк|лампоч|батарейк|зубн|щ[её]тк|гель|кондиционер|отбелив|освежит|фольг|пл[её]нк|подгуз|пел[её]нк|тряпк|полотенц|свеч|спичк|ватн|прокладк|туалетн|бытов|для посуды|для стирки)/],
 ];
-export const NON_FOOD_DEPTS = ['Для дома', 'Аптека', 'Одежда и обувь', 'Другое'];
+export const NON_FOOD_DEPTS = ['Для дома', 'Аптека', 'Одежда и обувь', 'Техника', 'Другое'];
 
 // Phrases that name a household thing even when a word in them looks like food or medicine
 // («таблетки для посудомоечной машины»).
 const HOUSE_PHRASES = /(для посуд|посудомо|для стирк|туалетн|перчатки резин|для мусора|мусорн|для унитаз|для пола|для окон)/;
+
+// A non-food department named by a word of the title, for lines written without the product list.
+export function guessNonFood(title: string): string | null {
+  const t = title.trim().toLowerCase();
+  if (HOUSE_PHRASES.test(t)) return 'Для дома';
+  return NON_FOOD.find(([, re]) => re.test(t))?.[0] ?? null;
+}
 
 // The department a hand-written line goes to: an exact product; a household phrase; a product named by the
 // first word («Молоко 2 пакета» is milk, not a bag); then non-food words anywhere; else «Другое».
