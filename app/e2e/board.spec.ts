@@ -21,7 +21,9 @@ test('a wish gets a secret gift mark the child never sees', async ({ browser }) 
   const { mom, son } = await familyOfTwo(browser);
   await expect(son.page.getByRole('navigation', { name: 'Разделы' }).getByRole('link', { name: 'Доска' })).toBeVisible({ timeout: 30_000 });
   await son.page.getByRole('navigation', { name: 'Разделы' }).getByRole('link', { name: 'Доска' }).click();
-  await son.page.getByRole('button', { name: 'Добавить' }).click();
+  // Home has its own «Добавить» and «Добавить сторис»: wait for the Board before pressing it.
+  await expect(son.page.getByRole('heading', { level: 1, name: 'Доска' })).toBeVisible();
+  await son.page.getByRole('button', { name: 'Добавить', exact: true }).click();
   await son.page.getByLabel('Что хочется').fill('Велосипед');
   await son.page.getByRole('button', { name: 'Сохранить' }).click();
   await mom.page.getByRole('navigation', { name: 'Разделы' }).getByRole('link', { name: 'Доска' }).click();
