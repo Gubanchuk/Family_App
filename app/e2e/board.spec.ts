@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { familyOfTwo, tab } from './family.ts';
 
-test('mom asks the son, he sees it on Home and ticks it, mom sees it done', async ({ browser }) => {
+test('mom asks the son, he answers «Хорошо» on Home, ticks it, and mom sees each step', async ({ browser }) => {
   const { mom, son } = await familyOfTwo(browser);
   for (const p of [mom.page, son.page]) await expect(p.getByRole('navigation', { name: 'Разделы' }).getByRole('link', { name: 'Доска' })).toBeVisible({ timeout: 30_000 });
   await mom.page.getByRole('navigation', { name: 'Разделы' }).getByRole('link', { name: 'Доска' }).click();
@@ -11,8 +11,12 @@ test('mom asks the son, he sees it on Home and ticks it, mom sees it done', asyn
   await mom.page.getByRole('button', { name: 'Сын', exact: true }).click();
   await mom.page.getByRole('button', { name: 'Попросить' }).click();
   await expect(son.page.getByRole('heading', { name: 'Мама просит: Вынести мусор' })).toBeVisible({ timeout: 30_000 });
+  await expect(mom.page.getByText('Сын · ждёт ответа · сегодня')).toBeVisible();
+  // A new request is answered first; only a taken one can be ticked.
+  await son.page.getByRole('button', { name: 'Хорошо' }).click();
+  await expect(mom.page.getByText('Сын · сделает · сегодня')).toBeVisible({ timeout: 30_000 });
   await son.page.getByRole('button', { name: 'Сделано' }).click();
-  await expect(mom.page.getByText('сделано')).toBeVisible({ timeout: 30_000 });
+  await expect(mom.page.getByText('Сын · сделано')).toBeVisible({ timeout: 30_000 });
   await mom.close();
   await son.close();
 });
