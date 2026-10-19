@@ -1,5 +1,5 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { manifest } from './pwa.config.ts';
@@ -10,14 +10,18 @@ const BUILD = [
   (process.env.VERCEL_GIT_COMMIT_SHA ?? '').slice(0, 7),
 ].filter(Boolean).join(' · ');
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   define: { __BUILD__: JSON.stringify(BUILD) },
+  // The dev server passes /sb/ on to the base like the site's rewrite does (vercel.json), so
+  // VITE_SUPABASE_PROXY=/sb runs the app on the same road the phones use.
+  server: { proxy: { '/sb': { target: loadEnv(mode, process.cwd(), '').VITE_SUPABASE_URL || 'http://localhost:54321', changeOrigin: true, rewrite: (p: string) => p.replace(/^\/sb/, '') } } },
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       manifest,
-      workbox: { navigateFallback: '/index.html', globPatterns: ['**/*.{js,css,html,svg,png,woff2}'], importScripts: ['/push-sw.js'] },
+      // /sb/ is the base behind the site: sign-in through Google opens it as a page and must reach the network.
+      workbox: { navigateFallback: '/index.html', navigateFallbackDenylist: [/^\/sb\//], globPatterns: ['**/*.{js,css,html,svg,png,woff2}'], importScripts: ['/push-sw.js'] },
     }),
   ],
   test: {
@@ -32,4 +36,4 @@ export default defineConfig({
     // and DB tests time out at random.
     maxWorkers: 3,
   },
-});
+}));

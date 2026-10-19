@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
-import { SUPABASE_KEY, SUPABASE_URL, supabase } from '../../lib/supabase';
+import { API_URL, SUPABASE_KEY, SUPABASE_URL, supabase } from '../../lib/supabase';
 import { checkAuth, checkGoogle, checkRealtime, checkRest, formatReport, type CheckResult } from './checks';
 
 export default function ProbePage() {
   const [results, setResults] = useState<CheckResult[] | null>(null);
   const [copied, setCopied] = useState('');
   useEffect(() => {
-    Promise.all([checkRest(SUPABASE_URL, SUPABASE_KEY), checkAuth(SUPABASE_URL, SUPABASE_KEY), checkGoogle(), checkRealtime(supabase)]).then(setResults);
+    // Both roads to the base: straight to supabase.co and through this site's /sb/, which the app uses.
+    const site = `${location.origin}/sb`;
+    Promise.all([
+      checkRest(SUPABASE_URL, SUPABASE_KEY, fetch, 14_000, { id: 'rest', title: 'База напрямую, ответ 64 КБ' }),
+      checkRest(site, SUPABASE_KEY, fetch, 14_000, { id: 'rest-site', title: 'База через сайт, ответ 64 КБ' }),
+      checkAuth(API_URL, SUPABASE_KEY), checkGoogle(), checkRealtime(supabase),
+    ]).then(setResults);
   }, []);
   const conn = (navigator as Navigator & { connection?: { effectiveType?: string; type?: string } }).connection;
   const report = results ? formatReport(results, {

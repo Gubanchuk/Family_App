@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { signedUrls } from '../../lib/media';
+import { API_URL } from '../../lib/baseUrl';
 
-const KEY = 'fa.avatar-urls';
+// Links are signed for one address of the base; a phone that switched to the site's address
+// asks for new ones instead of reusing links to the direct one.
+const KEY = `fa.avatar-urls:${API_URL}`;
+const OLD_KEY = 'fa.avatar-urls';
 const DAY = 86_400_000;
 const SIGN_FOR_S = 7 * 86_400;
 type Entry = { url: string; until: number };
@@ -14,7 +18,7 @@ let timer: ReturnType<typeof setTimeout> | null = null;
 
 function read(): Record<string, Entry> {
   if (!cache) {
-    try { cache = JSON.parse(localStorage.getItem(KEY) ?? '{}') as Record<string, Entry>; } catch { cache = {}; }
+    try { cache = JSON.parse(localStorage.getItem(KEY) ?? '{}') as Record<string, Entry>; localStorage.removeItem(OLD_KEY); } catch { cache = {}; }
   }
   return cache;
 }

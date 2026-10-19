@@ -26,8 +26,8 @@ async function timed(id: string, title: string, run: () => Promise<{ ok: boolean
 
 // Reads the body chunk by chunk: mobile networks that cut traffic usually stall or reset the
 // connection after ~16 KB instead of closing it, and the family needs to see how much arrived.
-export function checkRest(url: string, key: string, f: FetchImpl = fetch, deadlineMs = 14_000) {
-  return timed('rest', 'База Supabase, ответ 64 КБ', async () => {
+export function checkRest(url: string, key: string, f: FetchImpl = fetch, deadlineMs = 14_000, label = { id: 'rest', title: 'База Supabase, ответ 64 КБ' }) {
+  return timed(label.id, label.title, async () => {
     const ctrl = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
     const deadline = new Promise<never>((_, reject) => { timer = setTimeout(() => { ctrl.abort(); reject(new Error('timeout')); }, deadlineMs); });

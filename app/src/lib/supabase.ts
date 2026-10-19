@@ -1,11 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, RealtimeClient, type SupabaseClient } from '@supabase/supabase-js';
+import { API_URL, AUTH_STORAGE_KEY, SUPABASE_KEY, SUPABASE_URL } from './baseUrl';
 
-// Fallbacks keep tests and a misconfigured build from crashing on import; requests then fail visibly.
-export const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || 'http://localhost:54321';
-export const SUPABASE_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) || 'missing-key';
-
-// The key auth-js would pick by default, named here so the app can read the stored session offline.
-export const AUTH_STORAGE_KEY = `sb-${new URL(SUPABASE_URL).hostname.split('.')[0]}-auth-token`;
+export { API_URL, AUTH_STORAGE_KEY, SUPABASE_KEY, SUPABASE_URL, apiUrl } from './baseUrl';
 
 const NULL_BODY = [101, 103, 204, 205, 304];
 
@@ -53,7 +49,19 @@ export function timedFetch(ms = 15_000, base: typeof fetch = (...a) => fetch(...
   };
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+export const supabase = createClient(API_URL, SUPABASE_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: AUTH_STORAGE_KEY },
   global: { fetch: timedFetch() },
 });
+
+// Live updates are a WebSocket, which the site's rewrite does not carry: they keep the direct address.
+// Where it is cut, sync still runs every minute, on return to the app and after every change.
+export function directRealtime(client: SupabaseClient, direct: string, key: string): RealtimeClient {
+  const ws = new URL('realtime/v1', `${direct.replace(/\/$/, '')}/`);
+  ws.protocol = ws.protocol.replace('http', 'ws');
+  return new RealtimeClient(ws.href, {
+    params: { apikey: key },
+    accessToken: async () => (await client.auth.getSession()).data.session?.access_token ?? key,
+  });
+}
+if (API_URL !== SUPABASE_URL) supabase.realtime = directRealtime(supabase, SUPABASE_URL, SUPABASE_KEY);

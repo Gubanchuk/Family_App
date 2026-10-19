@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { timedFetch } from './supabase';
+import { createClient } from '@supabase/supabase-js';
+import { apiUrl, directRealtime, timedFetch } from './supabase';
 
 describe('timedFetch', () => {
   afterEach(() => vi.useRealTimers());
@@ -69,3 +70,15 @@ describe('timedFetch', () => {
   });
 });
 
+describe('the road to the base', () => {
+  it('goes through the site when a proxy path is set, straight to the base otherwise', () => {
+    expect(apiUrl('/sb', 'https://ref.supabase.co', 'https://family.vercel.app')).toBe('https://family.vercel.app/sb');
+    expect(apiUrl('', 'https://ref.supabase.co', 'https://family.vercel.app')).toBe('https://ref.supabase.co');
+    expect(apiUrl('/sb', 'https://ref.supabase.co', null)).toBe('https://ref.supabase.co');
+  });
+  it('keeps live updates on the direct address while requests go through the site', () => {
+    const client = createClient('https://family.vercel.app/sb', 'sb_publishable_test');
+    expect(client.realtime.endpointURL()).toMatch(/^wss:\/\/family\.vercel\.app\/sb\/realtime\/v1\/websocket/);
+    expect(directRealtime(client, 'https://ref.supabase.co', 'sb_publishable_test').endpointURL()).toMatch(/^wss:\/\/ref\.supabase\.co\/realtime\/v1\/websocket\?apikey=sb_publishable_test/);
+  });
+});
