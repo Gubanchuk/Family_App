@@ -32,13 +32,8 @@ describe('FamilyRow', () => {
     expect(screen.getByText('Тёма')).toBeInTheDocument();
   });
 
-  it('shows the open requests to a person on their circle, like unread messages', () => {
-    const ring = (id: string): Ring => (id === 'son' ? 'unseen' : 'none');
-    render(<MemoryRouter><StoriesContext.Provider value={{ available: true, ringOf: ring, openViewer: vi.fn(), compose: vi.fn() }}><FamilyRow me={me} members={[me, son, papa]} todo={new Map([['son', 2], ['papa', 1]])} /></StoriesContext.Provider></MemoryRouter>);
-    expect(screen.getByRole('button', { name: 'Тёма, новая сторис, 2 просьбы' })).toHaveTextContent('2');
-    expect(screen.getByRole('group', { name: 'Семья' })).toHaveTextContent('1 просьба');
-    // Without a story to open, the counter leads to the requests.
-    expect(screen.getByRole('link', { name: /1 просьба/ })).toHaveAttribute('href', '/board?tab=requests');
-    expect(screen.getByRole('button', { name: 'Добавить сторис' })).not.toHaveTextContent(/\d/);
+  it('puts no counters on the circles', () => {
+    render(<MemoryRouter><StoriesContext.Provider value={{ available: true, ringOf: () => 'none', openViewer: vi.fn(), compose: vi.fn() }}><FamilyRow me={me} members={[me, son, papa]} /></StoriesContext.Provider></MemoryRouter>);
+    expect(screen.getByRole('group', { name: 'Семья' })).not.toHaveTextContent(/\d/);
   });
 });

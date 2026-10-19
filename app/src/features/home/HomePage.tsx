@@ -11,14 +11,16 @@ import type { Member } from '../family/useFamily';
 import { getMealTimes } from '../../lib/mealTimes';
 import { dayOfWeek, MEAL_LABEL, MEALS, soupOn, type Meal } from '../menu/week';
 import MealSheet from '../menu/MealSheet';
+import { DishThumb } from '../menu/DishPhoto';
 import { canEditWeek } from '../menu/actions';
 import OfferRow from '../ideas/OfferRow';
 import { MEAL_FOR, takeOffer } from '../ideas/offerActions';
 import { listTotals, rub } from '../shop/build';
 import { useHome } from './useHome';
 import { dateLine, greeting, mainThing } from './main';
-import { setRequestDone } from '../board/boardActions';
-import { mineToDo, openTo, whenText } from '../board/requestText';
+import { answerRequest, setRequestDone } from '../board/boardActions';
+import { useFeature } from '../../data/useFeature';
+import { mineToDo, whenText } from '../board/requestText';
 import { progress, savedIn } from '../board/boardMath';
 import { daysTo, dueText, nextDue } from '../money/month';
 import { memberColor } from '../family/colors';
@@ -41,6 +43,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   // Read ahead so the quick-add sheet opens with all its rows at once.
   const boardReady = useBoardReady(db);
   const moneyReady = useMoneyReady(db);
+  const answers = useFeature(db, 'requestAnswers');
   const avatar = <NavLink to="/settings" className="av" style={{ ['--c' as string]: memberColor(me.color) }} aria-label="Настройки и профиль"><AvatarFace member={me} /></NavLink>;
   const actions = (
     <>
@@ -86,7 +89,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const main = mainThing({ me, today: data.todayIso, offers: data.offers, urgent, dinner: data.week && dinner ? lower(dinner) : null, hasWeek: !!data.week, requests: data.requests });
   // Open requests to me beyond the one on top, for the «Просьбы мне» card.
   const heroRequest = main.kind === 'request' ? main.request.id : null;
-  const moreRequests = mineToDo(data.requests, me.id).filter((r) => r.status === 'open' && r.id !== heroRequest).slice(0, 3);
+  const moreRequests = mineToDo(data.requests, me.id).filter((r) => (r.status === 'open' || r.status === 'accepted') && r.id !== heroRequest).slice(0, 3);
   // Piggy banks count the old saved sum plus deposits.
   const inBank = (x: { id: string; saved: number }) => savedIn(data.bank, x);
   const goal = data.goals.filter((g) => !g.owner_id && progress(inBank(g), g.target) < 1).sort((x, y) => progress(inBank(y), y.target) - progress(inBank(x), x.target))[0];
@@ -107,7 +110,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   return (
     <>
       {head}
-      <FamilyRow me={me} members={members} todo={openTo(data.requests)} />
+      <FamilyRow me={me} members={members} />
       <PushPrompt me={me} />
       <section className="hero" aria-label="Главное сейчас">
         {main.kind === 'offer' ? (
@@ -123,10 +126,18 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
           <>
             <h2>{who(main.request.from_id)} просит: {main.request.title}</h2>
             <p>{[main.request.urgent ? 'Срочно' : '', whenText(main.request.due_on, data.todayIso)].filter(Boolean).join(' · ')}</p>
-            <div className="hero-chips">
-              <button type="button" className="hero-chip primary" onClick={() => setRequestDone(db, main.request, true)}><Icon name="check" />Сделано</button>
-              <Link className="hero-chip" to="/board?tab=requests">Все просьбы</Link>
-            </div>
+            {/* A new request is answered first; a taken one is ticked done. */}
+            {answers && main.request.status === 'open' ? (
+              <div className="hero-chips">
+                <button type="button" className="hero-chip primary" onClick={() => answerRequest(db, main.request, 'accepted')}><Icon name="check" />Хорошо</button>
+                <button type="button" className="hero-chip" onClick={() => answerRequest(db, main.request, 'declined')}>Не могу</button>
+              </div>
+            ) : (
+              <div className="hero-chips">
+                <button type="button" className="hero-chip primary" onClick={() => setRequestDone(db, main.request, true)}><Icon name="check" />Сделано</button>
+                <Link className="hero-chip" to="/board?tab=requests">Все просьбы</Link>
+              </div>
+            )}
           </>
         ) : main.kind === 'urgent' ? (
           <>
@@ -152,11 +163,11 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
         <>
           <div className="sec-h"><h2>Сегодня едим</h2><Link className="more" to="/menu">Меню</Link></div>
           {next ? (
-            <button type="button" className="meal-now" onClick={() => openMeal(next)}><span className="mn-time">{times[next]}</span><span className="mn-main"><b>{text(next) || 'Не выбрано'}</b><small>{MEAL_LABEL[next]}</small></span></button>
+            <button type="button" className="meal-now" onClick={() => openMeal(next)}><span className="mn-time">{times[next]}</span><span className="mn-main"><b>{text(next) || 'Не выбрано'}</b><small>{MEAL_LABEL[next]}</small></span><DishThumb recipe={data.recipes.get(partsOf(next).dish_id ?? '')} hideEmpty /></button>
           ) : null}
           <section className="card">
             {MEALS.filter((m) => m !== next).map((m) => (
-              <button type="button" className={`row meal-row ${mins(times[m]) < nowMin ? 'past' : ''}`} key={m} onClick={() => openMeal(m)}><span className="tl-t">{times[m]}</span><span className="row-main"><b>{text(m) || 'Не выбрано'}</b><small>{MEAL_LABEL[m]}</small></span></button>
+              <button type="button" className={`row meal-row ${mins(times[m]) < nowMin ? 'past' : ''}`} key={m} onClick={() => openMeal(m)}><span className="tl-t">{times[m]}</span><DishThumb recipe={data.recipes.get(partsOf(m).dish_id ?? '')} /><span className="row-main"><b>{text(m) || 'Не выбрано'}</b><small>{MEAL_LABEL[m]}</small></span></button>
             ))}
             {data.offers.length ? <p className="tl-group">Предложили на сегодня</p> : null}
             {offerRows}
@@ -179,7 +190,9 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
                   <span className="row-main"><b>{r.title}</b><small>{who(r.from_id)} · {whenText(r.due_on, data.todayIso)}</small></span>
                   {r.urgent ? <span className="pill">срочно</span> : null}
                 </Link>
-                <button type="button" className="btn soft sm" aria-label={`${r.title}: сделано`} onClick={() => setRequestDone(db, r, true)}><Icon name="check" /></button>
+                {answers && r.status === 'open'
+                  ? <button type="button" className="btn soft sm" aria-label={`${r.title}: хорошо`} onClick={() => answerRequest(db, r, 'accepted')}>Хорошо</button>
+                  : <button type="button" className="btn soft sm" aria-label={`${r.title}: сделано`} onClick={() => setRequestDone(db, r, true)}><Icon name="check" /></button>}
               </div>
             ))}
           </section>

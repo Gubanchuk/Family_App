@@ -11,6 +11,7 @@ import { lineOf } from './SlotSheet';
 import { templateCosts } from './templateCost';
 import { rub } from '../shop/build';
 import { useToast } from '../shell/toastContext';
+import { coverDishes, DishThumb, WeekCover } from './DishPhoto';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 // The choice of no template: an empty week where dishes are picked only for the days that need them.
@@ -33,6 +34,8 @@ export default function WeekSheet({ db, mode, me, data, today, onClose }: { db: 
   const pick = picked ?? target.week?.template_id ?? seasonal(data.templates, target.start);
   const slots = useLiveQuery(() => (pick && pick !== NONE ? db.template_slots.where('template_id').equals(pick).toArray() : []), [db, pick]) ?? [];
   const costs = useLiveQuery(() => templateCosts(db), [db]);
+  // Every template's dishes, for the covers made of them.
+  const allSlots = useLiveQuery(() => db.template_slots.toArray(), [db]) ?? [];
   const [confirm, setConfirm] = useState(false);
   const t = data.templates.find((x) => x.id === pick);
   const first = seasonal(data.templates, target.start);
@@ -71,6 +74,7 @@ export default function WeekSheet({ db, mode, me, data, today, onClose }: { db: 
         {ordered.map((x) => (
           <div key={x.id} className="tpl-item">
             <button type="button" className="tpl" role="radio" aria-checked={x.id === pick} onClick={() => { setPick(x.id); setConfirm(false); }}>
+              <WeekCover dishes={coverDishes(allSlots.filter((s) => s.template_id === x.id), data.recipes)} />
               <span className="tpl-top"><b>{x.name}{x.household_id ? <span className="tpl-now">наш</span> : null}</b>
                 {costs?.has(x.id) ? <span className="tpl-cost">≈&nbsp;{rub(Math.round(costs.get(x.id)! / 100) * 100)} на неделю</span> : null}</span>
               <small>{x.note}</small>
@@ -81,7 +85,7 @@ export default function WeekSheet({ db, mode, me, data, today, onClose }: { db: 
                 {DAY_SHORT.map((d, i) => {
                   const dinner = slots.find((s) => s.day === i && s.meal === 'dinner');
                   const lunch = slots.find((s) => s.day === i && s.meal === 'lunch');
-                  return <div className="row" key={d}><span className="tl-t">{d}</span><span className="row-main"><b>{lineOf(dinner, data.recipes)}</b><small>{lineOf(lunch, data.recipes)}</small></span></div>;
+                  return <div className="row" key={d}><span className="tl-t">{d}</span><DishThumb recipe={dinner?.dish_id ? data.recipes.get(dinner.dish_id) : null} /><span className="row-main"><b>{lineOf(dinner, data.recipes)}</b><small>{lineOf(lunch, data.recipes)}</small></span></div>;
                 })}
               </div>
             ) : null}

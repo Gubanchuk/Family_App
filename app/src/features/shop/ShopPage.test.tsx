@@ -57,9 +57,9 @@ describe('ShopPage', () => {
     const db = await ready();
     show(db);
     const dairy = (await screen.findByRole('heading', { name: 'Молочное и яйца' })).closest('section')!;
-    expect(dairy).toHaveTextContent(/из \d+ · ≈\s?[\d\s]+₽/);
+    expect(dairy).toHaveTextContent(/из \d+≈\s?[\d\s]+₽/);
     await userEvent.click(within(dairy).getByRole('button', { name: 'Молочное и яйца' }));
-    expect(dairy).toHaveTextContent(/осталось \d+ · ≈\s?[\d\s]+₽/);
+    expect(dairy).toHaveTextContent(/осталось \d+≈\s?[\d\s]+₽/);
   });
 
   it('folds a department by itself once everything in it is bought', async () => {

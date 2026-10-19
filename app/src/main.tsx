@@ -14,6 +14,12 @@ import { applyAccent, applyTheme } from './lib/theme';
 applyTheme();
 applyAccent();
 
+// On a phone a long press on a button or a link opens Chrome's link menu over the app; a field keeps its own menu.
+document.addEventListener('contextmenu', (e) => {
+  const t = e.target as Element | null;
+  if (matchMedia('(hover: none)').matches && t?.closest('a, button, [role="button"]') && !t.closest('input, textarea')) e.preventDefault();
+});
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

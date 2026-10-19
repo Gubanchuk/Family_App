@@ -70,6 +70,17 @@ describe('HomePage', () => {
     await waitFor(async () => expect((await db.requests.get('r1'))?.status).toBe('done'));
   });
 
+  it('answers a new request from Home before it can be ticked', async () => {
+    const db = await ready();
+    await db.meta.put({ key: 'features', value: ['requestAnswers'] });
+    await db.requests.put({ id: 'r1', household_id: 'h1', from_id: 'm-mama', to_id: 'm-papa', title: 'Забрать посылку', due_on: '2026-10-13', urgent: false, status: 'open', done_at: null, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Хорошо' }));
+    await waitFor(async () => expect((await db.requests.get('r1'))?.status).toBe('accepted'));
+    await userEvent.click(await screen.findByRole('button', { name: 'Сделано' }));
+    await waitFor(async () => expect((await db.requests.get('r1'))?.status).toBe('done'));
+  });
+
   it('shows the closest family goal as a tile', async () => {
     const db = await ready();
     await db.goals.put({ id: 'g1', household_id: 'h1', owner_id: null, title: 'Море летом', target: 120000, saved: 30000, steps: [], created_by: null, updated_at: 'x', deleted_at: null });

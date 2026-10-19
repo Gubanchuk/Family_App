@@ -8,6 +8,7 @@ import { getMealTimes } from '../../lib/mealTimes';
 import { replaceDay } from './actions';
 import { lineOf } from './SlotSheet';
 import { Locked } from './MealSheet';
+import { DishThumb } from './DishPhoto';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const DAY_ACC = ['понедельник', 'вторник', 'среду', 'четверг', 'пятницу', 'субботу', 'воскресенье'];
@@ -33,7 +34,7 @@ export default function DaySheet({ db, week, day, recipes, templates, editable, 
       </div>
       <div className="day-preview">
         {MEALS.map((m) => (
-          <div className="row" key={m}><span className="tl-t">{getMealTimes()[m]}</span><span className="row-main"><b>{lineOf(slots.find((s) => s.meal === m), recipes)}</b><small>{MEAL_LABEL[m]}</small></span></div>
+          <div className="row" key={m}><span className="tl-t">{getMealTimes()[m]}</span><DishThumb recipe={recipes.get(slots.find((s) => s.meal === m)?.dish_id ?? '')} /><span className="row-main"><b>{lineOf(slots.find((s) => s.meal === m), recipes)}</b><small>{MEAL_LABEL[m]}</small></span></div>
         ))}
       </div>
     </Sheet>

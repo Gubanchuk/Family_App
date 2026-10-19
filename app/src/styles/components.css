@@ -186,8 +186,9 @@
 .steps { display: grid; gap: 8px; margin: 0 16px; padding-left: 22px; font-size: 15px; }
 .steps li::marker { font-weight: 800; color: color-mix(in oklab, var(--k-meal) 85%, var(--k-ink)); }
 .offer-picks { display: grid; gap: 10px; margin: 0 16px; padding: 12px; border-radius: 18px; background: color-mix(in oklab, var(--k-ink) 4%, var(--k-card)); }
-.pick-g { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 8px; }
-.pick-g > span { font: 600 13px var(--font); color: var(--k-ink-2); }
+/* The label stands level with the first row of chips, however many rows they wrap into. */
+.pick-g { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: start; gap: 8px; }
+.pick-g > span { padding-top: 10px; font: 600 13px/1.25 var(--font); color: var(--k-ink-2); }
 .picks { display: flex; flex-wrap: wrap; gap: 6px; }
 .pick { min-height: 38px; padding: 8px 13px; border: 0; border-radius: 999px; background: color-mix(in oklab, var(--k-ink) 6%, var(--k-card)); color: var(--k-ink); font: 600 14px var(--font); cursor: pointer; }
 .pick[aria-pressed="true"] { background: var(--k-ink); color: var(--k-card); }
@@ -254,7 +255,7 @@ button.meal-row { cursor: pointer; }
 .day-preview .row:first-child { border-top: 0; }
 .tpl-list { display: grid; gap: 8px; margin: 0 16px; }
 .tpl { position: relative; display: grid; gap: 4px; padding: 12px 14px; border: 0; border-radius: 18px; background: color-mix(in oklab, var(--k-ink) 4%, var(--k-card)); text-align: left; font: inherit; color: var(--k-ink); cursor: pointer; box-shadow: inset 0 0 0 2px transparent; transition: box-shadow 200ms var(--ease); }
-.tpl[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--k-primary); }
+.tpl[aria-checked="true"] { box-shadow: 0 0 0 2px var(--k-primary); }
 .tpl-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .tpl-top b { font: 700 17px var(--font); }
 .tpl small { font-size: 13px; color: var(--k-ink-2); }
@@ -359,7 +360,6 @@ a.more, a.av { text-decoration: none; }
 .fam.ring-seen .av { box-shadow: 0 0 0 3px var(--k-bg), 0 0 0 5px var(--k-rule); }
 .fam-plus { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; display: grid; place-items: center; border: 2px solid var(--k-bg); border-radius: 50%; background: var(--k-primary); color: var(--k-primary-ink); }
 .fam-plus .ic { width: 14px; height: 14px; }
-.fam-count { position: absolute; top: -4px; right: -6px; z-index: 2; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; border: 2px solid var(--k-bg); border-radius: 10px; background: var(--k-primary); color: var(--k-primary-ink); font: 700 11px/1 var(--font); font-style: normal; font-variant-numeric: tabular-nums; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .se { grid-template-rows: 1fr auto; }
 .se-frame { position: relative; align-self: center; touch-action: none; }
@@ -397,7 +397,7 @@ a.more, a.av { text-decoration: none; }
 .cat-top { display: flex; align-items: baseline; gap: 8px; margin: 4px 0 8px; }
 .goal .bar { display: block; margin-bottom: 4px; }
 /* Taking a wish as a present is a quiet action: the surprise label is the loud part. */
-.gift-ask { position: relative; z-index: 1; justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0; border: 0; background: none; color: color-mix(in oklab, var(--k-primary) 80%, var(--k-ink)); font: 600 13px var(--font); cursor: pointer; }
+.gift-ask { position: relative; z-index: 1; justify-self: start; display: inline-flex; align-items: center; gap: 6px; text-align: left; min-height: 36px; padding: 0; border: 0; background: none; color: color-mix(in oklab, var(--k-primary) 80%, var(--k-ink)); font: 600 13px var(--font); cursor: pointer; }
 .gift-ask .ic { width: 16px; height: 16px; }
 .cat-top .amount { font: 800 22px var(--font); }
 .row.step { cursor: pointer; }
@@ -468,7 +468,10 @@ a.more, a.av { text-decoration: none; }
 
 /* A shopping department folds with a tap anywhere on its header line. */
 .dept-h { position: relative; }
-.dept-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: inherit; color: inherit; letter-spacing: inherit; cursor: pointer; }
+.dept-h { align-items: center; }
+.dept-h h2 { flex: 1; }
+.dept-toggle { display: flex; align-items: center; gap: 6px; max-width: 100%; padding: 0; border: 0; background: none; font: inherit; color: inherit; letter-spacing: inherit; text-align: left; cursor: pointer; }
+.dept-meta { flex: none; display: grid; justify-items: end; font-size: 13px; line-height: 1.3; color: var(--k-ink-2); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .dept-toggle::after { content: ""; position: absolute; inset: -10px -16px; }
 .dept-toggle .ic { width: 18px; height: 18px; color: var(--k-ink-2); transform: rotate(90deg); transition: transform .18s ease; }
 .dept-toggle[aria-expanded="false"] .ic { transform: rotate(0deg); }
@@ -515,3 +518,27 @@ a.more, a.av { text-decoration: none; }
 .accent { display: grid; justify-items: center; gap: 6px; padding: 10px 0; border: 2px solid transparent; border-radius: 16px; background: color-mix(in oklab, var(--k-ink) 4%, var(--k-card)); color: var(--k-ink); font: 600 13px var(--font); cursor: pointer; }
 .accent i { width: 30px; height: 30px; border-radius: 50%; background: var(--a); }
 .accent[aria-checked="true"] { border-color: var(--a); }
+/* Requests: a new one is answered under its words; «не может» reads in the urgent colour for the asker. */
+.row.ask { align-items: flex-start; }
+.row.ask .av { margin-top: 2px; }
+.ask-btns { margin-top: 8px; }
+.row.declined .row-main b { color: var(--k-ink-2); font-weight: 500; }
+.said-no { color: color-mix(in oklab, var(--k-urgent) 82%, var(--k-ink)) !important; }
+/* Dish photos in the menu and its pickers: a square beside the name, a three-photo cover on a week. */
+.thumb { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; overflow: hidden; background: color-mix(in oklab, var(--k-meal) var(--k-tint), var(--k-card)); color: color-mix(in oklab, var(--k-meal) 70%, var(--k-ink)); }
+.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.thumb .ic { width: 20px; height: 20px; opacity: 0.75; }
+.opt .thumb { width: 44px; height: 44px; }
+.week-cover { display: grid; grid-template-columns: 1.6fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; aspect-ratio: 2 / 1; margin: -12px -14px 8px; border-radius: 18px 18px 0 0; overflow: hidden; background: color-mix(in oklab, var(--k-meal) var(--k-tint), var(--k-card)); }
+.week-cover > * { min-width: 0; min-height: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.week-cover > :first-child { grid-row: 1 / -1; }
+.week-cover.n1 { grid-template-columns: 1fr; }
+.week-cover.n2 > :nth-child(2) { grid-row: 1 / -1; }
+.card-photo.no-photo { display: grid; place-items: center; background: color-mix(in oklab, var(--k-meal) var(--k-tint), var(--k-card)); color: color-mix(in oklab, var(--k-meal) 70%, var(--k-ink)); }
+.card-photo.no-photo .ic { width: 28px; height: 28px; opacity: 0.6; }
+.pick-grid { margin: 0 16px 16px; }
+.day-preview .row { align-items: center; }
+.meal-now .thumb { width: 52px; height: 52px; border-radius: 14px; background: var(--k-card); }
+.meal-row .tl-t { min-width: 44px; }
+.meal-row > .row-btn { align-items: flex-start; }
+.meal-row > .row-btn .thumb { margin-top: 2px; }

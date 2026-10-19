@@ -131,7 +131,8 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
     const replace = () => setSheet({ kind: 'slot', day, meal });
     // An empty meal has nothing to read, so it goes straight to choosing one.
     const filled = !!(s?.dish_id || s?.simple || swap);
-    return <MealRow key={meal} name={main || 'Не выбрано'} label={MEAL_LABEL[meal]} time={times[meal]} extra={extra} note={parent ? note : undefined}
+    const dish = recipes.get(swap?.dish_id ?? s?.dish_id ?? '');
+    return <MealRow key={meal} name={main || 'Не выбрано'} label={MEAL_LABEL[meal]} time={times[meal]} extra={extra} note={parent ? note : undefined} dish={dish}
       onOpen={filled ? () => setSheet({ kind: 'meal', day, meal }) : replace} onReplace={canEditWeek(me, current.week!) ? replace : undefined} />;
   };
   const date = (d: number) => Number(addDaysIso(current.start, d).slice(8));

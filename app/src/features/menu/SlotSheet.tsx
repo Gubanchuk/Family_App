@@ -7,6 +7,8 @@ import { fitsMeal, MEAL_LABEL, type Meal } from './week';
 import { replaceMeal } from './actions';
 import { blockedBy } from '../ideas/search';
 import { Locked } from './MealSheet';
+import { DishThumb } from './DishPhoto';
+import { Photo } from '../shell/PhotoField';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const DAY_ACC = ['в понедельник', 'во вторник', 'в среду', 'в четверг', 'в пятницу', 'в субботу', 'в воскресенье'];
@@ -60,7 +62,7 @@ export default function SlotSheet({ db, week, day, meal, currentSlot, recipes, t
           <div className="opts">
             {[...tplSlots].sort((a, b) => a.day - b.day).map((s: TemplateSlot) => (
               <button key={s.day} type="button" className="opt" aria-label={`${DAY_SHORT[s.day]} · ${lineOf(s, recipes)}`} onClick={() => pick({ fromSlot: s })}>
-                <span className="opt-day">{DAY_SHORT[s.day]}</span><span className="row-main"><b>{lineOf(s, recipes)}</b></span><Icon name="swap" />
+                <span className="opt-day">{DAY_SHORT[s.day]}</span><DishThumb recipe={s.dish_id ? recipes.get(s.dish_id) : null} /><span className="row-main"><b>{lineOf(s, recipes)}</b></span><Icon name="swap" />
               </button>
             ))}
           </div>
@@ -68,10 +70,14 @@ export default function SlotSheet({ db, week, day, meal, currentSlot, recipes, t
       ) : (
         <>
           <label className="search sheet-search"><Icon name="search" /><span className="vh">Найти блюдо</span><input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Найти блюдо" autoComplete="off" /></label>
-          <div className="opts">
+          {/* Cards with photos, as in «Что покушать»: the dish is chosen by how it looks. */}
+          <div className="idea-grid pick-grid">
             {shown.map((r) => (
-              <button key={r.id} type="button" className="opt" onClick={() => pick({ recipe: r, sides: sides.filter((x) => x.recipe_id === r.id).map((x) => x.side_id) })}>
-                <span className="row-main"><b>{r.name}</b><small>{r.time_total} мин · {DIMA[r.dima_level]}</small></span><Icon name="swap" />
+              <button key={r.id} type="button" className="idea" onClick={() => pick({ recipe: r, sides: sides.filter((x) => x.recipe_id === r.id).map((x) => x.side_id) })}>
+                {r.photo_path ? <Photo path={r.photo_path} className="card-photo" /> : <span className="card-photo no-photo" aria-hidden="true"><Icon name="menu" /></span>}
+                <b>{r.name}</b>
+                <span className="i-meta"><span className="i-min">{r.time_total}<small>мин</small></span></span>
+                <span className="i-dima">{DIMA[r.dima_level]}</span>
               </button>
             ))}
           </div>
