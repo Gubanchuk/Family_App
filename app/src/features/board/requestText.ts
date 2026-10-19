@@ -12,7 +12,9 @@ export function whenText(due: string | null, today: string): string {
   return `к ${Number(due.slice(8, 10))} ${MONTHS[Number(due.slice(5, 7)) - 1]}`;
 }
 
-const rank = (r: Request) => [r.status === 'open' ? 0 : 1, r.urgent ? 0 : 1, r.due_on ?? '9999-12-31'] as const;
+// Waiting for an answer first, then taken, then «не могу», done and cancelled at the bottom.
+const STAGE: Record<Request['status'], number> = { open: 0, accepted: 1, declined: 2, done: 3, cancelled: 4 };
+const rank = (r: Request) => [STAGE[r.status], r.urgent ? 0 : 1, r.due_on ?? '9999-12-31'] as const;
 const order = (a: Request, b: Request) => {
   const x = rank(a); const y = rank(b);
   return x[0] - y[0] || x[1] - y[1] || x[2].localeCompare(y[2]);
@@ -21,11 +23,11 @@ const order = (a: Request, b: Request) => {
 export const mineToDo = (list: Request[], meId: string) => list.filter((r) => r.to_id === meId && r.status !== 'cancelled').sort(order);
 export const mineAsked = (list: Request[], meId: string) => list.filter((r) => r.from_id === meId).sort(order);
 
-// Open requests per person, for the counter on the family row.
-export function openTo(list: Request[]): Map<string, number> {
-  const n = new Map<string, number>();
-  for (const r of list) if (r.status === 'open' && !r.deleted_at) n.set(r.to_id, (n.get(r.to_id) ?? 0) + 1);
-  return n;
+// What the asker sees after the recipient's name: the answer, then the date while it matters.
+export function answerText(r: Request, today: string, answers: boolean): string {
+  if (r.status === 'done') return 'сделано';
+  if (r.status === 'cancelled') return 'отменено';
+  if (r.status === 'declined') return 'не может';
+  if (r.status === 'accepted') return `сделает · ${whenText(r.due_on, today)}`;
+  return answers ? `ждёт ответа · ${whenText(r.due_on, today)}` : whenText(r.due_on, today);
 }
-
-export const requestsWord = (n: number) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? 'просьба' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'просьбы' : 'просьб'}`;

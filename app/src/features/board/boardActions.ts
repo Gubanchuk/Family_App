@@ -54,7 +54,11 @@ export const removeGoal = (db: LocalDb, g: Goal) => writeLocal(db, 'goals', [{ .
 export async function askFor(db: LocalDb, me: Member, r: { to_id: string; title: string; due_on: string | null; urgent: boolean }) {
   await writeLocal(db, 'requests', [{ id: crypto.randomUUID(), household_id: me.household_id, from_id: me.id, to_id: r.to_id, title: r.title.trim(), due_on: r.due_on, urgent: r.urgent, status: 'open', done_at: null, deleted_at: null }]);
 }
-export const setRequestDone = (db: LocalDb, r: Request, done: boolean) => writeLocal(db, 'requests', [{ ...r, status: done ? 'done' : 'open', done_at: done ? now() : null }]);
+// Taking a tick back leaves the request taken when the family answers requests, waiting otherwise.
+export const setRequestDone = (db: LocalDb, r: Request, done: boolean, answers = false) =>
+  writeLocal(db, 'requests', [{ ...r, status: done ? 'done' : answers ? 'accepted' : 'open', done_at: done ? now() : null }]);
+// The recipient's answer: «Хорошо» takes the request, «Не могу» declines it; either can change later.
+export const answerRequest = (db: LocalDb, r: Request, status: 'accepted' | 'declined') => writeLocal(db, 'requests', [{ ...r, status, done_at: null }]);
 export const cancelRequest = (db: LocalDb, r: Request) => writeLocal(db, 'requests', [{ ...r, status: 'cancelled' }]);
 
 // A deposit is its own row, so two phones putting money in at once both count. Until the server has

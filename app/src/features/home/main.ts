@@ -4,9 +4,9 @@ import type { Request } from '../board/types';
 
 export type Main = { kind: 'offer'; offer: DishOffer } | { kind: 'request'; request: Request } | { kind: 'urgent'; item: ShoppingItem } | { kind: 'dinner'; text: string } | { kind: 'no-week' };
 
-// A request counts as «now» when it is urgent or due today or earlier.
+// A request counts as «now» when it is urgent or due today or earlier, and still waits or was taken.
 export const pressing = (requests: Request[], me: Member, today: string) => requests
-  .filter((r) => r.to_id === me.id && r.status === 'open' && (r.urgent || (r.due_on !== null && r.due_on <= today)))
+  .filter((r) => r.to_id === me.id && (r.status === 'open' || r.status === 'accepted') && (r.urgent || (r.due_on !== null && r.due_on <= today)))
   .sort((x, y) => Number(y.urgent) - Number(x.urgent) || (x.due_on ?? '9999').localeCompare(y.due_on ?? '9999'));
 
 export function mainThing(a: { me: Member; today: string; offers: DishOffer[]; urgent: ShoppingItem[]; dinner: string | null; hasWeek: boolean; requests?: Request[] }): Main {

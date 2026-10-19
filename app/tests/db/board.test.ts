@@ -102,6 +102,23 @@ describe('board', { timeout: 60_000 }, () => {
     expect(await rows(MAMA, 'select giver_id, deleted_at from public.wish_gifts')).toEqual([{ giver_id: m['Андрей'], deleted_at: null }]);
   });
 
+  it('lets the recipient answer «Хорошо» or «Не могу», change the answer and tick it done', async () => {
+    await upsertRequest(MAMA, 'Вынести мусор', 'open');
+    await upsertRequest(SON, 'Вынести мусор', 'accepted');
+    const state = () => rows(MAMA, 'select status, answered_at is not null as answered, done_at is not null as done from public.requests');
+    expect(await state()).toEqual([{ status: 'accepted', answered: true, done: false }]);
+    await upsertRequest(SON, 'Вынести мусор', 'declined');
+    expect(await state()).toEqual([{ status: 'declined', answered: true, done: false }]);
+    await upsertRequest(SON, 'Вынести мусор', 'open');
+    expect(await state()).toEqual([{ status: 'open', answered: false, done: false }]);
+    await upsertRequest(SON, 'Вынести мусор', 'done');
+    expect(await state()).toEqual([{ status: 'done', answered: true, done: true }]);
+    await expect(upsertRequest(SON, 'Вынести мусор', 'cancelled')).rejects.toThrow(/not_yours/);
+    await expect(upsertRequest(SON, 'Вынести мусор', 'maybe')).rejects.toThrow();
+    // The asker cannot answer for the recipient by sending a new request already taken.
+    await expect(asUser(db, MAMA, "insert into public.requests (household_id, from_id, to_id, title, status) values ($1, $2, $3, 'Сразу да', 'accepted')", [hh, m['Оля'], m['Тёма']])).rejects.toThrow(/not_yours/);
+  });
+
   it('does not let a recipient tick a request the author has cancelled', async () => {
     await upsertRequest(MAMA, 'Вынести мусор', 'open');
     await upsertRequest(MAMA, 'Вынести мусор', 'cancelled');

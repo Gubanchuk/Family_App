@@ -26,6 +26,31 @@ describe('requests', () => {
     await waitFor(async () => expect((await db.requests.toArray())[0]).toMatchObject({ status: 'done' }));
   });
 
+  it('lets the son answer «Хорошо» or «Не могу», and mom sees the answer', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.meta.put({ key: 'features', value: ['requestAnswers'] });
+    const ask = { household_id: 'h', from_id: 'mama', to_id: 'son', due_on: null, urgent: false, status: 'open' as const, done_at: null, updated_at: 'x', deleted_at: null };
+    await db.requests.bulkPut([{ ...ask, id: 'r1', title: 'Вынести мусор' }, { ...ask, id: 'r2', title: 'Помыть машину' }]);
+    const { unmount } = render(<MemoryRouter initialEntries={['/board?tab=requests']}><BoardPage me={son} members={[mama, son]} db={db} /></MemoryRouter>);
+    // Nothing to tick before an answer.
+    expect(await screen.findByRole('button', { name: 'Вынести мусор: хорошо' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Вынести мусор: сделано' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Вынести мусор: хорошо' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Помыть машину: не могу' }));
+    await waitFor(async () => expect((await db.requests.get('r2'))?.status).toBe('declined'));
+    expect((await db.requests.get('r1'))?.status).toBe('accepted');
+    // Taken: now it can be ticked, and a tick taken back leaves it taken.
+    await userEvent.click(await screen.findByRole('button', { name: 'Вынести мусор: сделано' }));
+    await waitFor(async () => expect((await db.requests.get('r1'))?.status).toBe('done'));
+    await userEvent.click(await screen.findByRole('button', { name: 'Вынести мусор: вернуть' }));
+    await waitFor(async () => expect((await db.requests.get('r1'))?.status).toBe('accepted'));
+    expect(screen.getByRole('button', { name: 'Всё-таки сделаю' })).toBeInTheDocument();
+    unmount();
+    render(<MemoryRouter initialEntries={['/board?tab=requests']}><BoardPage me={mama} members={[mama, son]} db={db} /></MemoryRouter>);
+    expect(await screen.findByText('Тёма · сделает · без срока')).toBeInTheDocument();
+    expect(screen.getByText('Тёма · не может')).toBeInTheDocument();
+  });
+
   it('shows a request from someone who left the family without breaking', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await db.requests.put({ id: 'r1', household_id: 'h', from_id: 'gone', to_id: 'son', title: 'Полить цветы', due_on: null, urgent: false, status: 'open', done_at: null, updated_at: 'x', deleted_at: null });

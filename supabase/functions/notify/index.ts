@@ -59,9 +59,10 @@ Deno.serve(async (req) => {
   if (isStale(table, row)) return Response.json({ skipped: 'stale' });
   const { error: claimed } = await db.from('push_log').insert({ kind: table, ref_id: id, version: eventVersion(table, row) });
   if (claimed) return Response.json({ skipped: 'already sent' });
-  // The person the push is about: who asked for a new request, who did it for a done one.
+  // The person the push is about: who asked for a new request, who answered it for any other status.
+  const answer = table === 'requests' && row.status !== 'open';
   const authorId: string = table === 'weeks' ? row.proposed_by : table === 'dish_offers' ? row.from_member
-    : table === 'requests' ? (row.status === 'done' ? row.to_id : row.from_id) : row.member_id;
+    : table === 'requests' ? (answer ? row.to_id : row.from_id) : row.member_id;
   const { data: members } = await db.from('members').select('id, name, user_id, kin').eq('household_id', row.household_id).is('deleted_at', null);
   const author = members?.find((m) => m.id === authorId)?.name ?? 'Кто-то';
   let ev: Ev;
@@ -83,7 +84,7 @@ Deno.serve(async (req) => {
   const today = new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 10);
   const msg = compose(ev, today);
   const targets = (members ?? []).filter((m) => m.user_id && m.id !== authorId && (table !== 'dish_offers' || !row.to_member || row.to_member === m.id)
-    && (table !== 'requests' || m.id === (row.status === 'done' ? row.from_id : row.to_id))).map((m) => m.id);
+    && (table !== 'requests' || m.id === (answer ? row.from_id : row.to_id))).map((m) => m.id);
   if (!targets.length) return Response.json({ sent: 0 });
   const { data: settings } = await db.from('member_settings').select('member_id, notify').in('member_id', targets);
   const quiet = new Map((settings ?? []).map((s) => [s.member_id, s.notify?.quiet !== false]));

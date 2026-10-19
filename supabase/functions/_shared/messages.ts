@@ -4,7 +4,7 @@ export type Ev =
   // label: what the trip is for («завтрак на завтра»), when the shopper picked a cart.
   | { kind: 'shop_trips'; author: string; label: string | null }
   | { kind: 'stories'; author: string; memberId: string; verb: 'выложила' | 'выложил' | null }
-  | { kind: 'requests'; author: string; title: string; status: 'open' | 'done'; verb: 'сделала' | 'сделал' | null }
+  | { kind: 'requests'; author: string; title: string; status: 'open' | 'accepted' | 'declined' | 'done'; verb: 'сделала' | 'сделал' | null }
   | { kind: 'payments_due'; title: string; amount: number; when: 'soon' | 'today' };
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
@@ -43,8 +43,12 @@ export function compose(e: Ev, today: string) {
     return { title: `${e.when === 'today' ? 'Сегодня' : 'Через 3 дня'} платёж: ${e.title} — ${sum}`, body: 'Отметьте в «Деньгах», когда оплатите.', url: '/money', pref: 'payments', tag: `pay-${e.title}` };
   }
   if (e.kind === 'requests') {
-    const title = e.status === 'open' ? `${e.author} просит: ${e.title}` : e.verb ? `${e.author} ${e.verb}: ${e.title}` : `Готово: ${e.title} (${e.author})`;
-    return { title, body: e.status === 'open' ? 'Откройте Доску, чтобы отметить, когда сделаете.' : 'Просьба выполнена.', url: '/board?tab=requests', pref: 'requests', tag: `request-${e.title}` };
+    const title = e.status === 'open' ? `${e.author} просит: ${e.title}`
+      : e.status === 'accepted' ? `${e.author} сделает: ${e.title}`
+      : e.status === 'declined' ? `${e.author} не может: ${e.title}`
+      : e.verb ? `${e.author} ${e.verb}: ${e.title}` : `Готово: ${e.title} (${e.author})`;
+    const body = { open: 'Ответьте «Хорошо» или «Не могу».', accepted: 'Ответ на вашу просьбу: «Хорошо».', declined: 'Можно попросить кого-то ещё.', done: 'Просьба выполнена.' }[e.status];
+    return { title, body, url: '/board?tab=requests', pref: 'requests', tag: `request-${e.title}` };
   }
   if (e.kind === 'stories') {
     // The app opens this person's stories over Home when started at this address.

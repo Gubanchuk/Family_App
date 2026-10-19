@@ -5,9 +5,10 @@ import { memberColor } from '../family/colors';
 import type { Member } from '../family/useFamily';
 import Icon from '../shell/Icon';
 import { useToast } from '../shell/toastContext';
-import { cancelRequest, setRequestDone } from './boardActions';
+import { answerRequest, cancelRequest, setRequestDone } from './boardActions';
+import { useFeature } from '../../data/useFeature';
 import { memberName } from './boardMath';
-import { mineAsked, mineToDo, whenText } from './requestText';
+import { answerText, mineAsked, mineToDo, whenText } from './requestText';
 import RequestSheet from './RequestSheet';
 import type { BoardData } from './useBoard';
 import type { Request } from './types';
@@ -17,6 +18,11 @@ const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${Stri
 export default function RequestsPanel({ me, members, db, data, adding, onAdded }: { me: Member; members: Member[]; db: LocalDb; data: BoardData; adding: boolean; onAdded: () => void }) {
   const toast = useToast();
   const [cancel, setCancel] = useState<Request | null>(null);
+  const answers = useFeature(db, 'requestAnswers');
+  const answer = async (r: Request, status: 'accepted' | 'declined') => {
+    await answerRequest(db, r, status);
+    toast({ text: `${memberName(members, r.from_id)} узнает: ${status === 'accepted' ? 'вы сделаете' : 'вы не можете'}.` });
+  };
   const today = todayIso();
   const face = (id: string) => {
     const m = members.find((x) => x.id === id);
@@ -29,11 +35,31 @@ export default function RequestsPanel({ me, members, db, data, adding, onAdded }
       <section className="card">
         <div className="card-h"><h2>Мне</h2></div>
         {toMe.length ? toMe.map((r) => {
+          // A new request is answered first; a declined one can still be taken.
+          if (answers && (r.status === 'open' || r.status === 'declined')) {
+            const no = r.status === 'declined';
+            return (
+              <div className={`row ask ${no ? 'declined' : ''}`} key={r.id}>
+                {face(r.from_id)}
+                <span className="row-main"><b>{r.title}</b><small>{memberName(members, r.from_id)} · {no ? 'вы ответили «Не могу»' : whenText(r.due_on, today)}</small>
+                  <span className="btns ask-btns">
+                    {no ? <button type="button" className="btn soft sm" onClick={() => answer(r, 'accepted')}>Всё-таки сделаю</button> : (
+                      <>
+                        <button type="button" className="btn sm" aria-label={`${r.title}: хорошо`} onClick={() => answer(r, 'accepted')}><Icon name="check" />Хорошо</button>
+                        <button type="button" className="btn soft sm" aria-label={`${r.title}: не могу`} onClick={() => answer(r, 'declined')}>Не могу</button>
+                      </>
+                    )}
+                  </span>
+                </span>
+                {r.urgent && !no ? <span className="pill">срочно</span> : null}
+              </div>
+            );
+          }
           const done = r.status === 'done';
           return (
             <div className={`row ${done ? 'done' : ''}`} key={r.id}>
               <button type="button" className="row-btn" aria-pressed={done} aria-label={`${r.title}: ${done ? 'вернуть' : 'сделано'}`} onClick={async () => {
-                await setRequestDone(db, r, !done);
+                await setRequestDone(db, r, !done, answers);
                 if (!done) toast({ text: `Готово: ${r.title}. ${memberName(members, r.from_id)} узнает.` });
               }}>
                 <span className="check" aria-hidden="true"><Icon name="check" /></span>
@@ -48,10 +74,10 @@ export default function RequestsPanel({ me, members, db, data, adding, onAdded }
       <section className="card">
         <div className="card-h"><h2>От меня</h2></div>
         {fromMe.length ? fromMe.map((r) => (
-          <div className={`row ${r.status !== 'open' ? 'done' : ''}`} key={r.id}>
+          <div className={`row ${r.status === 'done' || r.status === 'cancelled' ? 'done' : ''}`} key={r.id}>
             {face(r.to_id)}
-            <span className="row-main"><b>{r.title}</b><small>{memberName(members, r.to_id)} · {r.status === 'done' ? 'сделано' : r.status === 'cancelled' ? 'отменено' : whenText(r.due_on, today)}</small></span>
-            {r.status === 'open' ? <button type="button" className="more" onClick={() => setCancel(r)}>Отменить</button> : null}
+            <span className="row-main"><b>{r.title}</b><small className={r.status === 'declined' ? 'said-no' : undefined}>{memberName(members, r.to_id)} · {answerText(r, today, answers)}</small></span>
+            {r.status === 'open' || r.status === 'accepted' || r.status === 'declined' ? <button type="button" className="more" onClick={() => setCancel(r)}>Отменить</button> : null}
           </div>
         )) : <p className="note" style={{ margin: 0 }}>«Добавить» — и попросите кого-нибудь из семьи. Ему придёт уведомление.</p>}
       </section>
