@@ -4,7 +4,7 @@ export const manifest = {
   lang: 'ru',
   start_url: '/',
   display: 'standalone' as const,
-  background_color: '#F6F0F2',
+  background_color: '#F3F0FB',
   theme_color: '#C92A62',
   icons: [
     { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },

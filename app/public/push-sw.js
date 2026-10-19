@@ -3,7 +3,7 @@ self.addEventListener('push', (event) => {
   const d = event.data ? event.data.json() : {};
   const h = new Date().getHours();
   event.waitUntil(self.registration.showNotification(d.title || 'Семейный помощник', {
-    body: d.body || '', icon: '/icon-192.png', badge: '/icon-192.png', tag: d.tag, renotify: !!d.tag, data: { url: d.url || '/' },
+    body: d.body || '', icon: '/icon-192.png', badge: '/badge-96.png', tag: d.tag, renotify: !!d.tag, data: { url: d.url || '/' },
     silent: !!d.quiet && (h >= 22 || h < 8),
   }));
 });
