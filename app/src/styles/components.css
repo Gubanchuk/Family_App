@@ -542,3 +542,5 @@ a.more, a.av { text-decoration: none; }
 .meal-row .tl-t { min-width: 44px; }
 .meal-row > .row-btn { align-items: flex-start; }
 .meal-row > .row-btn .thumb { margin-top: 2px; }
+/* «срочно» inside a text line, where a side column would squeeze the buttons under it. */
+.pill.inline { display: inline-block; margin-left: 8px; padding: 1px 8px; font-size: 11px; vertical-align: 1px; }

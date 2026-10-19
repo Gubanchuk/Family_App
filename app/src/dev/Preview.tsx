@@ -128,7 +128,7 @@ async function seed() {
     await db.meta.put({ key: 'family_portions', value: 3.5 });
     // As after a full pull from a server that has the board and money tables.
     await db.meta.put({ key: 'missing_tables', value: [] });
-    await db.meta.put({ key: 'features', value: ['photos', 'visibility', 'listDays', 'needDept', 'homeCart'] });
+    await db.meta.put({ key: 'features', value: ['photos', 'visibility', 'listDays', 'needDept', 'homeCart', 'requestAnswers'] });
     await db.meta.put({ key: 'content_loaded_at', value: new Date().toISOString() });
   });
   await regenerateWeekList(db, 'p-week');

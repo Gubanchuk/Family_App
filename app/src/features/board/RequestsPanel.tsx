@@ -41,7 +41,7 @@ export default function RequestsPanel({ me, members, db, data, adding, onAdded }
             return (
               <div className={`row ask ${no ? 'declined' : ''}`} key={r.id}>
                 {face(r.from_id)}
-                <span className="row-main"><b>{r.title}</b><small>{memberName(members, r.from_id)} · {no ? 'вы ответили «Не могу»' : whenText(r.due_on, today)}</small>
+                <span className="row-main"><b>{r.title}</b><small>{memberName(members, r.from_id)} · {no ? 'вы ответили «Не могу»' : whenText(r.due_on, today)}{r.urgent && !no ? <span className="pill inline">срочно</span> : null}</small>
                   <span className="btns ask-btns">
                     {no ? <button type="button" className="btn soft sm" onClick={() => answer(r, 'accepted')}>Всё-таки сделаю</button> : (
                       <>
@@ -51,7 +51,6 @@ export default function RequestsPanel({ me, members, db, data, adding, onAdded }
                     )}
                   </span>
                 </span>
-                {r.urgent && !no ? <span className="pill">срочно</span> : null}
               </div>
             );
           }
