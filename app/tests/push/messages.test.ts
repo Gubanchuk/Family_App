@@ -59,7 +59,9 @@ describe('push texts', () => {
   it('tells the asker how the request was answered', () => {
     expect(compose({ kind: 'requests', author: 'Андрей', title: 'Найти инструкцию', status: 'accepted', verb: 'сделал' }, '2026-10-19')).toMatchObject({ title: 'Андрей сделает: Найти инструкцию', body: 'Ответ на вашу просьбу: «Хорошо».' });
     expect(compose({ kind: 'requests', author: 'Андрей', title: 'Найти инструкцию', status: 'declined', verb: 'сделал' }, '2026-10-19').title).toBe('Андрей не может: Найти инструкцию');
-    expect(eventVersion('requests', { status: 'accepted' })).toBe('accepted');
+    expect(eventVersion('requests', { status: 'accepted', answered_at: '2026-10-19T10:00:00Z' })).toBe('accepted:2026-10-19T10:00:00Z');
+    // «Не могу», «Сделаю», «Не могу» again: the second «Не могу» is a new answer, not a repeat.
+    expect(eventVersion('requests', { status: 'declined', answered_at: 'a' })).not.toBe(eventVersion('requests', { status: 'declined', answered_at: 'b' }));
   });
   it('reminds parents of a payment', () => {
     expect(compose({ kind: 'payments_due', title: 'Интернет и ТВ', amount: 650, when: 'soon' }, '2026-10-13')).toMatchObject({ title: 'Через 3 дня платёж: Интернет и ТВ — 650 ₽', url: '/money', pref: 'payments' });

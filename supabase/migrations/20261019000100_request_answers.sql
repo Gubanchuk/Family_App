@@ -30,6 +30,8 @@ begin
       raise exception 'not_yours';
     end if;
   end if;
+  -- Only the recipient answers: the asker may reopen or cancel, not take or decline for them.
+  if not recipient and new.status in ('accepted', 'declined') and new.status <> existing.status then raise exception 'not_yours'; end if;
   if not public.same_family(new.household_id, new.to_id) then raise exception 'wrong_household'; end if;
   new.done_at := case when new.status = 'done' then coalesce(existing.done_at, now()) else null end;
   new.answered_at := case
@@ -39,7 +41,8 @@ begin
   return new;
 end $$;
 
--- Every answer reaches the asker; push_log keeps one push per status, so a tick taken back and set again is quiet.
+-- Every answer reaches the asker; push_log keeps one push per answer (accepted and declined count with their time),
+-- so a done tick taken back and set again stays quiet.
 do $$
 begin
   if exists (select 1 from pg_proc where proname = 'notify_push') then

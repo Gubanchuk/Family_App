@@ -62,7 +62,9 @@ type Row = Record<string, unknown>;
 
 // One push per version of an event: a week re-proposed with another template or by someone else is news again.
 export function eventVersion(table: string, row: Row): string {
-  if (table === 'requests') return String(row.status);
+  // An answer the recipient changes is news each time (the server restamps answered_at);
+  // a done tick taken back and set again is not.
+  if (table === 'requests') return row.status === 'accepted' || row.status === 'declined' ? `${row.status}:${row.answered_at}` : String(row.status);
   return table === 'weeks' ? `${row.template_id}:${row.proposed_by}` : '';
 }
 

@@ -31,4 +31,14 @@ describe('avatar links', () => {
     expect(urls[94]).toBe('https://cdn/base/r94.jpg');
     expect(signer.mock.calls.map(([p]) => p.length)).toEqual([40, 40, 15]);
   });
+
+  it('asks anew for links signed for the old address, and shows the old one while offline', async () => {
+    localStorage.setItem('fa.avatar-urls', JSON.stringify({ 'h/avatars/m1/1.jpg': { url: 'https://direct/old', until: Date.now() + 5 * 86_400_000 } }));
+    setAvatarSigner(async () => { throw new Error('offline'); });
+    expect(await avatarUrl('h/avatars/m1/1.jpg')).toBe('https://direct/old');
+    const signer = vi.fn(async (paths: string[]) => new Map(paths.map((p) => [p, 'https://site/new'])));
+    setAvatarSigner(signer);
+    expect(await avatarUrl('h/avatars/m1/1.jpg')).toBe('https://site/new');
+    expect(localStorage.getItem('fa.avatar-urls')).toBeNull();
+  });
 });

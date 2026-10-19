@@ -115,7 +115,9 @@ describe('board', { timeout: 60_000 }, () => {
     expect(await state()).toEqual([{ status: 'done', answered: true, done: true }]);
     await expect(upsertRequest(SON, 'Вынести мусор', 'cancelled')).rejects.toThrow(/not_yours/);
     await expect(upsertRequest(SON, 'Вынести мусор', 'maybe')).rejects.toThrow();
-    // The asker cannot answer for the recipient by sending a new request already taken.
+    // The asker cannot answer for the recipient, on an existing request or a new one already taken.
+    await upsertRequest(MAMA, 'Вынести мусор', 'open');
+    await expect(upsertRequest(MAMA, 'Вынести мусор', 'accepted')).rejects.toThrow(/not_yours/);
     await expect(asUser(db, MAMA, "insert into public.requests (household_id, from_id, to_id, title, status) values ($1, $2, $3, 'Сразу да', 'accepted')", [hh, m['Оля'], m['Тёма']])).rejects.toThrow(/not_yours/);
   });
 

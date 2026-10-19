@@ -3,7 +3,7 @@ import { signedUrls } from '../../lib/media';
 import { API_URL } from '../../lib/baseUrl';
 
 // Links are signed for one address of the base; a phone that switched to the site's address
-// asks for new ones instead of reusing links to the direct one.
+// asks for new ones, keeping the old links only for a start without network (the browser cache has them).
 const KEY = `fa.avatar-urls:${API_URL}`;
 const OLD_KEY = 'fa.avatar-urls';
 const DAY = 86_400_000;
@@ -18,7 +18,12 @@ let timer: ReturnType<typeof setTimeout> | null = null;
 
 function read(): Record<string, Entry> {
   if (!cache) {
-    try { cache = JSON.parse(localStorage.getItem(KEY) ?? '{}') as Record<string, Entry>; localStorage.removeItem(OLD_KEY); } catch { cache = {}; }
+    try {
+      const own = localStorage.getItem(KEY);
+      const old = own === null ? (JSON.parse(localStorage.getItem(OLD_KEY) ?? '{}') as Record<string, Entry>) : {};
+      cache = own === null ? Object.fromEntries(Object.entries(old).map(([p, e]) => [p, { url: e.url, until: 0 }])) : (JSON.parse(own) as Record<string, Entry>);
+      localStorage.removeItem(OLD_KEY);
+    } catch { cache = {}; }
   }
   return cache;
 }
