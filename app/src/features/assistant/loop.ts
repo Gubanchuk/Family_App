@@ -62,7 +62,21 @@ export type AssistantState = {
 export type ApiFn = (body: ChatBody) => Promise<ApiReply>;
 export type SessionDeps = { db: LocalDb; me: Member; members: Member[]; api?: ApiFn; now?: () => Date };
 
-const emptyThread = (memberId: string, reset = false): AssistantThread => ({ member_id: memberId, messages: [], snapshot_hash: '', updated_at: new Date().toISOString(), ...(reset ? { reset } : {}) });
+const newId = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `c-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+const emptyThread = (memberId: string, reset = false): AssistantThread => ({ id: newId(), member_id: memberId, messages: [], snapshot_hash: '', updated_at: new Date().toISOString(), ...(reset ? { reset } : {}) });
+// At most this many conversations stay on the phone; the oldest go first.
+export const MAX_CHATS = 30;
+// A conversation is named by the first thing the person asked.
+export function chatTitle(t: AssistantThread): string {
+  for (const m of t.messages) {
+    if (m.role !== 'user') continue;
+    const texts = m.content.filter((b) => b.type === 'text' && typeof b.text === 'string' && !String(b.text).startsWith('<')).map((b) => String(b.text));
+    const q = texts[texts.length - 1];
+    if (q) return q.length > 70 ? `${q.slice(0, 69)}…` : q;
+    if (m.content.some((b) => b.type === 'image')) return 'Фото';
+  }
+  return 'Разговор';
+}
 const toolUses = (content: Block[]): ToolUse[] => content.filter((b): b is ToolUse => b.type === 'tool_use' && typeof b.id === 'string' && typeof b.name === 'string');
 const isText = (b: Block): b is Block & { text: string } => b.type === 'text' && typeof b.text === 'string';
 // A tool's error as the card shows it: without the «Ошибка:» meant for the model.
@@ -109,6 +123,7 @@ export class AssistantSession {
     return () => { this.listeners.delete(fn); };
   };
   getState = () => this.state;
+  currentId = () => this.thread.id;
   setFamily(me: Member, members: Member[]) { this.me = me; this.members = members; }
 
   // Sends a question; false when it was not taken (empty, or something is still under way).
@@ -223,8 +238,31 @@ export class AssistantSession {
     }
   };
 
+  // A new conversation; the current one stays in the list.
   newThread = async () => {
     await this.ready;
+    this.reset();
+    this.thread = emptyThread(this.me.id);
+    this.emit();
+  };
+
+  // An earlier conversation from the list, opened where it was left.
+  openThread = async (id: string) => {
+    await this.ready;
+    if (id === this.thread.id) return;
+    const row = await this.db.assistant_chats.get(id);
+    if (!row || row.member_id !== this.me.id) return;
+    this.reset();
+    await this.adopt(row);
+  };
+
+  deleteThread = async (id: string) => {
+    await this.ready;
+    await this.db.assistant_chats.delete(id);
+    if (id === this.thread.id) { this.reset(); this.thread = emptyThread(this.me.id); this.emit(); }
+  };
+
+  private reset() {
     this.epoch += 1;
     this.busy = false;
     this.thinking = false;
@@ -232,14 +270,17 @@ export class AssistantSession {
     this.calls = 0;
     this.errorCode = null;
     this.undos.clear();
-    this.thread = emptyThread(this.me.id);
-    await this.save();
-    this.emit();
-  };
+  }
 
+  // Opens with the person's latest conversation.
   private async load() {
-    const row = await this.db.assistant_threads.get(this.me.id);
-    if (row) this.thread = row;
+    const rows = await this.db.assistant_chats.where('member_id').equals(this.me.id).toArray();
+    const latest = rows.sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0];
+    await this.adopt(latest ?? this.thread);
+  }
+
+  private async adopt(row: AssistantThread) {
+    this.thread = row;
     // Calls of the last reply that neither finished nor wait for a decision were cut off by the app closing:
     // they are not run again, the model hears so.
     const calls = this.lastCalls();
@@ -396,9 +437,17 @@ export class AssistantSession {
     this.emit();
   }
 
+  // Kept once something was said; the list keeps the newest MAX_CHATS conversations.
   private async save() {
+    if (!this.thread.messages.length) return;
     this.thread.updated_at = new Date().toISOString();
-    await this.db.assistant_threads.put(this.thread);
+    this.thread.title = chatTitle(this.thread);
+    await this.db.assistant_chats.put(this.thread);
+    const all = await this.db.assistant_chats.where('member_id').equals(this.me.id).toArray();
+    if (all.length > MAX_CHATS) {
+      const old = all.sort((a, b) => a.updated_at.localeCompare(b.updated_at)).slice(0, all.length - MAX_CHATS).map((t) => t.id).filter((id) => id !== this.thread.id);
+      await this.db.assistant_chats.bulkDelete(old);
+    }
   }
 
   private emit() {
@@ -455,6 +504,9 @@ export type AssistantApi = AssistantState & {
   undo: (id: string) => Promise<void>;
   retry: () => Promise<void>;
   newThread: () => Promise<void>;
+  openThread: (id: string) => Promise<void>;
+  deleteThread: (id: string) => Promise<void>;
+  threadId: string;
 };
 
 // The screen's view of the conversation. screen: where the person came from (home, menu, shop, board, money).
@@ -469,6 +521,7 @@ export function useAssistant(me: Member, members: Member[], screen?: string, opt
     ...state,
     send: (text: string, images?: AssistantImage[]) => session.send(text, images, screen),
     decide: session.decide, undo: session.undo, retry: session.retry, newThread: session.newThread,
+    openThread: session.openThread, deleteThread: session.deleteThread, threadId: session.currentId(),
   }), [state, session, screen]);
 }
 

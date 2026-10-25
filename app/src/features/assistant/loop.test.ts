@@ -69,7 +69,7 @@ function expectValidHistory(messages: ApiMessage[]) {
     }
   });
 }
-const stored = async (db: LocalDb, id = 'm-papa') => (await db.assistant_threads.get(id))!;
+const stored = async (db: LocalDb, id = 'm-papa') => (await db.assistant_chats.where('member_id').equals(id).toArray()).sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0]!;
 const results = (m: ApiMessage) => m.content.filter((b) => b.type === 'tool_result');
 
 describe('assistant conversation', () => {
@@ -233,7 +233,7 @@ describe('assistant conversation', () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db);
     const long: ApiMessage[] = Array.from({ length: 80 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: [text(`сообщение ${i}`)] }));
-    await db.assistant_threads.put({ member_id: 'm-papa', messages: long, snapshot_hash: 'old', updated_at: 'x' });
+    await db.assistant_chats.put({ id: 'c-long', member_id: 'm-papa', messages: long, snapshot_hash: 'old', updated_at: 'x' });
     const { s, calls } = await setup([reply(text('Начнём заново.'))], papa, db);
     expect(s.getState().items).toHaveLength(80);
     await s.send('Привет');
@@ -243,7 +243,8 @@ describe('assistant conversation', () => {
     expect(s.getState().items).toHaveLength(2);
     await s.newThread();
     expect(s.getState()).toMatchObject({ wasReset: false, items: [] });
-    expect((await stored(db)).messages).toEqual([]);
+    // Both earlier conversations stay in the list; an empty new one is kept only once something is said.
+    expect((await db.assistant_chats.toArray()).map((c) => c.messages.length).sort((a, b) => a - b)).toEqual([2, 80]);
   });
 
   it('comes back after the app restarts: the conversation and a card still waiting', async () => {

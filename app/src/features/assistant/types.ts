@@ -18,6 +18,9 @@ export type ToolOutcome = { content: string; is_error: boolean };
 // One conversation per member, only on this phone. messages only ever grow; pending holds the results
 // of the last reply's tool calls until all of them are in; notes tell the model what was undone since.
 export type AssistantThread = {
+  // Each conversation is kept on its own, so the person can go back to an earlier one.
+  id: string;
+  title?: string;
   member_id: string;
   messages: ApiMessage[];
   snapshot_hash: string;

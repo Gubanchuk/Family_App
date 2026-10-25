@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import Sheet from '../menu/Sheet';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { localDb, type LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
@@ -27,8 +29,18 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
   const end = useRef<HTMLDivElement>(null);
   const file = useRef<HTMLInputElement>(null);
   const asked = useRef(false);
+  const field = useRef<HTMLTextAreaElement>(null);
+  const [listOpen, setListOpen] = useState(false);
+  // Earlier conversations of this person, on this phone only.
+  const chats = useLiveQuery(async () => (await db.assistant_chats.where('member_id').equals(me.id).toArray())
+    .sort((x, y) => y.updated_at.localeCompare(x.updated_at)), [db, me.id]) ?? [];
 
-  // A question typed on Home goes once, as soon as the conversation is read from the phone.
+  // Opened from Home's bar: the keyboard comes up at once.
+  useEffect(() => {
+    if ((location.state as { focus?: boolean } | null)?.focus) field.current?.focus();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A question passed in by another screen goes once, as soon as the conversation is read from the phone.
   useEffect(() => {
     const q = (location.state as { q?: string } | null)?.q;
     if (!q || !a.loaded || asked.current) return;
@@ -65,7 +77,10 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
       <header className="k-head sub asst-head">
         <button type="button" className="round-btn" aria-label="Назад" onClick={() => navigate(-1)}><Icon name="back" /></button>
         <div className="asst-title"><h1>Помощник</h1><p>{screen === 'home' ? 'знает наше меню, покупки и дела' : `вы пришли из раздела «${SCREEN_NAME[screen]}»`}</p></div>
-        {a.items.length ? <button type="button" className="btn soft sm" aria-label="Новый разговор" disabled={a.busy} onClick={() => void a.newThread()}>Новый</button> : null}
+        <div className="asst-head-r">
+          {chats.length ? <button type="button" className="btn soft sm" onClick={() => setListOpen(true)}>Разговоры</button> : null}
+          {a.items.length ? <button type="button" className="btn soft sm" aria-label="Новый разговор" disabled={a.busy} onClick={() => void a.newThread()}>Новый</button> : null}
+        </div>
       </header>
 
       <div className="asst-log" aria-live="polite">
@@ -100,7 +115,8 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
           </div>
         ) : null}
         {photoNote ? <p className="note" role="status" style={{ margin: '0 0 6px' }}>{photoNote}</p> : null}
-        {!empty && !sentHere && screen !== 'home' && !a.busy && !text ? (
+        {/* Only once the conversation is read: before that it is not known whether it is empty. */}
+        {a.loaded && a.items.length > 0 && !sentHere && screen !== 'home' && !a.busy && !text ? (
           <div className="asst-quick" aria-label={`Вопросы для раздела «${SCREEN_NAME[screen]}»`}>
             {suggestionsFor(screen, me.role).map((q) => <button key={q} type="button" className="pick ask-sug" onClick={() => void submit(q)}>{q}</button>)}
           </div>
@@ -118,11 +134,40 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
           <button type="button" className="round-btn asst-photo" aria-label="Приложить фото" disabled={a.busy} onClick={() => file.current?.click()}><Icon name="photo" /></button>
           <input ref={file} type="file" accept="image/*" hidden onChange={(e) => { void addPhoto(e.target.files?.[0]); e.target.value = ''; }} />
           <label className="vh" htmlFor="asst-text">Сообщение помощнику</label>
-          <textarea id="asst-text" rows={1} value={text} onChange={(e) => setText(e.target.value)} placeholder="Спроси или попроси" maxLength={2000}
+          <textarea ref={field} id="asst-text" rows={1} value={text} onChange={(e) => setText(e.target.value)} placeholder="Спроси или попроси" maxLength={2000}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void submit(); } }} />
           <button type="submit" className="round-btn ask-send" aria-label="Отправить" disabled={a.busy || (!text.trim() && !photos.length)}><Icon name="send" /></button>
         </form>
       </div>
+      {listOpen ? (
+        <Sheet title="Разговоры" sub="Хранятся только на этом телефоне." onClose={() => setListOpen(false)}>
+          <div className="chat-list">
+            {chats.map((c) => (
+              <div className={`row chat-row ${c.id === a.threadId ? 'now' : ''}`} key={c.id}>
+                <button type="button" className="row-btn" disabled={a.busy} onClick={() => { void a.openThread(c.id); setListOpen(false); }}>
+                  <span className="row-main"><b>{c.title ?? 'Разговор'}</b><small>{c.id === a.threadId ? 'открыт сейчас · ' : ''}{whenSaid(c.updated_at)}</small></span>
+                </button>
+                <button type="button" className="btn soft sm" aria-label={`Удалить разговор «${c.title ?? 'Разговор'}»`} disabled={a.busy} onClick={() => void a.deleteThread(c.id)}>Удалить</button>
+              </div>
+            ))}
+          </div>
+          <div style={{ margin: '12px 16px 0' }}>
+            <button type="button" className="btn" style={{ width: '100%' }} disabled={a.busy} onClick={() => { void a.newThread(); setListOpen(false); setTimeout(() => field.current?.focus(), 50); }}>Новый разговор</button>
+          </div>
+        </Sheet>
+      ) : null}
     </div>
   );
+}
+
+// «сегодня 11:46», «вчера 20:10», «23 окт.».
+function whenSaid(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const time = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  const day = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((day(now) - day(d)) / 86_400_000);
+  if (diff === 0) return `сегодня ${time}`;
+  if (diff === 1) return `вчера ${time}`;
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 }

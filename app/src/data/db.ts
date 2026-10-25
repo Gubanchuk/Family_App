@@ -116,6 +116,7 @@ export class LocalDb extends Dexie {
   home_stock!: Table<HomeStock, [string, string]>;
   // Local only: not a SyncTable, never in the outbox or a pull.
   assistant_threads!: Table<AssistantThread, string>;
+  assistant_chats!: Table<AssistantThread, string>;
 
   constructor(name: string) {
     super(name);
@@ -151,6 +152,13 @@ export class LocalDb extends Dexie {
     });
     this.version(8).stores({
       assistant_threads: 'member_id',
+    });
+    // Many conversations per person instead of one; the one each person had moves over as their first.
+    this.version(9).stores({
+      assistant_chats: 'id, member_id, updated_at',
+    }).upgrade(async (tx) => {
+      const old = await tx.table('assistant_threads').toArray();
+      await tx.table('assistant_chats').bulkPut(old.filter((t) => t.messages?.length).map((t) => ({ ...t, id: `c-${t.member_id}-${Date.parse(t.updated_at) || 0}` })));
     });
   }
 }
