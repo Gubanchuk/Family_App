@@ -128,10 +128,17 @@ async function seed() {
     await db.meta.put({ key: 'family_portions', value: 3.5 });
     // As after a full pull from a server that has the board and money tables.
     await db.meta.put({ key: 'missing_tables', value: [] });
-    await db.meta.put({ key: 'features', value: ['photos', 'visibility', 'listDays', 'needDept', 'homeCart', 'requestAnswers'] });
+    await db.meta.put({ key: 'features', value: ['photos', 'visibility', 'listDays', 'needDept', 'homeCart', 'requestAnswers', 'tripList'] });
     await db.meta.put({ key: 'content_loaded_at', value: new Date().toISOString() });
   });
   await regenerateWeekList(db, 'p-week');
+  // A trip being put together: a few menu lines, a hand-typed product of the family's own and the urgent milk.
+  const take = ['m:p-week:картофель', 'm:p-week:творог', 'm:p-week:яйца куриные', 'm:p-week:морковь'];
+  for (const id of take) { const l = await db.shopping_items.get(id); if (l) await db.shopping_items.put({ ...l, in_trip: true }); }
+  const now2 = new Date().toISOString();
+  await db.shopping_items.put({ id: 'u:p-chips', household_id: 'p-home', week_id: null, offer_id: null, source: 'manual', item: null, title: 'Чипсы', qty: 2, unit: 'уп', qty_text: '2 уп.', dept: 'Другое', urgent: false, est_price: 240, added_by: 'p-son', updated_at: now2, deleted_at: null, in_trip: true });
+  const milk = await db.shopping_items.get('u:p-milk');
+  if (milk) await db.shopping_items.put({ ...milk, in_trip: true });
   await db.outbox.clear();
 }
 
