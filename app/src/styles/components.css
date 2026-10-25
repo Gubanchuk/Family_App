@@ -615,13 +615,13 @@ a.more, a.av { text-decoration: none; }
 .sm-btn .ic { width: 18px; height: 18px; }
 
 /* Assistant screen: the log scrolls, the input stays above the tab bar. */
-.asst { display: flex; flex-direction: column; min-height: calc(100dvh - 76px - env(safe-area-inset-bottom, 0px)); }
+.asst { position: fixed; inset: 0; z-index: 6; display: flex; flex-direction: column; background: var(--k-base); }
 .asst-head { align-items: center; gap: 10px; }
 .asst-title { flex: 1; min-width: 0; }
 .asst-title h1 { margin: 0; font: 800 22px/1.1 var(--font); letter-spacing: -0.02em; }
 .asst-title p { margin: 2px 0 0; font-size: 13px; color: var(--k-ink-2); overflow-wrap: anywhere; }
 .asst-head .btn.sm { flex: none; }
-.asst-log { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 4px 16px 16px; }
+.asst-log { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 10px; padding: 4px 16px 16px; }
 .asst-note { text-align: center; }
 .asst-empty { display: grid; gap: 12px; margin-top: 8px; }
 .asst-hello { margin: 0; padding: 14px 16px; border-radius: 20px 20px 20px 6px; background: var(--k-card); box-shadow: 0 1px 2px var(--k-shadow); font-size: 16px; line-height: 1.4; }
@@ -651,7 +651,7 @@ a.more, a.av { text-decoration: none; }
 .act-what { margin: 0; font-size: 15px; line-height: 1.4; overflow-wrap: anywhere; }
 .act-err { margin: 0; font-size: 13px; color: color-mix(in oklab, var(--k-urgent) 82%, var(--k-ink)); }
 .act-undo { justify-self: start; min-height: 36px; padding: 6px 0; border: 0; background: none; color: color-mix(in oklab, var(--k-primary) 85%, var(--k-ink)); font: 700 14px var(--font); cursor: pointer; }
-.asst-input { position: sticky; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 4; padding: 10px 16px 12px; background: var(--k-base); border-top: 1px solid var(--k-rule); }
+.asst-input { flex: none; padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--k-base); border-top: 1px solid var(--k-rule); }
 .asst-input textarea { flex: 1; min-width: 0; min-height: 48px; max-height: 140px; padding: 13px 14px; border: 1px solid var(--k-rule); border-radius: 16px; background: var(--k-card); color: var(--k-ink); font: 400 16px/1.35 var(--font); resize: none; field-sizing: content; }
 .asst-input textarea:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 1px; }
 .asst-photo { flex: none; width: 48px; height: 48px; }

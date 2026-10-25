@@ -101,7 +101,7 @@ function MemberShell() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
-      <TabBar tabs={tabsFor(me.role, boardReady, moneyReady)} />
+      {loc.pathname === '/assistant' ? null : <TabBar tabs={tabsFor(me.role, boardReady, moneyReady)} />}
       </StoriesProvider>
     </SyncProvider>
   );

@@ -42,8 +42,10 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
 
   const submit = async (q = text) => {
     if (a.busy || (!q.trim() && !photos.length)) return;
-    const sent = await a.send(q.trim() || 'Посмотри фото', photos.map((p) => p.image));
-    if (sent) { setText(''); setPhotos([]); setPhotoNote(''); setSentHere(true); }
+    const draft = { text, photos };
+    setText(''); setPhotos([]); setPhotoNote(''); setSentHere(true);
+    const sent = await a.send(q.trim() || 'Посмотри фото', draft.photos.map((p) => p.image));
+    if (!sent) { setText(draft.text); setPhotos(draft.photos); }
   };
   const addPhoto = async (f: File | undefined) => {
     if (!f) return;
