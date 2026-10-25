@@ -72,7 +72,7 @@ describe('choosing and approving weeks', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Предложить' }));
     await userEvent.click(screen.getByRole('radio', { name: /Быстрая/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Предложить неделю «Быстрая»' }));
-    expect(await screen.findByText('Сын (вы) предлагает неделю «Быстрая» на 19–25 октября')).toBeInTheDocument();
+    expect(await screen.findByText(/вы предложили, ждём родителей/)).toBeInTheDocument();
     unmount();
 
     render(<MemoryRouter><MenuPage me={papa} members={[papa, son]} db={db} today={TUESDAY} /></MemoryRouter>);
@@ -130,8 +130,8 @@ describe('choosing and approving weeks', () => {
   it('shows a proposed week and offers another one with two separate buttons', async () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db, { currentWeek: true });
-    await db.weeks.put({ id: 'w-next', household_id: 'h1', starts_on: '2026-10-19', template_id: 'quick', status: 'proposed', proposed_by: 'm-son', approved_by: null, updated_at: 'x', deleted_at: null });
-    // The son has not voted yet, so the proposal still asks him for something.
+    await db.weeks.put({ id: 'w-next', household_id: 'h1', starts_on: '2026-10-19', template_id: 'quick', status: 'proposed', proposed_by: 'm-papa', approved_by: null, updated_at: 'x', deleted_at: null });
+    // Papa proposed it and the son has not voted yet, so the proposal still asks him for something.
     await db.votes.bulkPut([
       { week_id: 'w-next', member_id: 'm-papa', household_id: 'h1', value: 'yes', comment: '', updated_at: 'x' },
     ]);

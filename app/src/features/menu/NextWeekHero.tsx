@@ -50,12 +50,13 @@ export default function NextWeekHero({ me, members, db, data, openWeek, openOthe
   // A proposal reaches this phone meal by meal; approving it before all 28 arrive would be refused.
   const complete = next.slots.length >= 28;
   // Nothing for this person to do (approved, or a child who has voted): a short card, so this week stays first.
-  if (approved || (me.role !== 'parent' && voted)) {
+  // A child who proposed it waits too, before the server's vote for the proposer reaches the phone.
+  if (approved || (me.role !== 'parent' && (voted || by?.id === me.id))) {
     return (
       <section className="card next-mini" aria-label={`Неделя на ${label}`}>
         <span className="row-main">
           <b>Неделя на {label}: «{t?.name ?? 'своя'}»</b>
-          <small>{approved ? 'утверждена, список покупок собран' : 'вы проголосовали, ждём родителей'}</small>
+          <small>{approved ? 'утверждена, список покупок собран' : by?.id === me.id ? 'вы предложили, ждём родителей' : 'вы проголосовали, ждём родителей'}</small>
         </span>
         <button type="button" className="btn soft sm" onClick={openWeek}>Посмотреть</button>
       </section>
