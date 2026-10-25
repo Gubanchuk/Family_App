@@ -294,8 +294,8 @@ async function planAddToShopping(input: unknown, { db, me, today }: ToolCtx): Pr
   const fresh = plan.filter((x) => !x.line);
   const where = trip ? 'в поход' : 'в список';
   const parts = [
-    fresh.length ? `Добавляю ${where}: ${listed(fresh.map((x) => `${lowerFirst(x.product?.title ?? x.name)} ${formatAmount(x.qty, x.unit, x.product?.sell, x.product?.pieceWeight ?? null)}`))}` : '',
-    pull.length ? `Беру в поход из списка: ${listed(pull.map((x) => lowerFirst(x.line!.title)))}` : '',
+    fresh.length ? `${where === 'в поход' ? 'В поход' : 'В список'}: ${listed(fresh.map((x) => `${lowerFirst(x.product?.title ?? x.name)} ${formatAmount(x.qty, x.unit, x.product?.sell, x.product?.pieceWeight ?? null)}`))}` : '',
+    pull.length ? `Из списка в поход: ${listed(pull.map((x) => lowerFirst(x.line!.title)))}` : '',
     inTrip.length ? `Уже ${trip ? 'в походе' : 'в списке'}: ${listed(inTrip.map((x) => lowerFirst(x.line!.title)))}` : '',
   ].filter(Boolean);
   return {

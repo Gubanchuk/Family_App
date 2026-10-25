@@ -12,10 +12,10 @@ const UNITS: LineUnit[] = ['г', 'мл', 'шт', 'уп'];
 // A trip line's sheet: how much, what was paid, out of the trip, «есть дома», off the list.
 // Before buying, the price is what the line is expected to cost (it also becomes the product's price for next
 // time); once bought, it is what was paid.
-export default function LineSheet({ line, mark, product, who, onSave, onPrice, onTrip, onHome, onRemove, onClose }: {
+export default function LineSheet({ line, mark, product, who, onSave, onPrice, onTrip, onHome, onUnbuy, onRemove, onClose }: {
   line: ShoppingItem; mark?: ShoppingMark; product?: Product; who: string;
   onSave: (change: { qty?: number; est?: number | null }) => Promise<unknown>; onPrice: (p: number | null) => Promise<unknown>; onTrip: (on: boolean) => Promise<unknown>;
-  onHome?: (on: boolean) => Promise<unknown>; onRemove: () => Promise<unknown>; onClose: () => void;
+  onHome?: (on: boolean) => Promise<unknown>; onUnbuy?: () => Promise<unknown>; onRemove: () => Promise<unknown>; onClose: () => void;
 }) {
   const unit = UNITS.includes(line.unit as LineUnit) ? (line.unit as LineUnit) : null;
   const [qty, setQty] = useState(line.qty ?? 0);
@@ -48,10 +48,13 @@ export default function LineSheet({ line, mark, product, who, onSave, onPrice, o
           <input inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={est !== null ? `Примерно ${Math.round(est)}` : 'Например, 189'} />
         </label>
         <div className="btns fill">
-          <button type="button" className="btn soft" onClick={async () => { await onTrip(!line.in_trip); onClose(); }}>{line.in_trip ? 'Убрать из похода' : 'В поход'}</button>
+          {bought && onUnbuy
+            ? <button type="button" className="btn soft" onClick={async () => { await onUnbuy(); onClose(); }}>Не купил — вернуть</button>
+            : <button type="button" className="btn soft" onClick={async () => { await onTrip(!line.in_trip); onClose(); }}>{line.in_trip ? 'Убрать из похода' : 'В поход'}</button>}
           {onHome && !bought ? <button type="button" className="btn soft" onClick={async () => { await onHome(!mark?.at_home); onClose(); }}>{mark?.at_home ? 'Вернуть в покупки' : 'Есть дома'}</button> : null}
         </div>
-        {line.source !== 'menu' ? <button type="button" className="btn soft" onClick={async () => { await onRemove(); onClose(); }}>Убрать из списка совсем</button> : null}
+        {/* Off the list for everyone: set apart and in the warning colour; the toast offers «Вернуть». */}
+        {line.source !== 'menu' ? <button type="button" className="btn danger" onClick={async () => { await onRemove(); onClose(); }}>Убрать из списка совсем</button> : null}
       </div>
     </Sheet>
   );

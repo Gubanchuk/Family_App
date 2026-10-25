@@ -59,7 +59,7 @@ describe('«Поход»', () => {
     const dairy = (await screen.findByRole('heading', { name: 'Молочное и яйца' })).closest('section')!;
     await userEvent.click(within(dairy).getByRole('button', { name: /^Творог,/ }));
     await waitFor(async () => expect((await db.shopping_marks.get(id))?.bought).toBe(true));
-    expect(await screen.findByRole('button', { name: /Закончить поход/ })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Закончить/ })).toBeInTheDocument();
   });
 
   it('adds a new product of the family once and finds it next time', async () => {

@@ -21,6 +21,9 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
   const [text, setText] = useState('');
   const [photos, setPhotos] = useState<Array<{ url: string; image: AssistantImage }>>([]);
   const [photoNote, setPhotoNote] = useState('');
+  // Opened from a section into an ongoing conversation: that section's questions wait above the field until
+  // something is sent.
+  const [sentHere, setSentHere] = useState(false);
   const end = useRef<HTMLDivElement>(null);
   const file = useRef<HTMLInputElement>(null);
   const asked = useRef(false);
@@ -40,7 +43,7 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
   const submit = async (q = text) => {
     if (a.busy || (!q.trim() && !photos.length)) return;
     const sent = await a.send(q.trim() || 'Посмотри фото', photos.map((p) => p.image));
-    if (sent) { setText(''); setPhotos([]); setPhotoNote(''); }
+    if (sent) { setText(''); setPhotos([]); setPhotoNote(''); setSentHere(true); }
   };
   const addPhoto = async (f: File | undefined) => {
     if (!f) return;
@@ -60,14 +63,14 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
       <header className="k-head sub asst-head">
         <button type="button" className="round-btn" aria-label="Назад" onClick={() => navigate(-1)}><Icon name="back" /></button>
         <div className="asst-title"><h1>Помощник</h1><p>{screen === 'home' ? 'знает наше меню, покупки и дела' : `вы пришли из раздела «${SCREEN_NAME[screen]}»`}</p></div>
-        {a.items.length ? <button type="button" className="btn soft sm" disabled={a.busy} onClick={() => void a.newThread()}>Новый разговор</button> : null}
+        {a.items.length ? <button type="button" className="btn soft sm" aria-label="Новый разговор" disabled={a.busy} onClick={() => void a.newThread()}>Новый</button> : null}
       </header>
 
       <div className="asst-log" aria-live="polite">
         {a.wasReset ? <p className="note asst-note">Прошлый разговор стал слишком длинным, начали новый.</p> : null}
         {empty ? (
           <div className="asst-empty">
-            <p className="asst-hello">Здравствуйте, {me.name}! Спросите что угодно по дому или попросите что-то сделать — например, добавить продукты в поход.</p>
+            <p className="asst-hello">Привет, {me.name}! Спроси что угодно по дому или попроси что-то сделать — например, добавить продукты в поход.</p>
             <div className="asst-sugs">
               {suggestionsFor(screen, me.role).map((q) => <button key={q} type="button" className="pick ask-sug" onClick={() => void submit(q)}>{q}</button>)}
             </div>
@@ -95,6 +98,11 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
           </div>
         ) : null}
         {photoNote ? <p className="note" role="status" style={{ margin: '0 0 6px' }}>{photoNote}</p> : null}
+        {!empty && !sentHere && screen !== 'home' && !a.busy && !text ? (
+          <div className="asst-quick" aria-label={`Вопросы для раздела «${SCREEN_NAME[screen]}»`}>
+            {suggestionsFor(screen, me.role).map((q) => <button key={q} type="button" className="pick ask-sug" onClick={() => void submit(q)}>{q}</button>)}
+          </div>
+        ) : null}
         {photos.length ? (
           <div className="asst-attach">
             {photos.map((p, k) => (
@@ -108,7 +116,7 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
           <button type="button" className="round-btn asst-photo" aria-label="Приложить фото" disabled={a.busy} onClick={() => file.current?.click()}><Icon name="photo" /></button>
           <input ref={file} type="file" accept="image/*" hidden onChange={(e) => { void addPhoto(e.target.files?.[0]); e.target.value = ''; }} />
           <label className="vh" htmlFor="asst-text">Сообщение помощнику</label>
-          <textarea id="asst-text" rows={1} value={text} onChange={(e) => setText(e.target.value)} placeholder="Спросите или попросите" maxLength={2000}
+          <textarea id="asst-text" rows={1} value={text} onChange={(e) => setText(e.target.value)} placeholder="Спроси или попроси" maxLength={2000}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void submit(); } }} />
           <button type="submit" className="round-btn ask-send" aria-label="Отправить" disabled={a.busy || (!text.trim() && !photos.length)}><Icon name="send" /></button>
         </form>

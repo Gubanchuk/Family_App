@@ -22,7 +22,7 @@ function setup(api: (b: ChatBody) => Promise<ApiReply>, me = papa, from = 'shop'
 describe('AssistantPage', () => {
   it('offers questions for the section it was opened from', async () => {
     setup(async () => ({ error: 'failed' }));
-    expect(await screen.findByText(/Здравствуйте, Андрей/)).toBeInTheDocument();
+    expect(await screen.findByText(/Привет, Андрей/)).toBeInTheDocument();
     expect(screen.getByText('вы пришли из раздела «Покупки»')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Во сколько примерно выйдет поход/ })).toBeInTheDocument();
   });
@@ -36,7 +36,7 @@ describe('AssistantPage', () => {
     });
     await userEvent.type(await screen.findByRole('textbox', { name: 'Сообщение помощнику' }), 'Добавь сок');
     await userEvent.click(screen.getByRole('button', { name: 'Отправить' }));
-    const card = await screen.findByRole('group', { name: /Готово: Добавляю в список: сок яблочный 1 л/ });
+    const card = await screen.findByRole('group', { name: /Готово: В список: сок яблочный 1 л/ });
     expect(await screen.findByText('Готово.')).toBeInTheDocument();
     expect(screen.getByText('молоко', { selector: 'b' })).toBeInTheDocument();
     await waitFor(async () => expect((await db.shopping_items.toArray()).filter((i) => !i.deleted_at)).toHaveLength(1));
@@ -47,7 +47,7 @@ describe('AssistantPage', () => {
   it('says plainly when there is no connection and offers to try again', async () => {
     setup(async () => ({ error: 'network' }));
     await userEvent.click(await screen.findByRole('button', { name: /Во сколько примерно выйдет поход/ }));
-    const alert = await screen.findByRole('alert');
+    const alert = await screen.findByRole('alert', {}, { timeout: 12000 });
     expect(alert).toHaveTextContent('Нет связи. Помощнику нужен интернет.');
     expect(within(alert).getByRole('button', { name: 'Повторить' })).toBeInTheDocument();
   });

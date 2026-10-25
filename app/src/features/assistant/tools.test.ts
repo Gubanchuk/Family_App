@@ -51,7 +51,7 @@ describe('assistant tools: shopping', () => {
     const db = await fresh();
     const r = await runTool('add_to_shopping', { items: [{ name: 'молоко', amount: 1, unit: 'л' }, { name: 'яйца', amount: 10, unit: 'шт', urgent: true }] }, ctx(db));
     expect(r.error).toBeFalsy();
-    expect(r.summary).toBe('Добавляю в поход: молоко 1 пакет · 900 мл, яйца 10 шт');
+    expect(r.summary).toBe('В поход: молоко 1 пакет · 900 мл, яйца 10 шт');
     const lines = await live(db);
     expect(lines.map((l) => [l.title, l.qty_text, l.urgent, l.source, l.added_by])).toEqual(expect.arrayContaining([
       ['Молоко', '1 пакет · 900 мл', false, 'manual', 'm-papa'], ['Яйца', '10 шт', true, 'manual', 'm-papa'],

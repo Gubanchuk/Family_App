@@ -8,7 +8,8 @@ import { productOfLine, type Product } from './catalog';
 import { closed, groupByDept } from './useShop';
 import { endTrip, goShopping, removeItem, setBought, setRealPrice } from './shopActions';
 import { setAtHome } from './stock';
-import { endSummary, goods, pullToTrip, setInTrip, setLineQty, tripLines, tripTotals, updateLine } from './tripActions';
+import { endSummary, goods, pullToTrip, reopenTrip, restoreLines, restoreRemoved, setInTrip, setLineQty, tripLines, tripTotals, updateLine } from './tripActions';
+import type { ToastMessage } from '../shell/toastContext';
 import ProductPicker from './ProductPicker';
 import QtyStepper from './QtyStepper';
 import LineSheet from './LineSheet';
@@ -27,7 +28,7 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
   db: LocalDb; me: Member; members: Member[]; data: TripData; vocab: Map<string, Ingredient>; catalog: Product[];
   // Every line the list shows in either week: what can be taken into the trip.
   listLines: ShoppingItem[]; mine: ShopTrip | undefined; others: ShopTrip[]; today: Date; todayIdx: number; hasHome: boolean;
-  onToast: (text: string) => void; onCopy: (lines: ShoppingItem[]) => void;
+  onToast: (t: ToastMessage) => void; onCopy: (lines: ShoppingItem[]) => void;
 }) {
   const [picker, setPicker] = useState(false);
   const [pulling, setPulling] = useState(false);
@@ -49,7 +50,22 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
   }).filter((x) => x.ls.length);
   const other = rest.filter((l) => l.source !== 'menu');
 
-  const takeAll = async (ls: ShoppingItem[], what: string) => { await pullToTrip(db, ls, catalog); onToast(`В поход: ${what}`); };
+  // Taking lines in can be taken back: a mistap on «Всё по меню» must not flood a trip someone shops from.
+  const takeAll = async (ls: ShoppingItem[], what: string) => {
+    const before = ls.map((l) => ({ ...l }));
+    await pullToTrip(db, ls, catalog);
+    onToast({ text: `В поход: ${what}`, action: { label: 'Вернуть', run: () => { void restoreLines(db, before); } } });
+  };
+  // What was paid is known only for lines with the price typed in; otherwise the cart sum is an estimate too.
+  const exact = lines.some((l) => marks.get(l.id)?.bought) && lines.every((l) => !marks.get(l.id)?.bought || marks.get(l.id)?.price_real !== null);
+  const approx = exact ? '' : '≈\u00A0';
+  const endShopping = async () => {
+    const s = endSummary(lines, marks);
+    const trip = mine!;
+    await endTrip(db, trip);
+    const left = s.left.length ? ` ${s.left.slice(0, 3).join(', ')}${s.left.length > 3 ? ' и ещё' : ''} — остались в походе.` : '';
+    onToast({ text: s.count ? `Поход закончен: ${s.count} ${goods(s.count)} на ${approx}${rub(s.sum)}.${left}` : 'Поход закончен.', action: { label: 'Вернуться', run: () => { void reopenTrip(db, trip); } } });
+  };
 
   const row = (l: ShoppingItem) => {
     const m = marks.get(l.id);
@@ -71,7 +87,8 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
           <button type="button" className="row-btn" aria-pressed={done} aria-label={`${l.title}${l.qty_text ? `, ${l.qty_text}` : ''}${done ? ', в корзине' : ''}`}
             onClick={() => (home ? setAtHome(db, l, me, false, m) : setBought(db, l, me, !done, m, hasHome ? { vocab } : undefined))}>
             <span className="check" aria-hidden="true"><Icon name="check" /></span>
-            <span className="row-main"><b>{l.title}</b><small>{home ? 'есть дома' : [l.qty_text, l.urgent ? 'срочно' : '', who].filter(Boolean).join(' · ')}</small></span>
+            <span className="row-main"><b>{l.title}</b><small>{home ? 'есть дома' : [l.qty_text, who].filter(Boolean).join(' · ')}</small></span>
+            {l.urgent && !done ? <span className="pill">срочно</span> : null}
           </button>
           {priceBtn}
         </div>
@@ -80,7 +97,8 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
     return (
       <div className="row trip-row plan" key={l.id}>
         <button type="button" className="row-btn" onClick={() => setSheet(l)} aria-label={`${l.title}: изменить`}>
-          <span className="row-main"><b>{l.title}</b><small>{[unit && l.qty !== null ? '' : l.qty_text, l.urgent ? 'срочно' : '', who].filter(Boolean).join(' · ')}</small></span>
+          <span className="row-main"><b>{l.title}</b><small>{[unit && l.qty !== null ? '' : l.qty_text, who].filter(Boolean).join(' · ')}</small></span>
+          {l.urgent ? <span className="pill">срочно</span> : null}
         </button>
         <span className="trip-row-end">
           {unit && l.qty !== null ? (
@@ -122,7 +140,11 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
       ) : null}
     </section>
   ) : null;
-  const groups = groupByDept(lines, marks);
+  // In the shop a ticked line stays where it was, so the next one does not slide under the thumb; a department
+  // that is all bought folds by itself.
+  const groups = groupByDept(lines, marks).map((g) => (shopping
+    ? { ...g, items: [...g.items].sort((a, b) => Number(b.urgent) - Number(a.urgent) || a.title.localeCompare(b.title, 'ru')) }
+    : g));
   return (
     <>
       {others.length ? (
@@ -133,42 +155,36 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
       ) : null}
 
       {shopping ? (
-        <div className="trip-shop-head">
-          <span><b>В магазине</b> с {hhmm(mine!.started_at)}</span>
-          <button type="button" className="btn sm" onClick={async () => {
-            const s = endSummary(lines, marks);
-            await endTrip(db, mine!);
-            onToast(s.count ? `Поход закончен: ${s.count} ${goods(s.count)} на ${rub(s.sum)}.${s.left.length ? ` ${s.left.slice(0, 3).join(', ')}${s.left.length > 3 ? ' и ещё' : ''} — остались в походе.` : ''}` : 'Поход закончен.');
-          }}><Icon name="check" />Закончить поход</button>
-        </div>
-      ) : null}
-
-      <section className={`trip-sum ${shopping ? 'shop' : ''}`} aria-label="Итог похода">
-        {shopping ? (
-          <>
-            <div className="trip-sum-cols">
-              <div><span className="trip-k">В корзине</span><b>{rub(t.inCart.sum)}</b><small>{t.inCart.count} {goods(t.inCart.count)}</small></div>
-              <div><span className="trip-k">Осталось</span><b>≈&nbsp;{rub(t.left.sum)}</b><small>{t.left.count} {goods(t.left.count)}</small></div>
-            </div>
-            <span className="bar" aria-hidden="true"><i style={{ width: `${t.count ? (t.inCart.count / t.count) * 100 : 0}%` }} /></span>
-            <small>Всего ≈ {rub(t.total)} за {t.count} {goods(t.count)}{t.unpriced ? ` · ${t.unpriced} без цены` : ''}</small>
-          </>
-        ) : (
+        // One short line on top that stays in view: the checklist starts right under it.
+        <section className="trip-strip" aria-label="Итог похода">
+          <div className="trip-strip-row">
+            <span className="trip-strip-t">
+              <b>В корзине {t.inCart.count} из {t.count} · {approx}{rub(t.inCart.sum)}</b>
+              <small>Осталось ≈&nbsp;{rub(t.left.sum)}{t.unpriced ? ` · ${t.unpriced} без цены` : ''}</small>
+            </span>
+            <button type="button" className="btn sm" onClick={endShopping}><Icon name="check" />Закончить</button>
+          </div>
+          <span className="bar" aria-hidden="true"><i style={{ width: `${t.count ? (t.inCart.count / t.count) * 100 : 0}%` }} /></span>
+        </section>
+      ) : (
+      <section className="trip-sum" aria-label="Итог похода">
+        {(
           <>
             <span className="trip-k">В походе {t.count} {goods(t.count)}</span>
             <b className="trip-total">≈&nbsp;{rub(t.total)}</b>
             <small>{t.unpriced ? `${t.unpriced} без цены — цену можно указать в строке` : 'Примерно, по ценам Магнита'}</small>
-            <div className="trip-go">
-              <button type="button" className="btn" disabled={!lines.length} onClick={() => goShopping(db, me, today)}><Icon name="bag" />Иду в магазин</button>
-              <button type="button" className="btn soft" disabled={!lines.length} onClick={() => onCopy(lines)}><Icon name="copy" />Скопировать</button>
-            </div>
+            <button type="button" className="btn trip-go" disabled={!lines.length} onClick={() => goShopping(db, me, today)}><Icon name="bag" />Иду в магазин</button>
+            {lines.length ? <button type="button" className="more trip-copy" onClick={() => onCopy(lines)}>Скопировать список текстом</button> : null}
           </>
         )}
       </section>
+      )}
 
-      <div className="trip-add">
-        <button type="button" className="trip-search" onClick={() => setPicker(true)}><Icon name="plus" /><span>Найти и добавить товар</span></button>
-      </div>
+      {shopping ? null : (
+        <div className="trip-add">
+          <button type="button" className="trip-search" onClick={() => setPicker(true)}><Icon name="plus" /><span>Найти и добавить товар</span></button>
+        </div>
+      )}
 
       {!lines.length ? pullCard : null}
 
@@ -195,6 +211,11 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
       })}
 
       {lines.length ? pullCard : null}
+      {shopping ? (
+        <div className="trip-add">
+          <button type="button" className="trip-search" onClick={() => setPicker(true)}><Icon name="plus" /><span>Добавить, за чем ещё пришли</span></button>
+        </div>
+      ) : null}
 
       {picker ? <ProductPicker db={db} me={me} vocab={vocab} catalog={catalog} inTrip onClose={() => setPicker(false)} /> : null}
       {pulling ? (
@@ -208,7 +229,12 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
           onPrice={(p) => setRealPrice(db, sheet, me, p, marks.get(sheet.id))}
           onTrip={(on) => setInTrip(db, [sheet], on)}
           onHome={hasHome ? (on) => setAtHome(db, sheet, me, on, marks.get(sheet.id)) : undefined}
-          onRemove={() => removeItem(db, sheet)} onClose={() => setSheet(null)} />
+          onUnbuy={() => setBought(db, sheet, me, false, marks.get(sheet.id))}
+          onRemove={async () => {
+            const gone = sheet;
+            await removeItem(db, gone);
+            onToast({ text: `«${gone.title}» убрали из списка`, action: { label: 'Вернуть', run: () => { void restoreRemoved(db, gone); } } });
+          }} onClose={() => setSheet(null)} />
       ) : null}
     </>
   );

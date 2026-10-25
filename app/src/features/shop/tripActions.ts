@@ -112,6 +112,30 @@ export async function pullToTrip(db: LocalDb, stale: ShoppingItem[], catalog: Pr
   if (out.length) await writeLocal(db, 'shopping_items', out);
 }
 
+// «Вернуть» after taking lines into the trip: each line as it was before, unless it has been bought since.
+export async function restoreLines(db: LocalDb, before: ShoppingItem[]) {
+  const rows = (await db.shopping_items.bulkGet(before.map((l) => l.id)));
+  const marks = await db.shopping_marks.bulkGet(before.map((l) => l.id));
+  const back = before.flatMap((b, k) => {
+    const row = rows[k];
+    if (!row || row.deleted_at || marks[k]?.bought) return [];
+    return [{ ...row, qty: b.qty, qty_text: b.qty_text, est_price: b.est_price, ...(b.in_trip !== undefined || row.in_trip !== undefined ? { in_trip: !!b.in_trip } : {}) }];
+  });
+  if (back.length) await writeLocal(db, 'shopping_items', back);
+}
+
+// «Вернуть» after removing a line from the list.
+export async function restoreRemoved(db: LocalDb, line: ShoppingItem) {
+  const row = await db.shopping_items.get(line.id);
+  if (row?.deleted_at) await writeLocal(db, 'shopping_items', [{ ...row, deleted_at: null }]);
+}
+
+// «Вернуться в поход» right after ending it by mistake.
+export async function reopenTrip(db: LocalDb, trip: ShopTrip) {
+  const { updated_at: _u, ...rest } = trip;
+  await writeLocal(db, 'shop_trips', [{ ...rest, ended_at: null }]);
+}
+
 // The trip's lines: before the shop, the open ones; in the shop, also those closed since it began, so a ticked
 // line stays in view at the bottom of its department.
 export function tripLines(items: ShoppingItem[], marks: Map<string, ShoppingMark>, trip?: ShopTrip | null): ShoppingItem[] {

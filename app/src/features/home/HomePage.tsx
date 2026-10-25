@@ -163,7 +163,6 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
           </>
         )}
       </section>
-      <AskCard role={me.role} />
       {data.week ? (
         <>
           <div className="sec-h"><h2>Сегодня едим</h2><Link className="more" to="/menu">Меню</Link></div>
@@ -185,6 +184,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
           <section className="card">{offerRows}</section>
         </>
       ) : null}
+      <AskCard />
       {moreRequests.length ? (
         <>
           <div className="sec-h"><h2>Просьбы мне</h2><Link className="more" to="/board?tab=requests">Все</Link></div>
@@ -223,7 +223,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
         <Link className={`tile ${goal || pay || myWish ? '' : 'wide'}`} to="/shop" style={{ ['--h' as string]: 'var(--k-shop)' }}>
           {trip && trip.count ? (
             <><span className="t-k"><Icon name="cart" />Поход в магазин</span><span className="t-v num">{trip.count}</span>
-              <span className="t-s">{goods(trip.count)} в походе{trip.total ? ` · ≈ ${rub(trip.total)}` : ''}</span></>
+              <span className="t-s">{goods(trip.count)} в походе{trip.total ? ` · ≈\u00A0${rub(trip.total)}` : ''}</span></>
           ) : (
             <><span className="t-k"><Icon name="cart" />Покупки</span><span className="t-v num">{totals.count - totals.doneCount}</span>
               <span className="t-s">осталось купить{totals.left ? ` · ≈ ${rub(totals.left)}` : ''}</span></>

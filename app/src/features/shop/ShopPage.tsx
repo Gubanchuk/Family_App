@@ -137,14 +137,14 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   if (view === 'trip' && vocab) {
     return (
       <>
-        <Header ask="shop" title="Покупки" subtitle={mine ? 'Отмечайте, что положили в корзину' : 'Что берём в магазин'} />
+        <Header ask="shop" title="Покупки" subtitle={mine ? `В магазине с ${hhmm(mine.started_at)} · отмечайте, что положили` : 'Что берём в магазин'} />
         {views}
         {sync.message ? (
           <section className="notice" role="alert"><span className="row-main"><b>{sync.message}</b></span>
             <button type="button" className="btn soft sm" onClick={sync.dismiss}>Понятно</button></section>
         ) : null}
         <TripView db={db} me={me} members={members} data={data} vocab={vocab} catalog={catalog} listLines={listLines} mine={mine} others={others}
-          today={today} todayIdx={dayOfWeek(today)} hasHome={hasHome} onToast={(text) => toast({ text })} onCopy={(ls) => copyLines('Поход в магазин', ls)} />
+          today={today} todayIdx={dayOfWeek(today)} hasHome={hasHome} onToast={toast} onCopy={(ls) => copyLines('Поход в магазин', ls)} />
       </>
     );
   }
@@ -173,7 +173,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
       {others.length ? (
         <section className="notice" aria-live="polite"><span className="row-main">
           {others.map((t) => <b key={t.id}>{`${name(t.member_id)} в магазине с ${hhmm(t.started_at)}${t.label ? `: ${t.label}` : ''}`}</b>)}
-          <small>Добавьте, что нужно купить.</small>
+          <small>{hasTrip ? 'Добавленное сейчас сразу попадёт к нему в поход.' : 'Добавьте, что нужно купить.'}</small>
         </span></section>
       ) : null}
       {data.weeks.length > 1 && !inCart ? (
@@ -243,7 +243,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
         </>
       )}
       {sheet === 'add' && vocab && hasTrip ? (
-        <ProductPicker db={db} me={me} vocab={vocab} catalog={catalog} inTrip={false} onAdded={(text) => toast({ text })}
+        <ProductPicker db={db} me={me} vocab={vocab} catalog={catalog} inTrip={others.length > 0} shopper={others.length ? name(others[0].member_id) : null} onAdded={(text) => toast({ text })}
           onClose={() => { setSheet(null); if (params.get('add')) setParams({ view: 'list' }, { replace: true }); }} />
       ) : null}
       {sheet === 'add' && vocab && !hasTrip ? <AddItemSheet vocab={vocab} onClose={() => { setSheet(null); if (params.get('add')) setParams({}, { replace: true }); }} onAdd={async (a) => {

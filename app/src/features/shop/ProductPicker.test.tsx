@@ -35,6 +35,9 @@ describe('ProductPicker', () => {
     const { sheet } = await open(async (p) => { asked.push(p); return { ok: false, note: 'Сыр обычно стоит 700–1000 ₽ за кг.' }; });
     await userEvent.type(within(sheet).getByRole('textbox'), 'Сыр Ламбер');
     await userEvent.click(within(sheet).getByRole('button', { name: /Новый товар «Сыр Ламбер»/ }));
+    // Cheese guesses dairy, sold by the pack; it is bought by the kilo here.
+    expect(within(sheet).getByRole('radio', { name: 'упаковка' })).toHaveAttribute('aria-checked', 'true');
+    await userEvent.click(within(sheet).getByRole('radio', { name: 'кг' }));
     await userEvent.type(within(sheet).getByRole('textbox', { name: /Цена за 1 кг/ }), '50');
     await userEvent.click(within(sheet).getByRole('button', { name: /^Добавить/ }));
     expect(await within(sheet).findByText(/Помощник сомневается: Сыр обычно стоит 700–1000 ₽ за кг/)).toBeInTheDocument();

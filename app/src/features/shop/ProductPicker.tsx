@@ -13,13 +13,16 @@ import type { Ingredient } from '../../data/db';
 import { checkProduct } from '../assistant/api';
 
 const FOOD_DEPTS = DEPT_ORDER;
+const BY_KILO = ['Овощи и фрукты', 'Мясо и птица', 'Рыба'];
+const BY_PACK = ['Молочное и яйца', 'Бакалея', 'Консервы и соусы', 'Заморозка', 'Специи', 'Хлеб'];
 const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // «Добавить товар»: search the dictionary and the family's own products, pick an amount, or describe a new
 // product once. The sheet stays open after each add, so a whole list goes in one go.
 // check: asks the assistant whether a new product's price and unit look real (injectable for tests).
-export default function ProductPicker({ db, me, vocab, catalog, inTrip, onClose, onAdded, check = checkProduct }: {
-  db: LocalDb; me: Member; vocab: Map<string, Ingredient>; catalog: Product[]; inTrip: boolean;
+// shopper: who is in the shop right now, when the list's «Добавить» sends things straight into their trip.
+export default function ProductPicker({ db, me, vocab, catalog, inTrip, shopper = null, onClose, onAdded, check = checkProduct }: {
+  db: LocalDb; me: Member; vocab: Map<string, Ingredient>; catalog: Product[]; inTrip: boolean; shopper?: string | null;
   onClose: () => void; onAdded?: (text: string) => void; check?: typeof checkProduct;
 }) {
   const [query, setQuery] = useState('');
@@ -43,14 +46,20 @@ export default function ProductPicker({ db, me, vocab, catalog, inTrip, onClose,
 
   const back = () => { setPicked(null); setOwn(false); setTimeout(() => search.current?.focus(), 0); };
   const choose = (p: Product) => { setPicked(p); setOwn(false); setQty(stepOf(p.sell, p.unit, p.pieceWeight)); };
+  // A new product starts counted the way its department is usually sold: vegetables and meat by the kilo,
+  // groceries and dairy by the pack, everything else by the piece.
   const startOwn = () => {
     const title = capital(query.trim());
-    const u = OWN_UNITS[0];
-    setOwn(true); setPicked(null); setOwnTitle(title); setOwnUnit(0); setOwnPrice('');
-    setOwnDept(guessDept(title, vocab)); setQty(stepOf(sellOf(null, u.unit), u.unit));
+    const dept = guessDept(title, vocab);
+    const k = BY_KILO.includes(dept) ? 0 : BY_PACK.includes(dept) ? 3 : 1;
+    const u = OWN_UNITS[k];
+    setOwn(true); setPicked(null); setOwnTitle(title); setOwnUnit(k); setOwnPrice('');
+    setOwnDept(dept); setQty(stepOf(sellOf(null, u.unit), u.unit));
   };
 
   const ou = OWN_UNITS[ownUnit];
+  // The department the name points to leads the chips, so the guess is in view.
+  const ownGuess = own ? guessDept(ownTitle || query, vocab) : 'Другое';
   const ownPerUnit = (() => { const n = parseTyped(ownPrice, 1); return n === null ? null : n / ou.factor; })();
   const price = picked ? picked.price : ownPerUnit;
   const est = lineEstimate(qty, price);
@@ -61,6 +70,7 @@ export default function ProductPicker({ db, me, vocab, catalog, inTrip, onClose,
     const title = (picked ? picked.title : ownTitle).trim();
     if (!title || !(qty > 0)) return;
     setBusy(true);
+    setNote('');
     try {
       const r = await addProductLine(db, me, picked
         ? { product: picked, title, qty, unit: picked.unit, pricePerUnit: picked.price, dept: picked.dept, inTrip }
@@ -78,6 +88,8 @@ export default function ProductPicker({ db, me, vocab, catalog, inTrip, onClose,
       onAdded?.(text);
       setQuery(''); setPicked(null); setOwn(false);
       setTimeout(() => search.current?.focus(), 0);
+    } catch {
+      setNote('Не получилось добавить. Попробуйте ещё раз.');
     } finally {
       setBusy(false);
     }
@@ -92,7 +104,7 @@ export default function ProductPicker({ db, me, vocab, catalog, inTrip, onClose,
 
   const chosen = picked || own;
   return (
-    <Sheet title="Добавить товар" sub={inTrip ? 'Попадёт в поход и в общий список.' : 'Попадёт в общий список. В поход — оттуда.'} onClose={onClose}
+    <Sheet title="Добавить товар" sub={shopper ? `${shopper} сейчас в магазине — добавленное сразу попадёт к нему в поход.` : inTrip ? 'Попадёт в поход и в общий список.' : 'Попадёт в общий список. В поход — оттуда.'} onClose={onClose}
       keepOnBackdrop={!!(query.trim() || chosen)}
       actions={chosen ? (
         <div className="btns fill">
@@ -148,12 +160,12 @@ export default function ProductPicker({ db, me, vocab, catalog, inTrip, onClose,
                 ))}
               </div>
             </div>
-            <label className="field">Цена за {ou.per}, ₽ <small className="note">— можно не знать</small>
+            <label className="field">Цена за {ou.per}, ₽, если знаете
               <input inputMode="decimal" value={ownPrice} onChange={(e) => setOwnPrice(e.target.value)} placeholder="Например, 120" maxLength={9} />
             </label>
             <div className="pick-g"><span>Отдел</span>
               <div className="picks">
-                {FOOD_DEPTS.map((d) => <button key={d} type="button" className="pick" aria-pressed={d === ownDept} onClick={() => setOwnDept(d)}>{d}</button>)}
+                {[ownGuess, ...FOOD_DEPTS.filter((d) => d !== ownGuess)].map((d) => <button key={d} type="button" className="pick" aria-pressed={d === ownDept} onClick={() => setOwnDept(d)}>{d}</button>)}
               </div>
             </div>
             <div className="picker-qty">

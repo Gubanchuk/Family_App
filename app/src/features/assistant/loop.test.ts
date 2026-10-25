@@ -119,7 +119,7 @@ describe('assistant conversation', () => {
     expect(JSON.parse(String(res[0].content)).recipes[0].name).toBe('Сырники');
     expect((await db.shopping_items.toArray()).map((i) => [i.title, i.qty_text])).toEqual([['Молоко', '1 л']]);
     const st = s.getState();
-    expect(st.cards).toEqual([expect.objectContaining({ id: 't2', tool: 'add_to_shopping', kind: 'auto', summary: 'Добавляю в поход: молоко 1 л', status: 'done' })]);
+    expect(st.cards).toEqual([expect.objectContaining({ id: 't2', tool: 'add_to_shopping', kind: 'auto', summary: 'В поход: молоко 1 л', status: 'done' })]);
     expect(st.items.map((i) => i.type)).toEqual(['user', 'assistant', 'action', 'assistant']);
     expectValidHistory((await stored(db)).messages);
     // Undo takes the line back and the model hears about it with the next question.
@@ -128,7 +128,7 @@ describe('assistant conversation', () => {
     expect((await db.shopping_items.toArray())[0].deleted_at).toBeTruthy();
     await s.send('Спасибо');
     const last = calls[2].messages.at(-1)!;
-    expect(last.content.some((b) => String(b.text ?? '').includes('Человек отменил: Добавляю в поход: молоко 1 л'))).toBe(true);
+    expect(last.content.some((b) => String(b.text ?? '').includes('Человек отменил: В поход: молоко 1 л'))).toBe(true);
     expect(s.getState().items.at(-2)).toMatchObject({ type: 'user', text: 'Спасибо' });
   });
 
