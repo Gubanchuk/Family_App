@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { parseRub, rubOk } from './boardMath';
+import { parseRub, rubOk, twinOf, type Twin } from './boardMath';
+import TwinNote from './TwinNote';
 import Sheet from '../menu/Sheet';
 import type { LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
@@ -17,8 +18,9 @@ import { photoPathFor, type PhotoEdit } from '../../lib/photos';
 
 
 // A new wish, or an open one: its piggy bank, «Сбылось», edit and delete for the owner and parents.
-export default function WishSheet({ me, members, db, wish, deposits = [], banked, ready = false, onClose }: {
-  me: Member; members: Member[]; db: LocalDb; wish: Wish | null; deposits?: Deposit[]; banked?: number; ready?: boolean; onClose: () => void;
+export default function WishSheet({ me, members, db, wish, deposits = [], banked, ready = false, twins = [], onOpenTwin, onClose }: {
+  me: Member; members: Member[]; db: LocalDb; wish: Wish | null; deposits?: Deposit[]; banked?: number; ready?: boolean;
+  twins?: Twin[]; onOpenTwin?: (id: string) => void; onClose: () => void;
 }) {
   const toast = useToast();
   const parent = me.role === 'parent';
@@ -34,6 +36,7 @@ export default function WishSheet({ me, members, db, wish, deposits = [], banked
   const [photo, setPhoto] = useState<PhotoEdit>({ kind: 'keep' });
   const [seen, setSeen] = useState<string[] | null>(wish?.visible_to ?? null);
   const [busy, setBusy] = useState(false);
+  const twin = twinOf(title, owner, twins);
   const save = async (e: FormEvent) => {
     e.preventDefault();
     if (busy) return;
@@ -57,6 +60,7 @@ export default function WishSheet({ me, members, db, wish, deposits = [], banked
       <Sheet title={wish.title} sub={wish.price ? `${rub(wish.price)} · в копилке ${rub(inBank)}` : `в копилке ${rub(inBank)}`} onClose={onClose}
         actions={canEdit ? <div className="btns fill"><button type="button" className="btn soft" onClick={() => setEditing(true)}>Изменить</button><button type="button" className="btn" onClick={async () => { await wishDone(db, wish); toast({ text: `«${wish.title}» сбылось!` }); onClose(); }}>Сбылось</button></div> : undefined}>
         <Photo path={wish.photo_path} className="sheet-photo" />
+        {twin ? <div style={{ margin: '0 16px 12px' }}><TwinNote twin={twin} kind="goal" me={me} members={members} onOpen={onOpenTwin} /></div> : null}
         {canPut ? (
           <form className="inline-add" style={{ margin: '0 16px' }} onSubmit={async (e) => { e.preventDefault(); const n = parseRub(sum); if (!n) return; await putIn(db, me, { wish }, n, ready); toast({ text: `В копилку +${rub(n)}` }); onClose(); }}>
             <label className="field">Положить в копилку, ₽<input inputMode="numeric" value={sum} onChange={(e) => setSum(e.target.value)} placeholder="1000" /></label>
@@ -73,6 +77,7 @@ export default function WishSheet({ me, members, db, wish, deposits = [], banked
       actions={<button type="submit" form="wish-form" className="btn" disabled={!title.trim() || !rubOk(price) || busy}>{busy ? 'Сохраняем…' : 'Сохранить'}</button>}>
       <form id="wish-form" style={{ margin: '0 16px' }} onSubmit={save}>
         <label className="field">Что хочется<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} autoFocus placeholder="Например, велосипед" /></label>
+        {twin ? <TwinNote twin={twin} kind="goal" me={me} members={members} onOpen={onOpenTwin} /> : null}
         <label className="field">Сколько стоит, ₽<input inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Можно не писать" /></label>
         {hasPhotos ? <PhotoField path={wish?.photo_path} value={photo} onChange={setPhoto} /> : null}
         {parent ? (

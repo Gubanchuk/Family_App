@@ -94,4 +94,21 @@ describe('board: who sees it and photos', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
     await waitFor(async () => expect((await db.wishes.get('w1'))?.visible_to).toEqual(['mama']));
   });
+
+  it('names the second piggy bank of the same thing and opens it from the form', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.wishes.put({ id: 'w1', household_id: 'h', owner_id: 'son', title: 'Велосипед', price: 25000, saved: 10500, done_at: null, created_by: 'son', updated_at: 'x', deleted_at: null });
+    await db.goals.put({ id: 'g1', household_id: 'h', owner_id: 'son', title: 'Новый велосипед', target: 25000, saved: 8000, steps: [], created_by: 'son', updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter initialEntries={['/board?tab=wishes']}><BoardPage me={son} members={family} db={db} /></MemoryRouter>);
+    expect(await screen.findByText(/отдельно в цели: 8\s000\s₽/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('tab', { name: 'Цели' }));
+    expect(await screen.findByText(/Отдельно в хотелке «Велосипед»: 10\s500\s₽/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Добавить' }));
+    await userEvent.type(await screen.findByLabelText('Цель'), 'Велосипед');
+    const note = await screen.findByRole('note');
+    expect(note).toHaveTextContent(/Уже есть хотелка «Велосипед»: в копилке 10\s500\s₽ из 25\s000\s₽/);
+    await userEvent.click(within(note).getByRole('button', { name: 'Открыть хотелку' }));
+    expect(await screen.findByRole('dialog', { name: 'Велосипед' })).toBeInTheDocument();
+  });
 });
+

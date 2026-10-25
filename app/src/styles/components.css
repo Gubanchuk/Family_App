@@ -738,3 +738,8 @@ a.more, a.av { text-decoration: none; }
 .hero.compact .hero-chip { min-height: 40px; padding: 8px 14px; }
 .next-mini { display: flex; align-items: center; gap: 12px; }
 .next-mini .btn { flex: none; }
+
+/* A wish and a goal for the same thing: the second piggy bank is named, not hidden. */
+.twin-line { color: var(--k-ink-2); }
+.twin-note { display: grid; gap: 8px; justify-items: start; margin: 0 0 12px; padding: 12px; border-radius: 16px; background: color-mix(in oklab, var(--k-goal) var(--k-tint), var(--k-card)); }
+.twin-note p { margin: 0; font-size: 14px; line-height: 1.35; }

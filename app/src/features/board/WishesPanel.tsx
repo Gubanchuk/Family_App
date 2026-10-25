@@ -6,7 +6,7 @@ import { memberColor } from '../family/colors';
 import type { Member } from '../family/useFamily';
 import Icon from '../shell/Icon';
 import { rub } from '../shop/build';
-import { giftLine, memberName, progress, savedIn } from './boardMath';
+import { giftLine, memberName, progress, savedIn, twinOf, type Twin } from './boardMath';
 import { setGift, toggleMetoo } from './boardActions';
 import type { BoardData } from './useBoard';
 import WishSheet from './WishSheet';
@@ -16,8 +16,11 @@ import { seenLine } from './SeenBy';
 
 export default function WishesPanel({ me, members, db, data, adding, onAdded }: { me: Member; members: Member[]; db: LocalDb; data: BoardData; adding: boolean; onAdded: () => void }) {
   // Home's wish tile opens its wish with ?wish=<id>.
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const [open, setOpen] = useState<Wish | null>(() => data.wishes.find((w) => w.id === params.get('wish')) ?? null);
+  // Goals for the same thing, with their own piggy banks.
+  const goals: Twin[] = data.goals.map((g) => ({ id: g.id, title: g.title, owner_id: g.owner_id, saved: savedIn(data.bank, g), total: g.target }));
+  const openGoal = (id: string) => setParams({ tab: 'goals', goal: id });
   const parent = me.role === 'parent';
   const list = data.wishes.filter((w) => !w.done_at).sort((a, b) => (a.created_at ?? a.updated_at).localeCompare(b.created_at ?? b.updated_at));
   return (
@@ -46,6 +49,7 @@ export default function WishesPanel({ me, members, db, data, adding, onAdded }: 
                     <small>в копилке {rub(savedIn(data.bank, w))}</small>
                   </>
                 ) : <small>{memberName(members, w.owner_id)} хочет</small>}
+                {(() => { const t = twinOf(w.title, w.owner_id, goals); return t ? <small className="twin-line">и в цели {rub(t.saved)}</small> : null; })()}
                 {parent && w.owner_id !== me.id ? (
                   // Only the parent who took it as a present can take the mark back.
                   gift ? (gift.giver_id === me.id
@@ -61,7 +65,7 @@ export default function WishesPanel({ me, members, db, data, adding, onAdded }: 
           })}
         </div>
       ) : <section className="card"><p className="note" style={{ margin: 0 }}>Хотелок пока нет. «Добавить» — и семья узнает, о чём вы мечтаете.</p></section>}
-      {open || adding ? <WishSheet me={me} members={members} db={db} wish={open} ready={data.depositsReady}
+      {open || adding ? <WishSheet me={me} members={members} db={db} wish={open} ready={data.depositsReady} twins={goals} onOpenTwin={openGoal}
         deposits={open ? data.deposits.filter((d) => d.wish_id === open.id) : []} banked={open ? savedIn(data.bank, open) : undefined}
         onClose={() => { setOpen(null); onAdded(); }} /> : null}
     </>

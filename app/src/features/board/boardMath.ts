@@ -33,3 +33,16 @@ export function bankOf(deposits: Array<{ wish_id: string | null; goal_id: string
 }
 export const savedIn = (bank: Map<string, number>, x: { id: string; saved: number }) => x.saved + (bank.get(x.id) ?? 0);
 
+// A wish and a goal for the same thing («Велосипед» and «Новый велосипед») keep two piggy banks with different
+// sums. The cards say so, and the forms point at the one that already exists.
+export type Twin = { id: string; title: string; owner_id: string | null; saved: number; total: number | null };
+const FILLER = new Set(['новый', 'новая', 'новое', 'новые', 'свой', 'своя', 'свое', 'свои', 'себе', 'хочу', 'купить', 'подарок']);
+// Word starts stand in for word forms: «велосипед», «велосипеда», «велосипедик».
+const stems = (title: string) => new Set(title.toLowerCase().replace(/ё/g, 'е').split(/[^a-zа-я0-9]+/)
+  .filter((w) => w.length >= 4 && !FILLER.has(w)).map((w) => w.slice(0, 5)));
+export function twinOf(title: string, owner: string | null, others: Twin[]): Twin | null {
+  const mine = stems(title);
+  if (!mine.size) return null;
+  return others.find((o) => o.owner_id === owner && [...stems(o.title)].some((s) => mine.has(s))) ?? null;
+}
+
