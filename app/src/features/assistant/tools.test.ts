@@ -6,6 +6,7 @@ import { RECIPES, seedMenu } from '../menu/testData';
 import { describeTool, runTool, type ToolCtx } from './tools';
 import { menuItemId, regenerateWeekList } from '../shop/menuList';
 import { deleteRecipe, saveRecipe } from '../ideas/recipeApi';
+import ingredientsJson from '../../../../content/ingredients.json';
 
 // Saving a recipe goes to the server; here it lands in the phone's base, as loadContent would bring it.
 const saved: { db: LocalDb | null } = { db: null };
@@ -348,5 +349,32 @@ describe('assistant tools: the menu', () => {
     const input = { name: 'Суп дня', category: 'soup', minutes: 30, servings: 6, products: [{ name: 'картофель', amount: 500, unit: 'г' }], steps: ['Сварить.'] };
     const first = json((await runTool('save_recipe', input, ctx(db))).result);
     expect((await runTool('save_recipe', { ...input, name: 'суп дня' }, ctx(db))).result).toContain(`id «${first.id}»`);
+  });
+});
+
+describe('assistant tools: recipes against the real dictionary', () => {
+  it('matches the products of a dish the live model wrote', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    saved.db = db;
+    type Json = { item: string; unit: string; dept: string; group: string; pieceWeight?: number; pieceName?: string; pantry?: boolean };
+    await db.ingredients.bulkPut((ingredientsJson as Json[]).map((v) => ({ item: v.item, unit: v.unit, dept: v.dept, grp: v.group, piece_weight: v.pieceWeight ?? null, piece_name: v.pieceName ?? null, pantry: !!v.pantry })));
+    const r = await runTool('save_recipe', {
+      name: 'Говядина с картошкой и лапшой в терияки', category: 'main', minutes: 45, servings: 4,
+      products: [
+        { name: 'говядина', amount: 400, unit: 'г' }, { name: 'картофель', amount: 3, unit: 'шт' }, { name: 'лапша яичная', amount: 200, unit: 'г' },
+        { name: 'морковь', amount: 1, unit: 'шт' }, { name: 'лук репчатый', amount: 1, unit: 'шт' }, { name: 'чеснок', amount: 2, unit: 'шт' },
+        { name: 'яйца куриные', amount: 2, unit: 'шт' }, { name: 'помидоры', amount: 2, unit: 'шт' }, { name: 'молоко', amount: 50, unit: 'мл' },
+        { name: 'соль', unit: 'по вкусу' }, { name: 'соус терияки', amount: 4, unit: 'ст. л.' },
+      ],
+      steps: ['Нарезать кубиками.', 'Обжарить и потушить.'],
+    }, ctx(db));
+    expect(r.error).toBeFalsy();
+    const out = json(r.result);
+    expect(out.not_in_dictionary).toEqual(['соус терияки 4 ст. л.']);
+    const ing = await db.recipe_ingredients.where('recipe_id').equals(out.id).sortBy('pos');
+    expect(ing.map((x) => [x.item, x.qty])).toEqual([
+      ['говядина', 400], ['картофель', 360], ['лапша яичная', 200], ['морковь', 100], ['лук репчатый', 100], ['чеснок', 10],
+      ['яйца', 2], ['помидоры', 240], ['молоко', 50], ['соль', null],
+    ]);
   });
 });
