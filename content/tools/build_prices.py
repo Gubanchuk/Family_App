@@ -24,13 +24,15 @@ REJECT = {
     'молоко': 'нашлось только ультрапастеризованное молоко дороже обычного',
     'кефир': 'нашлась одна маленькая упаковка 290 г',
     'свинина': 'нашлась только деликатесная свинина в специях',
+    'сыр плавленый': 'нижняя четверть цен — сырный «плавленый продукт», а не плавленый сыр',
 }
 
-magnit = {}
+magnit, searched = {}, set()
 for line in io.open(os.path.join(tools, MAGNIT_FILE), encoding='utf-8'):
     if line.startswith('#') or not line.strip():
         continue
     item, n, mn, p25, med, cheapest = line.rstrip('\n').split('|')
+    searched.add(item)
     if not int(n):
         continue
     n = int(n)
@@ -40,14 +42,20 @@ for line in io.open(os.path.join(tools, MAGNIT_FILE), encoding='utf-8'):
 
 out, missing, rejected = [], [], []
 for item, v in sorted(vocab.items()):
-    if v['group'] == 'spice' or item == 'вода':
+    # Water comes from the tap. Spices are priced too: on a shop trip they are added by hand.
+    if item == 'вода':
         continue
     per = 1 if v['unit'] == 'шт' else 1000
     row = rmap.get(item, [None])[0]
     def rs(table):
         if not row or row not in table:
             return None
-        return table[row] / (10 if row.endswith('10 шт.') else 1000) * (1 if v['unit'] != 'шт' else 1)
+        if row.endswith('10 шт.'):
+            return table[row] / 10
+        # A per-kg row for a counted product: price of one piece by its weight.
+        if v['unit'] == 'шт':
+            return table[row] / 1000 * v['pieceWeight'] if v.get('pieceWeight') else None
+        return table[row] / 1000
     rk, rr = rs(rosstat['krasnodar']), rs(rosstat['russia'])
     m = magnit.get(item)
     if m and item in REJECT:
@@ -56,7 +64,7 @@ for item, v in sorted(vocab.items()):
     if m:
         final, src, note = m['perKgOrPiece'] / per, 'Магнит, Краснодар', f"{m['matches']} подходящих товаров, например «{m['example']}»"
     elif rk:
-        final, src, note = rk, 'Росстат, Краснодар', REJECT.get(item, 'в Магните не нашлось подходящего товара')
+        final, src, note = rk, 'Росстат, Краснодар', REJECT.get(item, 'в Магните не нашлось подходящего товара' if item in searched else 'в Магните не искали')
     elif rr:
         final, src, note = rr, 'Росстат, РФ', 'нет ни в Магните, ни в краснодарской выборке Росстата'
     else:

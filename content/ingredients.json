@@ -32,7 +32,7 @@
   {"item": "мандарины", "unit": "г", "dept": "Овощи и фрукты", "group": "fruit", "pieceWeight": 80, "pieceName": null, "pantry": false},
   {"item": "лимон", "unit": "г", "dept": "Овощи и фрукты", "group": "fruit", "pieceWeight": 120, "pieceName": null, "pantry": false},
   {"item": "виноград", "unit": "г", "dept": "Овощи и фрукты", "group": "fruit", "pieceWeight": null, "pieceName": null, "pantry": false},
-  {"item": "клюква", "unit": "г", "dept": "Овощи и фрукты", "group": "fruit", "pieceWeight": null, "pieceName": null, "pantry": false},
+  {"item": "клюква", "unit": "г", "dept": "Заморозка", "group": "fruit", "pieceWeight": null, "pieceName": null, "pantry": false},
   {"item": "курица целая", "unit": "г", "dept": "Мясо и птица", "group": "poultry", "pieceWeight": null, "pieceName": null, "pantry": false},
   {"item": "куриное филе", "unit": "г", "dept": "Мясо и птица", "group": "poultry", "pieceWeight": null, "pieceName": null, "pantry": false},
   {"item": "куриные бёдра", "unit": "г", "dept": "Мясо и птица", "group": "poultry", "pieceWeight": null, "pieceName": null, "pantry": false},
