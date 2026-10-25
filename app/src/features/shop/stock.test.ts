@@ -54,7 +54,7 @@ describe('home stock', () => {
     const s = (await stock(db, 't:хлеб бородинский'))!;
     expect(await runOut(db, mama, s, { items: [], marks: new Map(), weekStart: WEEK })).toBe('added');
     const [added] = await db.shopping_items.toArray();
-    expect(added).toMatchObject({ id: homeLineId('t:хлеб бородинский', WEEK, 0), source: 'home', title: 'Хлеб бородинский', dept: 'Хлеб', item: null, added_by: 'm-mama' });
+    expect(added).toMatchObject({ id: homeLineId('t:хлеб бородинский', WEEK, 0, 'h1'), source: 'home', title: 'Хлеб бородинский', dept: 'Хлеб', item: null, added_by: 'm-mama' });
   });
 
   it('out does nothing when the line is still to buy', async () => {
@@ -77,13 +77,13 @@ describe('home stock', () => {
 
   it('a product bought this week and out again gets a new line', async () => {
     const db = await fresh();
-    const first = line(homeLineId('молоко', WEEK, 0), { source: 'home', item: 'молоко', title: 'Молоко', dept: 'Молочное и яйца' });
+    const first = line(homeLineId('молоко', WEEK, 0, 'h1'), { source: 'home', item: 'молоко', title: 'Молоко', dept: 'Молочное и яйца' });
     const bought: ShoppingMark = { item_id: first.id, household_id: 'h1', bought: true, by_member: 'm-mama', price_real: null, updated_at: 'x' };
     await db.shopping_items.put(first);
     await db.shopping_marks.put(bought);
     await setStock(db, mama, { item: 'молоко', title: 'Молоко', dept: 'Молочное и яйца' }, 'have');
     expect(await runOut(db, mama, (await stock(db, 'молоко'))!, { items: [first], marks: new Map([[first.id, bought]]), weekStart: WEEK })).toBe('added');
-    expect((await db.shopping_items.toArray()).map((i) => i.id).sort()).toEqual([first.id, homeLineId('молоко', WEEK, 1)].sort());
+    expect((await db.shopping_items.toArray()).map((i) => i.id).sort()).toEqual([first.id, homeLineId('молоко', WEEK, 1, 'h1')].sort());
   });
 
   it('closes a line as at home and puts its product home', async () => {

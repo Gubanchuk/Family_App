@@ -35,8 +35,9 @@ export async function stockFromBought(db: LocalDb, me: Member, line: ShoppingIte
 }
 
 // A line for a product that ran out: one per product for each time it runs out in a week, numbered by the
-// ones of that week already bought or removed, so two phones marking it out at once make the same line.
-export const homeLineId = (key: string, weekStart: string, n: number) => `h:${weekStart}:${n}:${key}`;
+// ones of that week already bought or removed, so two phones marking it out at once make the same line. The
+// family is part of it: line ids are unique across the whole base, and two families run out of milk in one week.
+export const homeLineId = (key: string, weekStart: string, n: number, household: string) => `h:${household}:${weekStart}:${n}:${key}`;
 
 // «Закончилось»: the product goes back on the list. A line closed as «есть дома» opens again; a line still to
 // buy is left alone; otherwise a new line appears.
@@ -52,13 +53,13 @@ export async function runOut(db: LocalDb, me: Member, s: HomeStock, ctx: { items
   }
   const open = mine.find((i) => !ctx.marks.get(i.id)?.bought);
   if (open) { await toTrip(db, me, open); return 'already'; }
-  const prefix = `h:${ctx.weekStart}:`;
+  const prefix = `h:${me.household_id}:${ctx.weekStart}:`;
   const earlier = (await db.shopping_items.where('household_id').equals(me.household_id).toArray())
     .filter((i) => i.id.startsWith(prefix) && i.id.endsWith(`:${s.key}`));
   const marks = await db.shopping_marks.bulkGet(earlier.map((i) => i.id));
   const n = earlier.filter((i, k) => i.deleted_at || marks[k]?.bought).length;
   await writeLocal(db, 'shopping_items', [{
-    id: homeLineId(s.key, ctx.weekStart, n), household_id: me.household_id, week_id: null, offer_id: null, source: 'home', item: s.item,
+    id: homeLineId(s.key, ctx.weekStart, n, me.household_id), household_id: me.household_id, week_id: null, offer_id: null, source: 'home', item: s.item,
     title: s.title, qty: null, unit: null, qty_text: '', dept: s.dept, urgent: false, est_price: null, added_by: me.id, deleted_at: null,
     ...(await tripMark(db, me.household_id, true)),
   }]);

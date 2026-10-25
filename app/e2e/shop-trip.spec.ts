@@ -7,8 +7,8 @@ test('mom puts products in the trip with amounts, goes to the shop and ticks the
   await startFamily(mom.page, 'Оля');
   await tab(mom.page, 'Покупки');
   const tripTab = mom.page.getByRole('tab', { name: 'Поход' });
-  await mom.page.waitForTimeout(3000);
-  test.skip(!(await tripTab.isVisible()), 'the trip column is not on the server yet');
+  // The tab appears once the first sync has asked the server about the column.
+  try { await expect(tripTab).toBeVisible({ timeout: 30_000 }); } catch { test.skip(true, 'the trip column is not on the server yet'); }
 
   await mom.page.getByRole('button', { name: 'Найти и добавить товар' }).click();
   const sheet = mom.page.getByRole('dialog', { name: 'Добавить товар' });
