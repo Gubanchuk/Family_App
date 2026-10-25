@@ -121,6 +121,55 @@ export const TOOLS: ToolDef[] = [
     },
   },
   {
+    name: 'set_meal',
+    kind: 'auto',
+    description: 'Ставит блюдо из базы в меню на день и приём пищи вместо того, что там стоит, или убирает приём пищи из меню (recipe_id не передавай). Продукты в покупках пересчитываются сами. Менять утверждённое меню могут только родители; ребёнку вместо этого предложи блюдо через offer_dish. Если меню на ту неделю ещё нет, у родителя оно заведётся пустым. Неделя — текущая или следующая.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        date,
+        meal,
+        recipe_id: { type: 'string', description: 'id блюда из find_recipes или save_recipe. Не передавай, чтобы убрать приём пищи.' },
+      },
+      required: ['date', 'meal'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'save_recipe',
+    kind: 'auto',
+    description: 'Сохраняет новый рецепт в «Наши рецепты» семьи и возвращает его id; потом его можно поставить в меню через set_meal. Используй, когда человек просит сохранить или поставить в меню блюдо, которого нет в базе. Продукты называй полностью, как в магазине: «лук репчатый», «перец болгарский», «рис длиннозёрный». Продукт, которого нет в справочнике приложения, запишется в описание рецепта текстом и сам в покупки не попадёт — скажи об этом и предложи добавить его через add_to_shopping.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', maxLength: 80, description: 'Название блюда.' },
+        about: { type: 'string', maxLength: 200, description: 'Одна фраза о блюде.' },
+        category: { type: 'string', enum: ['breakfast', 'soup', 'main', 'side', 'salad', 'snack', 'dessert'], description: 'breakfast — завтрак, soup — суп, main — второе, side — гарнир, salad — салат, snack — перекус, dessert — десерт.' },
+        minutes: { type: 'integer', minimum: 1, maximum: 600, description: 'Сколько минут готовить всего.' },
+        servings: { type: 'integer', minimum: 1, maximum: 20, description: 'На сколько порций указаны продукты.' },
+        dima: { type: 'string', enum: ['ok', 'adapt', 'skip'], description: 'Диме (2 года): ok — можно как есть, adapt — с поправкой, skip — нельзя.' },
+        dima_note: { type: 'string', maxLength: 200, description: 'Что сделать для Димы, если adapt или skip.' },
+        products: {
+          type: 'array', minItems: 1, maxItems: 40,
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'Продукт полностью: «говядина», «лапша яичная».' },
+              amount: { type: 'number', exclusiveMinimum: 0 },
+              unit: { type: 'string', enum: ['г', 'кг', 'мл', 'л', 'шт', 'ст. л.', 'ч. л.', 'стакан', 'по вкусу'] },
+              note: { type: 'string', maxLength: 40, description: 'Уточнение: «нарезать кубиками».' },
+            },
+            required: ['name'],
+            additionalProperties: false,
+          },
+        },
+        steps: { type: 'array', minItems: 1, maxItems: 20, items: { type: 'string', maxLength: 400 }, description: 'Шаги приготовления по порядку.' },
+      },
+      required: ['name', 'category', 'minutes', 'servings', 'products', 'steps'],
+      additionalProperties: false,
+    },
+  },
+  {
     name: 'add_expense',
     kind: 'confirm',
     parentsOnly: true,

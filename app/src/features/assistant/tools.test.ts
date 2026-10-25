@@ -1,9 +1,27 @@
 import 'fake-indexeddb/auto';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createLocalDb, type LocalDb, type Recipe, type RecipeIngredient } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { RECIPES, seedMenu } from '../menu/testData';
 import { describeTool, runTool, type ToolCtx } from './tools';
+import { menuItemId, regenerateWeekList } from '../shop/menuList';
+import { deleteRecipe, saveRecipe } from '../ideas/recipeApi';
+
+// Saving a recipe goes to the server; here it lands in the phone's base, as loadContent would bring it.
+const saved: { db: LocalDb | null } = { db: null };
+vi.mock('../ideas/recipeApi', async () => {
+  const { toRows } = await import('../ideas/recipeDraft');
+  return {
+    saveRecipe: vi.fn(async (household: string, d: Parameters<typeof toRows>[0]) => {
+      const { recipe, ingredients } = toRows(d);
+      const id = recipe.id as string;
+      await saved.db!.recipes.put({ ...recipe, household_id: household, photo_path: null, updated_at: 'x', deleted_at: null } as never);
+      await saved.db!.recipe_ingredients.bulkPut(ingredients.map((i) => ({ ...i, recipe_id: id })) as never);
+      return id;
+    }),
+    deleteRecipe: vi.fn(async (r: { id: string }) => { await saved.db!.recipes.update(r.id, { deleted_at: 'x' }); }),
+  };
+});
 
 const papa: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: 'Папа', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1, kin: 'father' };
 const mama: Member = { ...papa, id: 'm-mama', user_id: 'u2', name: 'Мама', is_owner: false, kin: 'mother' };
@@ -226,5 +244,109 @@ describe('assistant tools: recipes', () => {
     expect(soup.products).toContain('Свёкла — 400 г');
     expect((await runTool('get_recipe', { id: 'nope' }, ctx(db))).error).toBe(true);
     expect((await runTool('get_recipe', {}, ctx(db))).error).toBe(true);
+  });
+});
+
+describe('assistant tools: the menu', () => {
+  async function week() {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    await db.meta.put({ key: 'family_portions', value: 3.5 });
+    await regenerateWeekList(db, 'w-cur');
+    return db;
+  }
+
+  it('puts a dish of the base on the dinner of today and rebuilds the list; undo puts the old one back', async () => {
+    const db = await week();
+    const r = await runTool('set_meal', { date: '2026-10-13', meal: 'dinner', recipe_id: 'mn-plov' }, ctx(db));
+    expect(r.error).toBeFalsy();
+    expect(r.summary).toBe('В меню на ужин сегодня: Плов (было: котлеты)');
+    expect((await db.week_slots.get(['w-cur', 1, 'dinner']))?.dish_id).toBe('mn-plov');
+    expect((await db.shopping_items.get(menuItemId('w-cur', 'рис')))?.deleted_at).toBeNull();
+    await r.undo!();
+    expect(await db.week_slots.get(['w-cur', 1, 'dinner'])).toMatchObject({ dish_id: 'mn-kotlety', side_id: 'side-grechka' });
+    expect((await db.shopping_items.get(menuItemId('w-cur', 'рис')))?.deleted_at).toBeTruthy();
+  });
+
+  it('clears a meal when no dish is given', async () => {
+    const db = await week();
+    const r = await runTool('set_meal', { date: '2026-10-14', meal: 'snack' }, ctx(db));
+    expect(r.summary).toBe('Убрать из меню: полдник завтра (было: печёные яблоки)');
+    expect((await db.week_slots.get(['w-cur', 2, 'snack']))?.dish_id).toBeNull();
+    expect(r.result).toBe('Полдник завтра убран из меню. Покупки пересчитаны.');
+  });
+
+  it('lets a child only offer a dish for an approved week, and refuses past days and far weeks', async () => {
+    const db = await week();
+    expect((await runTool('set_meal', { date: '2026-10-13', meal: 'dinner', recipe_id: 'mn-plov' }, ctx(db, son))).result).toMatch(/только родители.*offer_dish/);
+    expect((await runTool('set_meal', { date: '2026-10-12', meal: 'dinner', recipe_id: 'mn-plov' }, ctx(db))).result).toMatch(/уже прошёл/);
+    expect((await runTool('set_meal', { date: '2026-10-27', meal: 'dinner', recipe_id: 'mn-plov' }, ctx(db))).result).toMatch(/этой и следующей недели/);
+    expect((await db.week_slots.get(['w-cur', 1, 'dinner']))?.dish_id).toBe('mn-kotlety');
+  });
+
+  it('makes an empty week for a parent when next week has no menu yet', async () => {
+    const db = await week();
+    const r = await runTool('set_meal', { date: '2026-10-21', meal: 'dinner', recipe_id: 'mn-plov' }, ctx(db));
+    expect(r.error).toBeFalsy();
+    const next = await db.weeks.where('[household_id+starts_on]').equals(['h1', '2026-10-19']).first();
+    expect(next?.status).toBe('approved');
+    expect((await db.week_slots.get([next!.id, 2, 'dinner']))?.dish_id).toBe('mn-plov');
+  });
+
+  it('saves a new recipe with dictionary products and names the ones outside it', async () => {
+    const db = await fresh();
+    saved.db = db;
+    const r = await runTool('save_recipe', {
+      name: 'Говядина терияки', about: 'С лапшой и овощами', category: 'main', minutes: 45, servings: 4, dima: 'adapt', dima_note: 'без соуса',
+      products: [
+        { name: 'фарш', amount: 0.4, unit: 'кг' }, { name: 'Яйца', amount: 2, unit: 'шт' }, { name: 'молоко', amount: 2, unit: 'ст. л.' },
+        { name: 'соус терияки', amount: 4, unit: 'ст. л.' }, { name: 'рис', amount: 1, unit: 'стакан', note: 'промыть' },
+      ],
+      steps: ['Обжарить.', 'Потушить.'],
+    }, ctx(db));
+    expect(r.error).toBeFalsy();
+    expect(r.summary).toBe('Сохраняю рецепт: Говядина терияки · 4 продукта, без справочника: соус терияки 4 ст. л.');
+    const out = json(r.result);
+    expect(out.not_in_dictionary).toEqual(['соус терияки 4 ст. л.']);
+    const rec = (await db.recipes.get(out.id))!;
+    expect(rec).toMatchObject({ name: 'Говядина терияки', household_id: 'h1', category: 'main', about: 'С лапшой и овощами Ещё нужно: соус терияки 4 ст. л.', dima_level: 'adapt' });
+    const ing = await db.recipe_ingredients.where('recipe_id').equals(out.id).sortBy('pos');
+    expect(ing.map((x) => [x.item, x.qty, x.note])).toEqual([['фарш', 400, ''], ['яйца', 2, ''], ['молоко', 30, '2 ст. л.'], ['рис', 200, 'промыть, 1 стакан']]);
+    await r.undo!();
+    expect(deleteRecipe).toHaveBeenCalled();
+    expect((await db.recipes.get(out.id))?.deleted_at).toBeTruthy();
+  });
+
+  it('asks which product is meant when a short name fits several, and saves nothing', async () => {
+    const db = await fresh();
+    saved.db = db;
+    await db.ingredients.bulkPut([
+      { item: 'лук репчатый', unit: 'г', dept: 'Овощи и фрукты', grp: 'x', piece_weight: 90, piece_name: null, pantry: false },
+      { item: 'лук зелёный', unit: 'г', dept: 'Овощи и фрукты', grp: 'x', piece_weight: null, piece_name: null, pantry: false },
+    ]);
+    vi.mocked(saveRecipe).mockClear();
+    const r = await runTool('save_recipe', { name: 'Зажарка', category: 'side', minutes: 10, servings: 2, products: [{ name: 'лук', amount: 1, unit: 'шт' }], steps: ['Обжарить.'] }, ctx(db));
+    expect(r.result).toMatch(/«лук»: лук (репчатый или лук зелёный|зелёный или лук репчатый)/);
+    expect(saveRecipe).not.toHaveBeenCalled();
+    const ok = await runTool('save_recipe', { name: 'Зажарка', category: 'side', minutes: 10, servings: 2, products: [{ name: 'лук репчатый', amount: 1, unit: 'шт' }], steps: ['Обжарить.'] }, ctx(db));
+    expect((await db.recipe_ingredients.where('recipe_id').equals(json(ok.result).id).first())).toMatchObject({ item: 'лук репчатый', qty: 90 });
+  });
+
+  it('saves a recipe and puts it on the menu, as the assistant would chain them', async () => {
+    const db = await week();
+    saved.db = db;
+    const made = json((await runTool('save_recipe', { name: 'Каша с яблоком', category: 'breakfast', minutes: 15, servings: 4, products: [{ name: 'овсяные хлопья', amount: 200, unit: 'г' }, { name: 'яблоки', amount: 300, unit: 'г' }], steps: ['Сварить.'] }, ctx(db))).result);
+    const r = await runTool('set_meal', { date: '2026-10-15', meal: 'breakfast', recipe_id: made.id }, ctx(db));
+    expect(r.error).toBeFalsy();
+    expect((await db.week_slots.get(['w-cur', 3, 'breakfast']))?.dish_id).toBe(made.id);
+    expect((await db.shopping_items.get(menuItemId('w-cur', 'яблоки')))?.deleted_at).toBeNull();
+  });
+
+  it('does not save the same family recipe twice', async () => {
+    const db = await fresh();
+    saved.db = db;
+    const input = { name: 'Суп дня', category: 'soup', minutes: 30, servings: 6, products: [{ name: 'картофель', amount: 500, unit: 'г' }], steps: ['Сварить.'] };
+    const first = json((await runTool('save_recipe', input, ctx(db))).result);
+    expect((await runTool('save_recipe', { ...input, name: 'суп дня' }, ctx(db))).result).toContain(`id «${first.id}»`);
   });
 });

@@ -2,7 +2,12 @@ import { features, writeLocal } from '../../data/sync';
 import type { HomeStock, Ingredient, LocalDb, Recipe, RecipeIngredient, ShoppingItem, ShoppingMark } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { KIN_WORD } from '../family/kin';
-import { addDaysIso, fitsMeal, MEALS, mondayOf, type Meal } from '../menu/week';
+import { addDaysIso, dayOfWeek, fitsMeal, MEAL_LABEL, MEALS, mondayOf, type Meal } from '../menu/week';
+import { canEditWeek, changeMeal, NO_MEAL } from '../menu/actions';
+import { setWeekFromTemplate } from '../menu/weekActions';
+import { deleteRecipe, saveRecipe } from '../ideas/recipeApi';
+import { missingOf, type Category, type Draft, type DraftRow } from '../ideas/recipeDraft';
+import { findItem } from '../ideas/recipeMatch';
 import { formatQty } from '../shop/build';
 import { capitalize } from '../shop/menuList';
 import { guessDept, guessIngredient, removeItem } from '../shop/shopActions';
@@ -32,6 +37,7 @@ type Plan = { summary: string; error?: string; run?: () => Promise<Done> };
 const TITLE: Record<string, string> = {
   find_recipes: 'Ищу рецепты', get_recipe: 'Открываю рецепт', add_to_shopping: 'Добавляю в поход', set_home_stock: 'Отмечаю дома',
   ask_family: 'Попросить на Доске', offer_dish: 'Предложить блюдо', add_expense: 'Внести расход',
+  set_meal: 'Меняю меню', save_recipe: 'Сохраняю рецепт',
 };
 const fail = (summary: string, error: string): Plan => ({ summary, error });
 
@@ -472,6 +478,143 @@ async function planOfferDish(input: unknown, { db, me, members, today }: ToolCtx
   };
 }
 
+// A dish from the base on a meal of this or next week, or the meal cleared, as «Заменить» and «Убрать» in
+// the menu do: the list is rebuilt, a dish taken «instead» of that meal goes, and undo puts it all back.
+async function planSetMeal(input: unknown, { db, me, today }: ToolCtx): Promise<Plan> {
+  const o = obj(input);
+  const todayIso = isoOf(today);
+  const date = isoDate(o.date);
+  if (!date) return fail(TITLE.set_meal, 'Дата — в формате YYYY-MM-DD.');
+  if (!MEALS.includes(o.meal as Meal)) return fail(TITLE.set_meal, 'meal: breakfast, lunch, snack или dinner.');
+  const meal = o.meal as Meal;
+  const what = `${MEAL_LABEL[meal].toLowerCase()} ${dayWord(date, todayIso)}`;
+  const id = str(o.recipe_id, 100);
+  const r = id ? await db.recipes.get(id) : undefined;
+  if (id && (!r || r.deleted_at)) return fail(`${TITLE.set_meal}: ${what}`, `Рецепта с id «${id}» нет в базе. Найди его через find_recipes или сохрани через save_recipe.`);
+  const head = r ? `В меню на ${what}: ${r.name}` : `Убрать из меню: ${what}`;
+  if (date < todayIso) return fail(head, 'Этот день уже прошёл.');
+  const [y, m, d] = date.split('-').map(Number);
+  const weekStart = mondayOf(new Date(y, m - 1, d));
+  const start = mondayOf(today);
+  if (weekStart !== start && weekStart !== addDaysIso(start, 7)) return fail(head, 'Менять можно только меню этой и следующей недели.');
+  const week = await db.weeks.where('[household_id+starts_on]').equals([me.household_id, weekStart]).filter((w) => !w.deleted_at).first();
+  if (week && !canEditWeek(me, week)) return fail(head, 'Утверждённое меню меняют только родители. Предложи блюдо через offer_dish (how: instead).');
+  if (!week && me.role !== 'parent') return fail(head, 'Меню на эту неделю ещё не составлено. Предложи блюдо через offer_dish.');
+  const day = dayOfWeek(new Date(y, m - 1, d));
+  const slot = week ? await db.week_slots.get([week.id, day, meal]) : undefined;
+  const swap = (await db.dish_offers.where('household_id').equals(me.household_id).toArray())
+    .find((x) => !x.deleted_at && x.on_date === date && x.meal === meal && x.how === 'instead' && x.status === 'taken');
+  const nowId = swap?.dish_id ?? slot?.dish_id;
+  const now = nowId ? (await db.recipes.get(nowId))?.name ?? 'блюдо' : slot?.simple?.simple;
+  const summary = `${head}${now ? ` (было: ${lowerFirst(now)})` : ''}`;
+  if (!r && !now) return fail(head, 'Этот приём пищи и так пустой.');
+  if (r && r.id === nowId) return fail(head, 'Это блюдо там уже стоит.');
+  if (r) {
+    const notEat = await db.not_eat.where('household_id').equals(me.household_id).toArray();
+    const blocked = blockedBy(r, (await db.recipe_ingredients.where('recipe_id').equals(r.id).toArray()).map((x) => x.item), notEat);
+    if (blocked) return fail(head, `Не поставлено: «${blocked}» в списке «не едим».`);
+  }
+  return {
+    summary,
+    run: async () => {
+      // No menu for that week yet: a parent gets an empty one, as «Только нужные дни» makes.
+      const w = week ?? await setWeekFromTemplate(db, { household: me.household_id, startsOn: weekStart, template: null, status: 'approved', by: me.id });
+      const sides = r && meal === 'dinner' ? (await db.recipe_sides.where('recipe_id').equals(r.id).toArray()).map((x) => x.side_id) : [];
+      const undo = await changeMeal(db, w, day, meal, r ? { recipe: r, sides } : { fromSlot: NO_MEAL }, swap);
+      const list = w.status === 'approved' ? ' Покупки пересчитаны.' : '';
+      return { result: r ? `В меню: ${what} — ${r.name}.${list}` : `${capitalize(what)} убран из меню.${list}`, undo };
+    },
+  };
+}
+
+const CATS: Category[] = ['breakfast', 'soup', 'main', 'side', 'salad', 'snack', 'dessert'];
+const SPOON: Record<string, [number, number]> = { 'ст. л.': [15, 20], 'ч. л.': [5, 7], стакан: [250, 200] };
+
+// A product of the recipe in the dictionary's words: the same name, every word of a dictionary name, or the
+// one dictionary product starting with the same word. Several such products — the model has to say which.
+function recipeProduct(name: string, vocab: Ingredient[]): { item?: Ingredient; choices?: string[] } {
+  const n = norm(name);
+  const same = vocab.find((v) => norm(v.item) === n);
+  if (same) return { item: same };
+  const all = findItem(name, vocab);
+  if (all) return { item: all };
+  const head = stem(n.split(' ')[0]);
+  const near = vocab.filter((v) => stem(norm(v.item).split(' ')[0]) === head);
+  return near.length === 1 ? { item: near[0] } : near.length ? { choices: near.map((v) => v.item) } : {};
+}
+
+// The amount in the product's own unit. A spoon or a glass is turned into grams or millilitres by the common
+// kitchen measure and kept in the note to check, as the recipe editor does; anything else unclear — to taste.
+function recipeQty(v: Ingredient, amount: number | null, unit: string | null): { qty: number | null; note: string } {
+  if (amount === null || unit === 'по вкусу') return { qty: null, note: '' };
+  const u = unit ?? v.unit;
+  const said = `${dec(amount)} ${u}`;
+  const spoon = SPOON[u];
+  let q: number | null = null;
+  if (v.unit === 'г') q = u === 'г' ? amount : u === 'кг' ? amount * 1000 : u === 'шт' && v.piece_weight ? amount * v.piece_weight : spoon ? amount * spoon[1] : null;
+  else if (v.unit === 'мл') q = u === 'мл' ? amount : u === 'л' ? amount * 1000 : spoon ? amount * spoon[0] : null;
+  else if (v.unit === 'шт') q = u === 'шт' ? amount : (u === 'г' || u === 'кг') && v.piece_weight ? (u === 'кг' ? amount * 1000 : amount) / v.piece_weight : null;
+  return q !== null && q > 0 ? { qty: Math.round(q * 100) / 100, note: spoon ? said : '' } : { qty: null, note: said };
+}
+
+// A new recipe in «Наши рецепты», saved like the recipe editor saves one. Products outside the dictionary
+// cannot be rows (the list buys by the dictionary), so they go into the description as text.
+async function planSaveRecipe(input: unknown, { db, me }: ToolCtx): Promise<Plan> {
+  const o = obj(input);
+  const name = str(o.name, 80);
+  if (!name) return fail(TITLE.save_recipe, 'Нужно название блюда (name).');
+  const head = `${TITLE.save_recipe}: ${name}`;
+  const category = CATS.find((c) => c === o.category);
+  if (!category) return fail(head, `category: ${CATS.join(', ')}.`);
+  const minutes = num(o.minutes);
+  const servings = num(o.servings);
+  if (minutes === null || minutes < 1 || minutes > 600) return fail(head, 'minutes — сколько минут готовить, от 1 до 600.');
+  if (servings === null || !Number.isInteger(servings) || servings < 1 || servings > 20) return fail(head, 'servings — целое число порций от 1 до 20.');
+  const steps = (Array.isArray(o.steps) ? o.steps : []).map((x) => str(x, 400)).filter(Boolean).slice(0, 20);
+  if (!steps.length) return fail(head, 'Нужны шаги приготовления (steps).');
+  const dima = o.dima === 'adapt' || o.dima === 'skip' ? o.dima : 'ok';
+  const own = (await db.recipes.where('household_id').equals(me.household_id).toArray()).find((r) => !r.deleted_at && norm(r.name) === norm(name));
+  if (own) return fail(head, `Такой рецепт у семьи уже есть, id «${own.id}». Используй его.`);
+  const vocab = [...(await vocabOf(db)).values()];
+  const rows: DraftRow[] = [];
+  const missing: string[] = [];
+  const unclear: string[] = [];
+  for (const x of (Array.isArray(o.products) ? o.products : []).slice(0, 40)) {
+    const p = obj(x);
+    const pname = str(p.name, 80);
+    if (!pname) continue;
+    const amount = num(p.amount);
+    const unit = typeof p.unit === 'string' ? p.unit : null;
+    const found = recipeProduct(pname, vocab);
+    if (found.choices) { unclear.push(`«${pname}»: ${found.choices.join(' или ')}`); continue; }
+    if (!found.item) { missing.push(`${lowerFirst(pname)}${amount !== null && unit !== 'по вкусу' ? ` ${dec(amount)} ${unit ?? ''}`.trimEnd() : ''}`); continue; }
+    const q = recipeQty(found.item, amount !== null && amount > 0 ? amount : null, unit);
+    rows.push({ item: found.item.item, qty: q.qty === null ? '' : String(q.qty), toTaste: q.qty === null, note: [str(p.note, 40), q.note].filter(Boolean).join(', ') });
+  }
+  if (unclear.length) return fail(head, `Уточни продукты, назови их полностью: ${unclear.join('; ')}.`);
+  if (!rows.length) return fail(head, `Ни одного продукта нет в справочнике приложения${missing.length ? `: ${missing.join(', ')}` : ''}. Назови их, как в магазине.`);
+  const about = [str(o.about, 200), missing.length ? `Ещё нужно: ${missing.join(', ')}`.replace(/\.?$/, '.') : ''].filter(Boolean).join(' ');
+  const draft: Draft = {
+    name, about, category, time: String(Math.round(minutes)), servings: String(servings), dima, dimaNote: dima === 'ok' ? '' : str(o.dima_note, 200),
+    rows, steps, source: '',
+  };
+  const gap = missingOf(draft);
+  if (gap.length) return fail(head, `Не хватает: ${gap.join(', ')}.`);
+  return {
+    summary: `${head} · ${rows.length} ${rows.length % 10 === 1 && rows.length % 100 !== 11 ? 'продукт' : [2, 3, 4].includes(rows.length % 10) && ![12, 13, 14].includes(rows.length % 100) ? 'продукта' : 'продуктов'}${missing.length ? `, без справочника: ${listed(missing)}` : ''}`,
+    run: async () => {
+      const id = await saveRecipe(me.household_id, draft);
+      return {
+        result: JSON.stringify({
+          id, name, saved: 'в «Наши рецепты»',
+          ...(missing.length ? { not_in_dictionary: missing, note: 'Этих продуктов нет в справочнике: они записаны в описание рецепта и сами в покупки не попадут.' } : {}),
+        }),
+        undo: async () => { await deleteRecipe((await db.recipes.get(id)) ?? ({ id } as Recipe)); },
+      };
+    },
+  };
+}
+
 async function planAddExpense(input: unknown, { db, me, today }: ToolCtx): Promise<Plan> {
   if (me.role !== 'parent') return fail(TITLE.add_expense, 'Нет доступа: расходы вносят только родители.');
   const o = obj(input);
@@ -497,7 +640,7 @@ async function planAddExpense(input: unknown, { db, me, today }: ToolCtx): Promi
 
 const PLANS: Record<string, (input: unknown, ctx: ToolCtx) => Promise<Plan>> = {
   find_recipes: planFindRecipes, get_recipe: planGetRecipe, add_to_shopping: planAddToShopping, set_home_stock: planHomeStock,
-  ask_family: planAskFamily, offer_dish: planOfferDish, add_expense: planAddExpense,
+  ask_family: planAskFamily, offer_dish: planOfferDish, add_expense: planAddExpense, set_meal: planSetMeal, save_recipe: planSaveRecipe,
 };
 
 async function plan(name: string, input: unknown, ctx: ToolCtx): Promise<Plan> {

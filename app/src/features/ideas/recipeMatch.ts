@@ -18,7 +18,7 @@ const MEASURES: Array<[RegExp, number, number]> = [
 
 // A product of the vocabulary whose every word starts a word of the line, in any order («сливочное масло»
 // is «масло сливочное»); the longest name wins («лук репчатый» over «лук»).
-function findItem(line: string, vocab: Ingredient[]): Ingredient | null {
+export function findItem(line: string, vocab: Ingredient[]): Ingredient | null {
   const l = ` ${norm(line)}`;
   let best: Ingredient | null = null;
   for (const v of vocab) {
