@@ -1,6 +1,7 @@
 import { features, writeLocal } from '../../data/sync';
 import type { HomeStock, Ingredient, LocalDb, ShoppingItem, ShoppingMark } from '../../data/db';
 import type { Member } from '../family/useFamily';
+import { tripMark } from './tripMark';
 
 // «Дома»: what the family has at home, only «есть» or «закончилось», no amounts.
 
@@ -57,6 +58,7 @@ export async function runOut(db: LocalDb, me: Member, s: HomeStock, ctx: { items
   await writeLocal(db, 'shopping_items', [{
     id: homeLineId(s.key, ctx.weekStart, n), household_id: me.household_id, week_id: null, offer_id: null, source: 'home', item: s.item,
     title: s.title, qty: null, unit: null, qty_text: '', dept: s.dept, urgent: false, est_price: null, added_by: me.id, deleted_at: null,
+    ...(await tripMark(db, me.household_id, true)),
   }]);
   return 'added';
 }

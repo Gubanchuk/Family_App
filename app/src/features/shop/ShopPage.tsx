@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useFolds } from './useFolds';
 import { useSearchParams } from 'react-router-dom';
 import { useToday } from '../../lib/useToday';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -21,6 +22,10 @@ import HomePanel from './HomePanel';
 import { useToast } from '../shell/toastContext';
 import { capitalize } from './menuList';
 import ListDays from './ListDays';
+import TripView from './TripView';
+import ProductPicker from './ProductPicker';
+import { buildCatalog } from './catalog';
+import { setInTrip } from './tripActions';
 import { useFeature } from '../../data/useFeature';
 import { setListDays } from '../menu/weekActions';
 import { dayOfWeek } from '../menu/week';
@@ -33,6 +38,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const data = useShop(db, me.household_id, today);
   const sync = useSync();
   const vocab = useLiveQuery(async () => new Map((await db.ingredients.toArray()).map((v) => [v.item, v])), [db]);
+  const prices = useLiveQuery(async () => new Map((await db.prices.toArray()).map((p) => [p.item, Number(p.price_per_unit)])), [db]);
   // Home's «Добавить» → «В покупки» opens the list with the add form (?add=1); a just-approved week links to its own list (?week=).
   const [params, setParams] = useSearchParams();
   const [weekPick, setWeekPick] = useState<string | null>(params.get('week'));
@@ -45,6 +51,9 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const folds = useFolds();
   const hasDays = useFeature(db, 'listDays');
   const hasHome = useFeature(db, 'homeCart');
+  // «Поход», once the server keeps the trip mark on lines.
+  const hasTrip = useFeature(db, 'tripList');
+  const catalog = useMemo(() => (data && vocab ? buildCatalog({ vocab, prices: prices ?? new Map(), items: data.items, marks: data.marks }) : []), [data, vocab, prices]);
   // A linked week that is no longer in the list falls back to the first one.
   const weekId = data?.weeks.find((w) => w.id === weekPick)?.id ?? data?.weeks[0]?.id ?? null;
   const shown = useMemo(() => {
@@ -101,7 +110,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
         <button type="button" className="row-btn" aria-pressed={done} aria-label={`${i.title}${i.qty_text ? `, ${i.qty_text}` : ''}${i.urgent ? ', срочно' : ''}${home ? ', есть дома' : ''}`}
           onClick={() => (home ? setAtHome(db, i, me, false, m) : setBought(db, i, me, !done, m, hasHome && vocab ? { vocab } : undefined))}>
           <span className="check" aria-hidden="true"><Icon name="check" /></span>
-          <span className="row-main"><b>{i.title}</b><small>{home ? 'есть дома' : [i.qty_text, sub, hint].filter(Boolean).join(' · ')}</small></span>
+          <span className="row-main"><b>{i.title}</b><small>{home ? 'есть дома' : [i.qty_text, sub, hint, hasTrip && i.in_trip && !done ? 'в походе' : ''].filter(Boolean).join(' · ')}</small></span>
           {i.urgent ? <span className="pill">срочно</span> : null}
         </button>
         <button type="button" className="amount amount-btn" aria-label={`${i.title}: ${price !== null ? `цена ${rub(price)}` : 'цена не указана'}`} onClick={() => setSheet(i)}>{price !== null ? rub(price) : '—'}</button>
@@ -109,14 +118,36 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
     );
   };
 
-  // «Список · Дома», once the server keeps what is at home (?view=home).
-  const view = hasHome && params.get('view') === 'home' ? 'home' : 'list';
-  const views = hasHome ? (
+  // «Поход · Список · Дома»: the trip first once the server keeps it (?view=list, ?view=home for the others).
+  const asked = params.get('view');
+  const view = hasHome && asked === 'home' ? 'home' : hasTrip && asked !== 'list' && params.get('add') !== '1' && !params.get('week') ? 'trip' : 'list';
+  const views = hasHome || hasTrip ? (
     <div className="segs" role="tablist" aria-label="Покупки">
-      <button type="button" role="tab" aria-selected={view === 'list'} onClick={() => setParams({}, { replace: true })}>Список</button>
-      <button type="button" role="tab" aria-selected={view === 'home'} onClick={() => setParams({ view: 'home' }, { replace: true })}>Дома</button>
+      {hasTrip ? <button type="button" role="tab" aria-selected={view === 'trip'} onClick={() => setParams({}, { replace: true })}>Поход</button> : null}
+      <button type="button" role="tab" aria-selected={view === 'list'} onClick={() => setParams(hasTrip ? { view: 'list' } : {}, { replace: true })}>Список</button>
+      {hasHome ? <button type="button" role="tab" aria-selected={view === 'home'} onClick={() => setParams({ view: 'home' }, { replace: true })}>Дома</button> : null}
     </div>
   ) : null;
+  // Every line the list shows in either week, for taking into the trip.
+  const listLines = [...new Map((data.weeks.length ? data.weeks : [null]).flatMap((w) => visibleItems(data.items, w?.id ?? null, { weekStart: w?.starts_on ?? data.start, marks, offers: data.offers })).map((i) => [i.id, i])).values()];
+  const copyLines = async (title: string, ls: ShoppingItem[]) => {
+    const clip = clipboard ?? navigator.clipboard;
+    try { await clip.writeText(listText(title, ls.filter((i) => !closed(marks.get(i.id))))); toast({ text: 'Список скопирован' }); } catch { toast({ text: 'Не получилось скопировать. Выделите список вручную.' }); }
+  };
+  if (view === 'trip' && vocab) {
+    return (
+      <>
+        <Header title="Покупки" subtitle={mine ? 'Вы в магазине' : 'Что берём в магазин'} />
+        {views}
+        {sync.message ? (
+          <section className="notice" role="alert"><span className="row-main"><b>{sync.message}</b></span>
+            <button type="button" className="btn soft sm" onClick={sync.dismiss}>Понятно</button></section>
+        ) : null}
+        <TripView db={db} me={me} members={members} data={data} vocab={vocab} catalog={catalog} listLines={listLines} mine={mine} others={others}
+          today={today} todayIdx={dayOfWeek(today)} hasHome={hasHome} onToast={(text) => toast({ text })} onCopy={(ls) => copyLines('Поход в магазин', ls)} />
+      </>
+    );
+  }
   if (view === 'home') {
     return (
       <>
@@ -159,7 +190,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
           <button type="button" className="btn soft sm" onClick={sync.dismiss}>Понятно</button></section>
       ) : null}
       <div className="btns fill" style={{ margin: '0 16px 14px' }}>
-        {mine && hasHome ? (
+        {hasTrip ? null : mine && hasHome ? (
           <button type="button" className="btn" onClick={() => endTrip(db, mine)}><Icon name="check" />Закончить поход</button>
         ) : (
           <button type="button" className="btn" disabled={!!mine} onClick={() => (hasHome ? setPicking(true) : goShopping(db, me, today))}><Icon name="bag" />{mine ? 'Вы в магазине' : 'Иду в магазин'}</button>
@@ -211,7 +242,11 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
           })}
         </>
       )}
-      {sheet === 'add' && vocab ? <AddItemSheet vocab={vocab} onClose={() => { setSheet(null); if (params.get('add')) setParams({}, { replace: true }); }} onAdd={async (a) => {
+      {sheet === 'add' && vocab && hasTrip ? (
+        <ProductPicker db={db} me={me} vocab={vocab} catalog={catalog} inTrip={false} onAdded={(text) => toast({ text })}
+          onClose={() => { setSheet(null); if (params.get('add')) setParams({ view: 'list' }, { replace: true }); }} />
+      ) : null}
+      {sheet === 'add' && vocab && !hasTrip ? <AddItemSheet vocab={vocab} onClose={() => { setSheet(null); if (params.get('add')) setParams({}, { replace: true }); }} onAdd={async (a) => {
         const dept = await addManualItem(db, me, { ...a, vocab });
         const title = capitalize(a.title.trim());
         toast({ text: a.urgent ? `«${title}» — в «Срочно» наверху списка` : `«${title}» в списке, отдел «${dept}»` });
@@ -223,28 +258,9 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
       ) : null}
       {sheet && sheet !== 'add' ? (
         <ItemSheet item={sheet} mark={marks.get(sheet.id)} onPrice={(p) => setRealPrice(db, sheet, me, p, marks.get(sheet.id))} onRemove={() => removeItem(db, sheet)}
-          onHome={hasHome ? (on) => setAtHome(db, sheet, me, on, marks.get(sheet.id)) : undefined} onClose={() => setSheet(null)} />
+          onHome={hasHome ? (on) => setAtHome(db, sheet, me, on, marks.get(sheet.id)) : undefined}
+          onTrip={hasTrip ? (on) => setInTrip(db, [sheet], on) : undefined} onClose={() => setSheet(null)} />
       ) : null}
     </>
   );
-}
-
-// A long department folds to its count with a tap on its name; the choice stays on this phone.
-// A department where everything is bought folds by itself, unless opened again.
-const FOLD_KEY = 'fa.shop-folded';
-function useFolds() {
-  const [folded, setFolded] = useState<Set<string>>(() => {
-    try { return new Set(JSON.parse(localStorage.getItem(FOLD_KEY) ?? '[]') as string[]); } catch { return new Set(); }
-  });
-  const [opened, setOpened] = useState<Set<string>>(() => new Set());
-  const isFolded = (dept: string, done: boolean) => folded.has(dept) || (done && !opened.has(dept));
-  const toggle = (dept: string, done: boolean) => {
-    const f = new Set(folded);
-    const o = new Set(opened);
-    if (isFolded(dept, done)) { f.delete(dept); o.add(dept); } else { f.add(dept); o.delete(dept); }
-    setFolded(f);
-    setOpened(o);
-    try { localStorage.setItem(FOLD_KEY, JSON.stringify([...f])); } catch { /* storage unavailable */ }
-  };
-  return { isFolded, toggle };
 }

@@ -360,7 +360,6 @@ a.more, a.av { text-decoration: none; }
 .fam.ring-seen .av { box-shadow: 0 0 0 3px var(--k-bg), 0 0 0 5px var(--k-rule); }
 .fam-plus { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; display: grid; place-items: center; border: 2px solid var(--k-bg); border-radius: 50%; background: var(--k-primary); color: var(--k-primary-ink); }
 .fam-plus .ic { width: 14px; height: 14px; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .se { grid-template-rows: 1fr auto; }
 .se-frame { position: relative; align-self: center; touch-action: none; }
 .se-tools { position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); left: 8px; right: 8px; display: flex; gap: 8px; align-items: center; }
@@ -544,3 +543,27 @@ a.more, a.av { text-decoration: none; }
 .meal-row > .row-btn .thumb { margin-top: 2px; }
 /* «срочно» inside a text line, where a side column would squeeze the buttons under it. */
 .pill.inline { display: inline-block; margin-left: 8px; padding: 1px 8px; font-size: 11px; vertical-align: 1px; }
+
+/* Amount stepper in trip lines and the product picker: «− 1,5 кг +». */
+.stepper { flex: none; display: inline-flex; align-items: center; border-radius: 14px; background: color-mix(in oklab, var(--k-ink) 5%, var(--k-card)); }
+.stepper-btn { width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 14px; background: transparent; color: var(--k-ink); cursor: pointer; }
+.stepper-btn .ic { width: 18px; height: 18px; }
+.stepper-btn:disabled { color: color-mix(in oklab, var(--k-ink-2) 55%, var(--k-card)); cursor: default; }
+.stepper-val { min-width: 58px; height: 40px; padding: 0 4px; border: 0; background: transparent; color: var(--k-ink); font: 600 14px var(--font); font-variant-numeric: tabular-nums; white-space: nowrap; cursor: pointer; }
+.stepper-edit { display: inline-flex; align-items: baseline; gap: 4px; padding: 0 4px; }
+.stepper-edit input { width: 52px; height: 32px; padding: 0 6px; border: 1px solid var(--k-rule); border-radius: 10px; background: var(--k-card); color: var(--k-ink); font: 600 14px var(--font); text-align: right; }
+.stepper-edit small { color: var(--k-ink-2); font-size: 12px; }
+
+/* Product picker: search, «Часто берём», then the amount of the chosen product. */
+.picker { display: grid; gap: 10px; margin: 0 16px; }
+.picker-note { margin: 0; color: color-mix(in oklab, var(--k-primary) 82%, var(--k-ink)); font-weight: 600; }
+.picker-h { margin: 6px 0 0; font: 700 14px var(--font); color: var(--k-ink-2); }
+.picker-list { display: grid; }
+.pick-row { padding: 10px 0; border-top: 1px solid var(--k-rule); }
+.picker-list > .pick-row:first-child { border-top: 0; }
+.pick-row > .ic { flex: none; width: 20px; height: 20px; color: color-mix(in oklab, var(--k-primary) 82%, var(--k-ink)); }
+.pick-new b { color: color-mix(in oklab, var(--k-primary) 82%, var(--k-ink)); }
+.picker-pick { display: grid; gap: 14px; }
+.picker-title b { display: block; font: 700 18px/1.25 var(--font); overflow-wrap: anywhere; }
+.picker-title small { display: block; margin-top: 2px; color: var(--k-ink-2); font-size: 13px; }
+.picker-qty { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

@@ -16,6 +16,7 @@ import { canEditWeek } from '../menu/actions';
 import OfferRow from '../ideas/OfferRow';
 import { MEAL_FOR, takeOffer } from '../ideas/offerActions';
 import { listTotals, rub } from '../shop/build';
+import { goods, tripTotals } from '../shop/tripActions';
 import { useHome } from './useHome';
 import { dateLine, greeting, mainThing } from './main';
 import { answerRequest, setRequestDone } from '../board/boardActions';
@@ -44,6 +45,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const boardReady = useBoardReady(db);
   const moneyReady = useMoneyReady(db);
   const answers = useFeature(db, 'requestAnswers');
+  const hasTrip = useFeature(db, 'tripList');
   const avatar = <NavLink to="/settings" className="av" style={{ ['--c' as string]: memberColor(me.color) }} aria-label="Настройки и профиль"><AvatarFace member={me} /></NavLink>;
   const actions = (
     <>
@@ -103,6 +105,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const pay = nextPay && daysTo(data.todayIso, nextPay.due) <= 7 ? nextPay : undefined;
   const nowMin = today.getHours() * 60 + today.getMinutes();
   const next = MEALS.find((m) => mins(times[m]) > nowMin);
+  const trip = hasTrip ? tripTotals(data.trip, data.marks) : null;
   const totals = listTotals(data.items.map((i) => ({ est: i.est_price, real: data.marks.get(i.id)?.price_real ?? null, bought: !!data.marks.get(i.id)?.bought, home: !!data.marks.get(i.id)?.at_home })));
   const who = (id: string) => members.find((m) => m.id === id)?.name ?? 'Кто-то';
   const offerRows = data.offers.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} onOpen={() => setDish(o.dish_id)} />);
@@ -216,8 +219,13 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
           </Link>
         ) : null}
         <Link className={`tile ${goal || pay || myWish ? '' : 'wide'}`} to="/shop" style={{ ['--h' as string]: 'var(--k-shop)' }}>
-          <span className="t-k"><Icon name="cart" />Покупки</span><span className="t-v num">{totals.count - totals.doneCount}</span>
-          <span className="t-s">осталось купить{totals.left ? ` · ≈ ${rub(totals.left)}` : ''}</span>
+          {trip && trip.count ? (
+            <><span className="t-k"><Icon name="cart" />Поход в магазин</span><span className="t-v num">{trip.count}</span>
+              <span className="t-s">{goods(trip.count)} в походе{trip.total ? ` · ≈ ${rub(trip.total)}` : ''}</span></>
+          ) : (
+            <><span className="t-k"><Icon name="cart" />Покупки</span><span className="t-v num">{totals.count - totals.doneCount}</span>
+              <span className="t-s">осталось купить{totals.left ? ` · ≈ ${rub(totals.left)}` : ''}</span></>
+          )}
         </Link>
         {pay ? (
           <Link className="tile" to="/money" style={{ ['--h' as string]: 'var(--k-money)' }}>

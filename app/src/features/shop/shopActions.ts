@@ -3,6 +3,7 @@ import type { Ingredient, LocalDb, ShopTrip, ShoppingItem, ShoppingMark, TripLin
 import type { Member } from '../family/useFamily';
 import { capitalize } from './menuList';
 import { stockFromBought } from './stock';
+import { tripMark } from './tripMark';
 
 // The server stamps bought_at; a mark that already has it keeps a local copy right away, so Money does not
 // move a purchase until the next sync. A mark without it (no column on the server yet) never sends one.
@@ -80,7 +81,7 @@ export async function addManualItem(db: LocalDb, me: Member, a: { title: string;
   await writeLocal(db, 'shopping_items', [{
     id: a.id ?? `u:${crypto.randomUUID()}`, household_id: me.household_id, week_id: null, offer_id: null, source: 'manual',
     item: g?.item && g.dept === dept ? g.item : null, title: capitalize(title), qty: null, unit: null, qty_text: a.qtyText.trim(), dept,
-    urgent: a.urgent, est_price: null, added_by: me.id, deleted_at: null,
+    urgent: a.urgent, est_price: null, added_by: me.id, deleted_at: null, ...(await tripMark(db, me.household_id)),
   }]);
   return dept;
 }

@@ -17,10 +17,11 @@ const same = (a: Pick, b: Pick) => a.day === b.day && a.kind === b.kind && (a.ki
 // «Что берём»: a cart for this trip from a meal of a day, a dish, lines of the list or a line of one's own.
 // «Беру весь список» goes as before, with no cart. Days run from today through the next week when it is set
 // (on Sunday «Завтра» is next Monday). lines: the open tab, to pick from; cartLines: both weeks' lists.
-export default function TripSheet({ db, me, weeks, base, today, lines, cartLines, marks, vocab, onStart, onClose }: {
+// mode 'pull': the same choice puts the lines into the family's trip list instead of starting a trip.
+export default function TripSheet({ db, me, weeks, base, today, lines, cartLines, marks, vocab, onStart, onClose, mode = 'trip' }: {
   db: LocalDb; me: Member; weeks: Week[]; base: string; today: number;
   lines: ShoppingItem[]; cartLines: ShoppingItem[]; marks: Map<string, ShoppingMark>; vocab: Map<string, Ingredient>;
-  onStart: (cart?: { label: string; items: TripLine[] }) => Promise<void>; onClose: () => void;
+  onStart: (cart?: { label: string; items: TripLine[] }) => Promise<void>; onClose: () => void; mode?: 'trip' | 'pull';
 }) {
   const weekA = weeks.find((w) => w.starts_on === base) ?? null;
   const weekB = weeks.find((w) => w.starts_on === addDaysIso(base, 7)) ?? null;
@@ -91,8 +92,11 @@ export default function TripSheet({ db, me, weeks, base, today, lines, cartLines
   };
 
   return (
-    <Sheet title="Что берём" sub="Выберите, за чем идёте, — в магазине будет видно только это." onClose={onClose}
-      actions={(
+    <Sheet title={mode === 'pull' ? 'Взять в поход' : 'Что берём'}
+      sub={mode === 'pull' ? 'Отметьте приём пищи, блюдо или строки списка — их продукты попадут в поход.' : 'Выберите, за чем идёте, — в магазине будет видно только это.'} onClose={onClose}
+      actions={mode === 'pull' ? (
+        <button type="button" className="btn" disabled={!items.length || busy} onClick={() => start({ label, items })}>{items.length ? `Взять в поход · ${items.length}` : 'Взять в поход'}</button>
+      ) : (
         <div className="btns fill">
           <button type="button" className="btn" disabled={!items.length || busy} onClick={() => start({ label, items })}>Пошли</button>
           <button type="button" className="btn soft" disabled={busy} onClick={() => start()}>Беру весь список</button>
@@ -121,11 +125,11 @@ export default function TripSheet({ db, me, weeks, base, today, lines, cartLines
             return names.length ? `${text}: ${names.join(', ')}.` : '';
           }).filter(Boolean).join(' ')}</p>
         ) : null}
-        <div className="row" style={{ gap: 8 }}>
+        {mode === 'pull' ? null : <div className="row" style={{ gap: 8 }}>
           <label className="field" style={{ flex: 1, margin: 0 }}>Дописать своё<input value={own} onChange={(e) => setOwn(e.target.value)} maxLength={80} placeholder="Например, хлеб" enterKeyHint="done"
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); addOwn(); } }} /></label>
           {own.trim() ? <button type="button" className="btn soft sm" aria-label={`Добавить «${own.trim()}»`} onClick={addOwn}>Добавить</button> : null}
-        </div>
+        </div>}
         <button type="button" className="more" aria-expanded={showLines} onClick={() => setShowLines(!showLines)}>{showLines ? 'Скрыть строки списка' : `Выбрать строки из списка (${open.length})`}</button>
         {showLines ? groupByDept(open, marks).map((g) => (
           <fieldset className="kin-pick" key={g.dept}><legend>{g.dept}</legend><div className="picks">
@@ -135,7 +139,7 @@ export default function TripSheet({ db, me, weeks, base, today, lines, cartLines
             ))}
           </div></fieldset>
         )) : null}
-        {items.length ? <p className="note" style={{ margin: 0 }}>В корзине: {items.length} · {capitalize(label || 'свой список')}</p> : null}
+        {items.length && mode !== 'pull' ? <p className="note" style={{ margin: 0 }}>В корзине: {items.length} · {capitalize(label || 'свой список')}</p> : null}
       </div>
     </Sheet>
   );

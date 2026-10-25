@@ -3,6 +3,7 @@ import type { LocalDb, ShoppingItem, ShoppingMark } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import type { Need } from './types';
 import { guessNonFood } from '../shop/shopActions';
+import { tripMark } from '../shop/tripMark';
 
 // One shopping line per need, keyed by the need, so a second tap finds it instead of adding another.
 // The shopping list keeps at most 40 characters under a line; «для …» stays whole, the note gives way.
@@ -28,7 +29,7 @@ export async function sendNeedToShop(db: LocalDb, me: Member, n: Need, forName: 
   if (existing && !existing.deleted_at) return 'already';
   await writeLocal(db, 'shopping_items', [{
     ...line, household_id: me.household_id, week_id: null, offer_id: null, source: 'manual', item: null, qty: null, unit: null,
-    urgent: false, added_by: me.id, deleted_at: null,
+    urgent: false, added_by: me.id, deleted_at: null, ...(await tripMark(db, me.household_id)),
   }]);
   return 'added';
 }

@@ -33,6 +33,8 @@ export const COLUMN_FEATURES = {
   homeCart: ['shopping_marks', 'at_home'],
   // «Хорошо» / «Не могу» on a request.
   requestAnswers: ['requests', 'answered_at'],
+  // «Поход»: the family's next trip is the lines marked in_trip.
+  tripList: ['shopping_items', 'in_trip'],
 } as const;
 export type Feature = keyof typeof COLUMN_FEATURES;
 export const features = async (db: LocalDb) => new Set(((await db.meta.get('features'))?.value as Feature[] | undefined) ?? []);
