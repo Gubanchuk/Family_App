@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDaysIso, dayOfWeek, fitsMeal, mondayOf, soupBatches, soupOn, weekLabel, type SlotLike } from './week';
+import { addDaysIso, dayOfWeek, fitsMeal, mondayOf, potChange, potNote, soupBatches, soupOn, weekLabel, type SlotLike } from './week';
 
 describe('week dates', () => {
   it('takes Monday in local time on a late Sunday evening', () => {
@@ -46,5 +46,22 @@ describe('fitsMeal', () => {
     expect(fitsMeal({ category: 'dessert', meals: ['snack'] }, 'snack')).toBe(true);
     expect(fitsMeal({ category: 'breakfast', meals: ['breakfast'] }, 'dinner')).toBe(false);
     expect(fitsMeal({ category: 'main', meals: ['breakfast', 'dinner'] }, 'breakfast')).toBe(true);
+  });
+});
+
+describe('replacing a lunch from a pot of soup', () => {
+  const lunches = (ids: Array<string | null>): SlotLike[] => ids.map((dish_id, day) => ({ day, meal: 'lunch', dish_id }));
+  const week = lunches(['borsch', 'borsch', 'borsch', 'ukha', 'ukha', null, null]);
+  it('says the pot gets shorter when its last or first day is replaced', () => {
+    expect(potNote(potChange(week, 2, 'shchi')!, 'Борщ')).toBe('Борщ теперь на 2 дня вместо 3.');
+    expect(potNote(potChange(week, 0, 'shchi')!, 'Борщ')).toBe('Борщ теперь на 2 дня вместо 3, со вторника.');
+  });
+  it('says where the second pot begins when a middle day is replaced', () => {
+    expect(potNote(potChange(week, 1, 'shchi')!, 'Борщ')).toBe('Борщ теперь на 1 день вместо 3, со среды — новая кастрюля.');
+  });
+  it('says nothing for a lunch outside a pot or replaced by the same soup', () => {
+    expect(potChange(week, 5, 'shchi')).toBeNull();
+    expect(potChange(week, 1, 'borsch')).toBeNull();
+    expect(potChange(lunches(['borsch', 'ukha']), 0, 'shchi')).toBeNull();
   });
 });

@@ -1,7 +1,8 @@
 import 'fake-indexeddb/auto';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import ToastProvider from '../shell/Toast';
 import { describe, expect, it } from 'vitest';
 import { createLocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
@@ -140,5 +141,30 @@ describe('replace sheets', () => {
     await userEvent.type(screen.getByLabelText('Название'), 'Наша осень');
     await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
     await waitFor(async () => expect((await db.week_templates.where('household_id').equals('h1').toArray()).map((t) => t.name)).toEqual(['Наша осень']));
+  });
+
+  it('confirms a replaced dish and puts the old one back on «Отменить»', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    render(<MemoryRouter><ToastProvider><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></ToastProvider></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Заменить ужин' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Быстрая' }));
+    await userEvent.click(await screen.findByRole('button', { name: /Пт · Плов/ }));
+    const toast = (await screen.findByText('Ужин заменён.')).closest('.toast') as HTMLElement;
+    await waitFor(async () => expect((await db.week_slots.get(['w-cur', 1, 'dinner']))?.dish_id).toBe('mn-plov'));
+    await userEvent.click(within(toast).getByRole('button', { name: 'Отменить' }));
+    await waitFor(async () => expect((await db.week_slots.get(['w-cur', 1, 'dinner']))).toMatchObject({ dish_id: 'mn-kotlety', side_id: 'side-grechka' }));
+    expect(await screen.findByRole('button', { name: /Ужин: Котлеты/ })).toBeInTheDocument();
+  });
+
+  it('says the pot of soup gets shorter when one of its later days is replaced', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    render(<MemoryRouter><ToastProvider><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></ToastProvider></MemoryRouter>);
+    // Borscht stands for the whole week; Tuesday is its second day.
+    await userEvent.click(await screen.findByRole('button', { name: 'Заменить обед' }));
+    await userEvent.click(screen.getByRole('tab', { name: 'Все рецепты' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Уха/ }));
+    expect(await screen.findByText('Обед заменён. Борщ теперь на 1 день вместо 7, со среды — новая кастрюля.')).toBeInTheDocument();
   });
 });

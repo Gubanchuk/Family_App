@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { daysTo, dueDate, dueText, installmentNo, monthPayments, monthTotal, nextDue, nextUnpaid, shopSpend, shopUnpriced, spendByCategory, spendByMember } from './month';
+import { countText, daysTo, dueDate, dueText, installmentNo, monthPayments, monthTotal, nextDue, nextUnpaid, shopSpend, shopUnpriced, shortMonth, spendByCategory, spendByMember } from './month';
 import type { MoneyEntry, Payment, PaymentMark } from './types';
 
 const pay = (o: Partial<Payment>): Payment => ({ id: 'p', household_id: 'h', title: 'Интернет', amount: 650, day: 16, kind: 'monthly', total: null, first_month: null, note: '', created_by: null, updated_at: '', deleted_at: null, ...o });
@@ -74,5 +74,10 @@ describe('money month', () => {
     const entries = [entry({ amount: 1200 }), entry({ amount: 300, category: 'Дом' }), entry({ kind: 'income', amount: 90000 }), entry({ amount: 999, on_date: '2026-09-28' })];
     expect(monthTotal(entries, [pay({ id: 'p' })], [mark({ payment_id: 'p', amount: 650 })], '2026-10')).toBe(2150);
     expect(monthTotal(entries, [pay({ id: 'p' })], [mark({ payment_id: 'p', amount: 650 })], '2026-09')).toBe(999);
+  });
+  it('says what the number beside a category counts and names the month under a payment day', () => {
+    expect([countText('Обязательные', 3), countText('Обязательные', 1), countText('Продукты', 1), countText('Продукты', 4), countText('Дом', 11)])
+      .toEqual(['3 платежа', '1 платёж', '1 трата', '4 траты', '11 трат']);
+    expect([shortMonth('2026-10-16'), shortMonth('2026-05-01')]).toEqual(['окт', 'мая']);
   });
 });

@@ -76,7 +76,7 @@ describe('choosing and approving weeks', () => {
     unmount();
 
     render(<MemoryRouter><MenuPage me={papa} members={[papa, son]} db={db} today={TUESDAY} /></MemoryRouter>);
-    expect(await screen.findByText('За: Сын.')).toBeInTheDocument();
+    expect(await screen.findByText('Голос «за»: Сын.')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Утвердить' }));
     expect(await screen.findByText('Утверждено')).toBeInTheDocument();
   });
@@ -88,7 +88,7 @@ describe('choosing and approving weeks', () => {
     await db.votes.put({ week_id: 'w-next', member_id: 'm-new', household_id: 'h1', value: 'yes', comment: '', updated_at: 'x' });
     render(<MemoryRouter><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
     expect(await screen.findByText('Предложена неделя «Быстрая» на 19–25 октября')).toBeInTheDocument();
-    expect(screen.getByText(/За: кто-то из семьи\./)).toBeInTheDocument();
+    expect(screen.getByText(/Голос «за»: кто-то из семьи\./)).toBeInTheDocument();
   });
 
   it('confirms a set week with the list it built and a way to the shop', async () => {
@@ -126,5 +126,24 @@ describe('choosing and approving weeks', () => {
     expect(await screen.findByText(/Список покупок собран: \d+ продукт/)).toBeInTheDocument();
     expect(screen.queryByText(/ещё не выбрана/)).toBeNull();
   });
-});
 
+  it('shows a proposed week and offers another one with two separate buttons', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    await db.weeks.put({ id: 'w-next', household_id: 'h1', starts_on: '2026-10-19', template_id: 'quick', status: 'proposed', proposed_by: 'm-son', approved_by: null, updated_at: 'x', deleted_at: null });
+    await db.votes.bulkPut([
+      { week_id: 'w-next', member_id: 'm-son', household_id: 'h1', value: 'yes', comment: '', updated_at: 'x' },
+      { week_id: 'w-next', member_id: 'm-papa', household_id: 'h1', value: 'yes', comment: '', updated_at: 'x' },
+    ]);
+    await db.week_slots.bulkPut(templateDays('quick', 'mn-plov', 'sp-ukha').map(({ template_id: _t, ...s }): WeekSlot => ({ ...s, week_id: 'w-next', household_id: 'h1' })));
+    render(<MemoryRouter><MenuPage me={son} members={[papa, son]} db={db} today={TUESDAY} /></MemoryRouter>);
+    expect(await screen.findByText('Голоса «за»: Папа, Сын.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /или/ })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Посмотреть' }));
+    expect(await screen.findByRole('radio', { name: /Быстрая/ })).toHaveAttribute('aria-checked', 'true');
+    await userEvent.click(screen.getByRole('button', { name: 'Закрыть' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Другая неделя' }));
+    expect(await screen.findByRole('radio', { name: /Осенняя/ })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('button', { name: 'Предложить неделю «Осенняя»' })).toBeInTheDocument();
+  });
+});

@@ -50,6 +50,31 @@ export function soupOn(slots: SlotLike[], day: number) {
   return b ? { dish_id: b.dish_id, nth: day - b.from + 1, of: b.to - b.from + 1 } : null;
 }
 
+export const daysWord = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 'день' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'дня' : 'дней');
+const DAY_FROM = ['с понедельника', 'со вторника', 'со среды', 'с четверга', 'с пятницы', 'с субботы', 'с воскресенья'];
+
+// What replacing one lunch does to the pot of soup it was part of: the pot gets shorter, or the days after
+// the replaced one become a pot of their own. Null when the lunch was not in a pot of two days or more.
+export function potChange(slots: SlotLike[], day: number, dishId: string | null) {
+  const pot = soupOn(slots, day);
+  if (!pot || pot.of < 2 || pot.dish_id === dishId) return null;
+  const from = day - pot.nth + 1;
+  const to = from + pot.of - 1;
+  const parts = soupBatches(slots.map((s) => (s.meal === 'lunch' && s.day === day ? { ...s, dish_id: dishId } : s)))
+    .filter((b) => b.dish_id === pot.dish_id && b.from >= from && b.to <= to)
+    .map((b) => ({ from: b.from, days: b.to - b.from + 1 }));
+  return { dish_id: pot.dish_id, from, was: pot.of, parts };
+}
+
+// «Борщ теперь на 2 дня вместо 3», with the day it now starts from or where the second pot begins.
+export function potNote(c: NonNullable<ReturnType<typeof potChange>>, dish: string): string {
+  const [a, b] = c.parts;
+  if (!a) return '';
+  const start = a.from !== c.from ? `, ${DAY_FROM[a.from]}` : '';
+  const second = b ? `, ${DAY_FROM[b.from]} — новая кастрюля` : '';
+  return `${dish} теперь на ${a.days} ${daysWord(a.days)} вместо ${c.was}${start}${second}.`;
+}
+
 export function fitsMeal(r: { category: string; meals: string[] }, meal: Meal): boolean {
   if (meal === 'lunch') return r.category === 'soup';
   if (meal === 'dinner') return r.category === 'main';

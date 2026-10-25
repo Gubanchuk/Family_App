@@ -21,19 +21,18 @@ import { getMealTimes } from '../../lib/mealTimes';
 import { useToast } from '../shell/toastContext';
 import WeekSheet from './WeekSheet';
 import { setWeekFromTemplate } from './weekActions';
-import { dayOfWeek, MEAL_LABEL, MEALS, mondayOf, soupBatches, soupOn, weekLabel, addDaysIso, type Meal } from './week';
+import { dayOfWeek, daysWord, MEAL_LABEL, MEALS, mondayOf, soupBatches, soupOn, weekLabel, addDaysIso, type Meal } from './week';
 
 const DAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const DAY_NAME = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
-const daysWord = (n: number) => (n === 1 ? 'день' : n < 5 ? 'дня' : 'дней');
 
 export type MenuSheet =
   | { kind: 'meal'; day: number; meal: Meal }
   | { kind: 'dish'; dish_id: string }
   | { kind: 'slot'; day: number; meal: Meal }
   | { kind: 'day'; day: number }
-  | { kind: 'week'; mode: 'current' | 'next' }
+  | { kind: 'week'; mode: 'current' | 'next'; other?: boolean }
   | { kind: 'save' };
 
 export default function MenuPage({ me, members, db = localDb, today: fixedToday }: { me: Member; members: Member[]; db?: LocalDb; today?: Date }) {
@@ -103,7 +102,7 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
             {weekOffers.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} onOpen={() => setSheet({ kind: 'dish', dish_id: o.dish_id })} />)}
           </section>
         ) : null}
-        {data.next.week ? <NextWeekHero me={me} members={members} db={db} data={data} openWeek={() => setSheet({ kind: 'week', mode: 'next' })} /> : null}
+        {data.next.week ? <NextWeekHero me={me} members={members} db={db} data={data} openWeek={() => setSheet({ kind: 'week', mode: 'next' })} openOther={() => setSheet({ kind: 'week', mode: 'next', other: true })} /> : null}
         {sheet ? <SheetHost sheet={sheet} open={setSheet} close={closeSheet} propose={propose} me={me} members={members} db={db} data={data} today={dayOfWeek(today)} /> : null}
       </>
     );
@@ -145,7 +144,7 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
       {segs}
       {!data.next.week && current.week.status === 'approved' && dayOfWeek(today) < 3
         ? <CurrentWeekHero db={db} data={data} openNext={() => setSheet({ kind: 'week', mode: 'next' })} />
-        : <NextWeekHero me={me} members={members} db={db} data={data} openWeek={() => setSheet({ kind: 'week', mode: 'next' })} />}
+        : <NextWeekHero me={me} members={members} db={db} data={data} openWeek={() => setSheet({ kind: 'week', mode: 'next' })} openOther={() => setSheet({ kind: 'week', mode: 'next', other: true })} />}
       <section className="week-bar">
         <span className="row-main"><b>Сейчас: «{template?.name ?? 'своя неделя'}», {weekLabel(current.start)}</b><small>{template?.note ?? ''}</small></span>
         <button type="button" className="btn soft sm" onClick={() => setSheet({ kind: 'week', mode: parent ? 'current' : 'next' })}>{parent ? 'Сменить' : 'Предложить'}</button>
@@ -183,10 +182,10 @@ function SheetHost({ sheet, open, close, propose, me, db, data, today, onSaved }
   }
   if (sheet.kind === 'dish') return <MealSheet key={`dish-${sheet.dish_id}`} db={db} parts={{ dish_id: sheet.dish_id, side_id: null, salad_id: null, simple: null }} recipes={data.recipes} onClose={close} onReplace={null} />;
   if (sheet.kind === 'slot' && week) {
-    return <SlotSheet db={db} week={week} day={sheet.day} meal={sheet.meal} currentSlot={data.current.slots.find((s) => s.day === sheet.day && s.meal === sheet.meal)}
+    return <SlotSheet db={db} week={week} day={sheet.day} meal={sheet.meal} currentSlot={data.current.slots.find((s) => s.day === sheet.day && s.meal === sheet.meal)} slots={data.current.slots}
       recipes={data.recipes} templates={data.templates} editable={canEditWeek(me, week)} onPropose={propose} onClose={close} />;
   }
-  if (sheet.kind === 'week') return <WeekSheet db={db} mode={sheet.mode} me={me} data={data} today={today} onClose={close} />;
+  if (sheet.kind === 'week') return <WeekSheet db={db} mode={sheet.mode} other={sheet.other} me={me} data={data} today={today} onClose={close} />;
   if (sheet.kind === 'day' && week) return <DaySheet db={db} week={week} day={sheet.day} recipes={data.recipes} templates={data.templates} editable={canEditWeek(me, week)} onPropose={propose} onClose={close} />;
   return null;
 }

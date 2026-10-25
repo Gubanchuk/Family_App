@@ -244,6 +244,33 @@ describe('MoneyPage', () => {
     expect(within(chart).getAllByRole('button')).toHaveLength(6);
     await userEvent.click(within(chart).getByRole('button', { name: /^Сентябрь:\s*3\s400\s₽/ }));
     expect(await screen.findByRole('heading', { name: 'Деньги' })).toBeInTheDocument();
-    expect(screen.getByText(/^Сентябрь · видят только родители$/)).toBeInTheDocument();
+    // The month is named once, in the switcher; the subtitle only says who sees the page.
+    expect(within(screen.getByRole('group', { name: 'Месяц' })).getByText('Сентябрь')).toBeInTheDocument();
+    expect(screen.getByText('Видят только родители')).toBeInTheDocument();
+    expect(screen.queryByText(/Сентябрь · /)).toBeNull();
+  });
+
+  it('puts what was spent in the month first, income beside it, and labels every number', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.payments.bulkPut([
+      { id: 'p1', household_id: 'h', title: 'Аренда', amount: 45000, day: 1, kind: 'monthly', total: null, first_month: '2026-09', note: '', created_by: 'papa', updated_at: 'x', deleted_at: null },
+      { id: 'p2', household_id: 'h', title: 'Интернет', amount: 650, day: 16, kind: 'monthly', total: null, first_month: '2026-09', note: '', created_by: 'papa', updated_at: 'x', deleted_at: null },
+    ]);
+    await db.payment_marks.put({ payment_id: 'p1', month: '2026-10', household_id: 'h', paid: true, amount: 45000, paid_by: 'papa', paid_on: '2026-10-01', updated_at: 'x' });
+    await db.money_entries.bulkPut([
+      { id: 'e1', household_id: 'h', kind: 'expense', amount: 1200, category: 'Продукты', member_id: 'mama', on_date: '2026-10-10', note: '', created_by: 'mama', updated_at: 'x', deleted_at: null },
+      { id: 'i1', household_id: 'h', kind: 'income', amount: 185000, category: null, member_id: 'papa', on_date: '2026-10-05', note: 'Зарплата', created_by: 'papa', updated_at: 'x', deleted_at: null },
+    ]);
+    // Bought from the shopping list counts as spending too.
+    await db.shopping_items.put({ id: 'u:1', household_id: 'h', week_id: null, offer_id: null, source: 'manual', item: null, title: 'Молоко', qty: null, unit: null, qty_text: '', dept: 'Молочное и яйца', urgent: false, est_price: 95, added_by: 'mama', updated_at: 'x', deleted_at: null });
+    await db.shopping_marks.put({ item_id: 'u:1', household_id: 'h', bought: true, by_member: 'papa', price_real: 120, updated_at: '2026-10-12T09:00:00.000Z' });
+    render(<MemoryRouter><MoneyPage me={mama} members={[papa, mama]} db={db} today={OCT13} /></MemoryRouter>);
+    const sum = (await screen.findByText('Потрачено')).closest('.spend-top') as HTMLElement;
+    expect(sum).toHaveTextContent(/^Потрачено46\s320\s₽пришло 185\s000\s₽$/);
+    expect(screen.getByText('· 1 платёж')).toBeInTheDocument();
+    expect(screen.getByText('· 2 траты')).toBeInTheDocument();
+    // A payment's square is a date: day and month.
+    expect(screen.getByRole('button', { name: /^Интернет/ }).querySelector('.pay-day')).toHaveTextContent(/^16окт$/);
+    expect(screen.getByRole('button', { name: /^Все платежи/ })).toHaveTextContent('2 платежа, и те, что начнутся позже');
   });
 });

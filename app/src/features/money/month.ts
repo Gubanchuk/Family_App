@@ -12,6 +12,9 @@ const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', '�
 const GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 export const monthTitle = (key: string) => MONTHS[Number(key.slice(5, 7)) - 1];
 export const dayTitle = (iso: string) => `${Number(iso.slice(8, 10))} ${GEN[Number(iso.slice(5, 7)) - 1]}`;
+// The month under a payment's day in its square: «16» over «окт».
+const SHORT = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+export const shortMonth = (iso: string) => SHORT[Number(iso.slice(5, 7)) - 1];
 
 const lastDay = (key: string) => { const [y, m] = key.split('-').map(Number); return new Date(Date.UTC(y, m, 0)).getUTCDate(); };
 export const dueDate = (p: Payment, month: string) => `${month}-${pad(Math.min(p.day, lastDay(month)))}`;
@@ -72,7 +75,7 @@ export function nextDue(payments: Payment[], marks: PaymentMark[], today: string
 
 const dayNum = (iso: string) => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10))) / 86_400_000;
 export const daysTo = (today: string, due: string) => dayNum(due) - dayNum(today);
-const plural = (n: number, one: string, few: string, many: string) => (n % 10 === 1 && n % 100 !== 11 ? one : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? few : many);
+export const plural = (n: number, one: string, few: string, many: string) => (n % 10 === 1 && n % 100 !== 11 ? one : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? few : many);
 export function dueText(days: number) {
   if (days === 0) return 'сегодня';
   if (days === 1) return 'завтра';
@@ -132,6 +135,9 @@ export function shopUnpriced(items: ShoppingItem[], marks: ShoppingMark[], month
   }
   return out;
 }
+
+// What the number beside a category counts: paid payments under «Обязательные», separate spendings elsewhere.
+export const countText = (cat: string, n: number) => (cat === MANDATORY ? `${n} ${plural(n, 'платёж', 'платежа', 'платежей')}` : `${n} ${plural(n, 'трата', 'траты', 'трат')}`);
 
 // All spending of a month: expenses plus paid payments (income is not spending).
 export function monthTotal(entries: MoneyEntry[], payments: Payment[], marks: PaymentMark[], month: string) {

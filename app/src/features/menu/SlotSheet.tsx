@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react';
 import Sheet from './Sheet';
 import Icon from '../shell/Icon';
 import type { LocalDb, Recipe, TemplateSlot, Week, WeekSlot, WeekTemplate } from '../../data/db';
+import { useToast } from '../shell/toastContext';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { fitsMeal, MEAL_LABEL, type Meal } from './week';
+import { fitsMeal, MEAL_LABEL, potChange, potNote, type Meal, type SlotLike } from './week';
 import { replaceMeal } from './actions';
 import { blockedBy } from '../ideas/search';
 import { Locked } from './MealSheet';
@@ -21,9 +22,11 @@ export function lineOf(s: Pick<WeekSlot, 'dish_id' | 'side_id' | 'simple'> | und
   return side ? `${main} + ${side.charAt(0).toLowerCase()}${side.slice(1)}` : main;
 }
 
-export default function SlotSheet({ db, week, day, meal, currentSlot, recipes, templates, editable, onPropose, onClose }: {
-  db: LocalDb; week: Week; day: number; meal: Meal; currentSlot?: WeekSlot; recipes: Map<string, Recipe>; templates: WeekTemplate[]; editable: boolean; onPropose: () => void; onClose: () => void;
+// slots: the whole week, to tell when a replaced lunch makes a pot of soup shorter.
+export default function SlotSheet({ db, week, day, meal, currentSlot, slots = [], recipes, templates, editable, onPropose, onClose }: {
+  db: LocalDb; week: Week; day: number; meal: Meal; currentSlot?: WeekSlot; slots?: SlotLike[]; recipes: Map<string, Recipe>; templates: WeekTemplate[]; editable: boolean; onPropose: () => void; onClose: () => void;
 }) {
+  const toast = useToast();
   const [tab, setTab] = useState<'weeks' | 'all'>('weeks');
   const [tpl, setTpl] = useState(templates.find((t) => t.id !== week.template_id)?.id ?? templates[0]?.id);
   const [q, setQ] = useState('');
@@ -45,7 +48,15 @@ export default function SlotSheet({ db, week, day, meal, currentSlot, recipes, t
   if (!editable) {
     return <Sheet title={title} sub={`Сейчас: ${lineOf(currentSlot, recipes)}`} onClose={onClose} actions={<Locked onPropose={onPropose} />}>{null}</Sheet>;
   }
-  const pick = async (src: Parameters<typeof replaceMeal>[4]) => { await replaceMeal(db, week, day, meal, src); onClose(); };
+  // A replacement is confirmed with a way back to the dish that was there.
+  const pick = async (src: Parameters<typeof replaceMeal>[4]) => {
+    const before: WeekSlot = currentSlot ?? { week_id: week.id, household_id: week.household_id, day, meal, dish_id: null, side_id: null, salad_id: null, simple: null, updated_at: '' };
+    const pot = meal === 'lunch' ? potChange(slots, day, 'fromSlot' in src ? src.fromSlot.dish_id : src.recipe.id) : null;
+    await replaceMeal(db, week, day, meal, src);
+    onClose();
+    const note = pot ? potNote(pot, recipes.get(pot.dish_id)?.name ?? 'Суп') : '';
+    toast({ text: `${MEAL_LABEL[meal]} заменён.${note ? ` ${note}` : ''}`, action: { label: 'Отменить', run: () => { void replaceMeal(db, week, day, meal, { fromSlot: before }); } } });
+  };
   const shown = all.filter((r) => !q || r.name.toLowerCase().includes(q.trim().toLowerCase()));
 
   return (

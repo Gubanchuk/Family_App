@@ -27,7 +27,8 @@ export function CurrentWeekHero({ db, data, openNext }: { db: LocalDb; data: Non
   );
 }
 
-export default function NextWeekHero({ me, members, db, data, openWeek }: { me: Member; members: Member[]; db: LocalDb; data: NonNullable<ReturnType<typeof useMenu>>; openWeek: () => void }) {
+// openWeek shows the proposed week; openOther offers another one instead.
+export default function NextWeekHero({ me, members, db, data, openWeek, openOther = openWeek }: { me: Member; members: Member[]; db: LocalDb; data: NonNullable<ReturnType<typeof useMenu>>; openWeek: () => void; openOther?: () => void }) {
   const toast = useToast();
   const { next, templates } = data;
   const label = weekLabel(next.start);
@@ -51,16 +52,18 @@ export default function NextWeekHero({ me, members, db, data, openWeek }: { me: 
   return (
     <section className="hero" aria-label={`Неделя на ${label}`}>
       <h2>{by ? `${by.name}${by.id === me.id ? ' (вы)' : ''} предлагает неделю` : 'Предложена неделя'} «{t?.name ?? 'своя'}» на {label}</h2>
-      <p>{yes.length ? `За: ${yes.join(', ')}.` : 'Голосов пока нет.'}{complete ? '' : ' Неделя ещё загружается.'}</p>
+      <p>{yes.length ? `${yes.length === 1 ? 'Голос' : 'Голоса'} «за»: ${yes.join(', ')}.` : 'Голосов пока нет.'}{complete ? '' : ' Неделя ещё загружается.'}</p>
+      {/* The main action first, so it stays at the start of the row when the chips wrap. */}
       <div className="hero-chips">
         {approved ? <span className="hero-chip">Утверждено</span> : null}
-        <button type="button" className="hero-chip" onClick={openWeek}>{approved ? 'Посмотреть' : 'Посмотреть или другая'}</button>
         {!approved && complete && me.role === 'parent' ? <button type="button" className="hero-chip primary" onClick={async () => {
           await approveWeek(db, next.week!, me);
           const s = await weekListStats(db, next.week!.id);
           toast({ text: `Неделя на ${label} утверждена. Список покупок: ${s.count} ${products(s.count)} ≈\u00A0${rub(s.cost)}`, action: { label: 'К покупкам', to: `/shop?week=${next.week!.id}` } });
         }}>Утвердить</button> : null}
         {!approved && me.role !== 'parent' && !voted ? <button type="button" className="hero-chip primary" onClick={() => voteWeek(db, next.week!, me, 'yes')}><Icon name="check" />За</button> : null}
+        <button type="button" className="hero-chip" onClick={openWeek}>Посмотреть</button>
+        {approved ? null : <button type="button" className="hero-chip" onClick={openOther}>Другая неделя</button>}
       </div>
     </section>
   );

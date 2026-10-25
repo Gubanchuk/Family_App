@@ -25,12 +25,13 @@ function seasonal(templates: WeekTemplate[], start: string): string | undefined 
 }
 
 // today: this week's day number, so a week set after its Monday buys only for the days ahead.
-export default function WeekSheet({ db, mode, me, data, today, onClose }: { db: LocalDb; mode: 'current' | 'next'; me: Member; data: NonNullable<ReturnType<typeof useMenu>>; today: number; onClose: () => void }) {
+// other: opened to offer another week instead of the proposed one, so another template comes picked.
+export default function WeekSheet({ db, mode, other = false, me, data, today, onClose }: { db: LocalDb; mode: 'current' | 'next'; other?: boolean; me: Member; data: NonNullable<ReturnType<typeof useMenu>>; today: number; onClose: () => void }) {
   const target = mode === 'current' ? data.current : data.next;
   const hasDays = useFeature(db, 'listDays');
   const toast = useToast();
   // Until someone taps a template the default follows the data: templates may still be downloading when the sheet opens.
-  const [picked, setPick] = useState<string>();
+  const [picked, setPick] = useState<string | undefined>(() => (other ? data.templates.find((x) => x.id !== target.week?.template_id)?.id : undefined));
   const pick = picked ?? target.week?.template_id ?? seasonal(data.templates, target.start);
   const slots = useLiveQuery(() => (pick && pick !== NONE ? db.template_slots.where('template_id').equals(pick).toArray() : []), [db, pick]) ?? [];
   const costs = useLiveQuery(() => templateCosts(db), [db]);

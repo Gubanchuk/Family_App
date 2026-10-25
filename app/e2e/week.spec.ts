@@ -13,7 +13,7 @@ test('a week the son proposes and mom approves builds the same shopping list on 
 
   await tab(mom.page, 'Меню');
   await expect(mom.page.getByRole('heading', { name: /^Сын предлагает неделю/ })).toBeVisible();
-  await expect(mom.page.getByText('За: Сын.')).toBeVisible();
+  await expect(mom.page.getByText('Голос «за»: Сын.')).toBeVisible();
   await mom.page.getByRole('button', { name: 'Утвердить' }).click();
   await expect(mom.page.getByText('Утверждено')).toBeVisible();
 

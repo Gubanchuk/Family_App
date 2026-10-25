@@ -11,7 +11,7 @@ import { useToday } from '../../lib/useToday';
 import { rub } from '../shop/build';
 import { useMoney } from './useMoney';
 import { setPaid } from './moneyActions';
-import { dayTitle, daysTo, dueText, incomeOf, monthKey, monthPayments, monthTitle, monthTotal, nextDue, shiftMonth, shopSpend, shopUnpriced, spendByCategory, spendByMember } from './month';
+import { countText, dayTitle, daysTo, dueText, incomeOf, monthKey, monthPayments, monthTitle, monthTotal, nextDue, plural, shiftMonth, shopSpend, shopUnpriced, shortMonth, spendByCategory, spendByMember } from './month';
 import BudgetsSheet from './BudgetsSheet';
 import EntrySheet from './EntrySheet';
 import PaymentSheet from './PaymentSheet';
@@ -49,7 +49,7 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   // one opened by a link from elsewhere drops ?add from the address instead.
   const close = () => afterBackClose(() => (add && openedHere(state) ? navigate(-1) : setParams(month === current ? {} : { m: month }, { replace: true })));
   const head = (
-    <Header ask="money" title="Деньги" subtitle={`${monthTitle(month)} · видят только родители`}
+    <Header ask="money" title="Деньги" subtitle="Видят только родители"
       action={<button type="button" className="head-pill" onClick={() => openAdd('expense')}><Icon name="plus" />Расход</button>} />
   );
   if (!data) return head;
@@ -73,6 +73,7 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   const maxC = Math.max(1, ...cats.map((c) => c.sum));
   const byMember = [...spendByMember(entries, list, month).entries()].sort((a, b) => b[1] - a[1]);
   const maxM = Math.max(1, ...byMember.map(([, s]) => s));
+  const livePays = data.payments.filter((p) => !p.deleted_at).length;
   return (
     <>
       {head}
@@ -96,18 +97,23 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
         <div className="card-h"><h2>Платежи</h2><span className="note" style={{ margin: 0 }}>осталось {rub(total - paid)}</span></div>
         {list.map((x) => (
           <button type="button" className={`row meal-row pay-row ${x.paid ? 'paid' : ''}`} key={x.p.id} disabled={!!x.p.deleted_at} onClick={() => setOpen(x)}>
-            <span className="ico pay-day" style={{ ['--h' as string]: 'var(--k-money)' }} aria-hidden="true"><b>{Number(x.due.slice(8, 10))}</b></span>
+            <span className="ico pay-day" style={{ ['--h' as string]: 'var(--k-money)' }} aria-hidden="true"><b>{Number(x.due.slice(8, 10))}</b><small>{shortMonth(x.due)}</small></span>
             <span className="row-main"><b>{x.p.title}</b><small>{x.paid ? 'оплачено' : [x.no ? `${x.no} из ${x.p.total}` : '', month === current ? dueText(daysTo(todayIso, x.due)) : dayTitle(x.due)].filter(Boolean).join(' · ')}</small></span>
             <span className="amount">{rub(x.amount)}</span>
           </button>
         ))}
         {data.payments.some((p) => !p.deleted_at) ? (
-          <button type="button" className="row set-row" onClick={() => setAllPays(true)}><span className="row-main"><b>Все платежи</b><small>{data.payments.filter((p) => !p.deleted_at).length} · и те, что начнутся позже</small></span></button>
+          <button type="button" className="row set-row" onClick={() => setAllPays(true)}><span className="row-main"><b>Все платежи</b><small>{livePays} {plural(livePays, 'платёж', 'платежа', 'платежей')}, и те, что начнутся позже</small></span></button>
         ) : null}
         <button type="button" className="row set-row add-row" onClick={() => openAdd('payment')}><span className="row-main"><b>Добавить платёж</b><small>аренда, рассрочка, кружок</small></span></button>
       </section>
       <section className="card">
-        <div className="card-h"><h2>Расходы</h2><button type="button" className="more" onClick={() => setLines('income')}>пришло {rub(incomeOf(data.entries, month))}</button></div>
+        <div className="card-h"><h2>Расходы</h2></div>
+        {/* The month's spending first (payments and shopping included); what came in is the smaller link. */}
+        <div className="spend-top">
+          <span className="spend-sum"><small>Потрачено</small><b>{rub(monthTotal(entries, data.payments, data.marks, month))}</b></span>
+          <button type="button" className="more" onClick={() => setLines('income')}>пришло {rub(incomeOf(data.entries, month))}</button>
+        </div>
         {cats.length ? cats.map((c) => {
           const budget = budgetOf.get(c.cat);
           const over = budget !== undefined && c.sum > budget;
@@ -115,7 +121,7 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
           const body = (
             <>
               <div className="cat-top">
-                <span>{c.cat}{c.count ? <small> · {c.count}</small> : null}{unpriced.get(c.cat) ? <small> · ещё {unpriced.get(c.cat)} без цены</small> : null}</span>
+                <span>{c.cat}{c.count ? <small> · {countText(c.cat, c.count)}</small> : null}{unpriced.get(c.cat) ? <small> · ещё {unpriced.get(c.cat)} без цены</small> : null}</span>
                 <span className={`amount ${over ? 'over' : ''}`}>{rub(c.sum)}{budget ? <small> из {rub(budget)}</small> : null}</span>
               </div>
               <span className={`bar ${over ? 'over' : ''}`} style={{ ['--h' as string]: 'var(--k-money)', display: 'block' }} aria-hidden="true"><i style={{ width: `${share * 100}%` }} /></span>
@@ -127,7 +133,7 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
             ? <div className="cat" key={c.cat}>{body}</div>
             : <button type="button" className="cat cat-btn" key={c.cat} onClick={() => setLines(c.cat)}>{body}</button>;
         }) : <p className="note" style={{ margin: 0 }}>Расходов за {monthTitle(month).toLowerCase()} пока нет. «Расход» вверху — и они появятся здесь.</p>}
-        {data.budgetsReady ? <button type="button" className="row set-row add-row" onClick={() => setBudgeting(true)}><span className="row-main"><b>Бюджеты на месяц</b><small>{data.budgets.length ? `заданы для ${data.budgets.length}` : 'по категориям, по желанию'}</small></span></button> : null}
+        {data.budgetsReady ? <button type="button" className="row set-row add-row" onClick={() => setBudgeting(true)}><span className="row-main"><b>Бюджеты на месяц</b><small>{data.budgets.length ? `заданы для ${data.budgets.length} ${plural(data.budgets.length, 'категории', 'категорий', 'категорий')}` : 'по категориям, по желанию'}</small></span></button> : null}
       </section>
       <section className="card">
         <div className="card-h"><h2>По месяцам</h2></div>
