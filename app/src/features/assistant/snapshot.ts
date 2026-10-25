@@ -131,7 +131,10 @@ export async function buildSnapshot(db: LocalDb, me: Member, members: Member[], 
     const sum = open.reduce((s, i) => s + (i.est_price ?? 0), 0);
     const unpriced = open.filter((i) => i.est_price === null).length;
     out.push(`Список покупок — не куплено (${open.length}, примерно ${rubs(sum)}${unpriced ? `, без цены ${unpriced}` : ''}):`);
-    out.push(...capped(open.map((i) => `- ${i.title}${i.qty_text ? ` ${i.qty_text}` : ''}${i.est_price !== null ? ` · ~${rubs(i.est_price)}` : ''} · ${origin(i)}${i.urgent ? ' · срочно' : ''}`), LIST_MAX));
+    // «Поход»: the lines the family takes on the next trip to the shop.
+    const trip = open.filter((i) => i.in_trip);
+    if (trip.length) out.push(`В походе (ближайший поход в магазин): ${trip.length}, примерно ${rubs(trip.reduce((n, i) => n + (i.est_price ?? 0), 0))}. Такие строки помечены «в походе».`);
+    out.push(...capped(open.map((i) => `- ${i.title}${i.qty_text ? ` ${i.qty_text}` : ''}${i.est_price !== null ? ` · ~${rubs(i.est_price)}` : ''} · ${origin(i)}${i.urgent ? ' · срочно' : ''}${i.in_trip ? ' · в походе' : ''}`), LIST_MAX));
   }
   for (const t of active) out.push(`В магазине сейчас: ${name(t.member_id)} (с ${hhmm(new Date(t.started_at))}${t.label ? `, «${t.label}»` : ''}).`);
 
