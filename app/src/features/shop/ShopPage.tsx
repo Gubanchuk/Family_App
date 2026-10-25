@@ -28,6 +28,8 @@ import { buildCatalog } from './catalog';
 import { goods, pullToTrip, restoreLines, restoreRemoved, setInTrip, updateLine } from './tripActions';
 import LineSheet from './LineSheet';
 import { productOfLine } from './catalog';
+import { joinSame, partsText, samePrice, type Same } from './sameProduct';
+import SameSheet from './SameSheet';
 import { useFeature } from '../../data/useFeature';
 import { setListDays } from '../menu/weekActions';
 import { dayOfWeek } from '../menu/week';
@@ -54,6 +56,8 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const [picked, setPicked] = useState<Set<string>>(() => new Set());
   // Bought and at-home lines fold into one card at the bottom.
   const [showDone, setShowDone] = useState(false);
+  // A product listed more than once, opened to its parts.
+  const [same, setSame] = useState<Same | null>(null);
   const toast = useToast();
   const folds = useFolds();
   const hasDays = useFeature(db, 'listDays');
@@ -100,7 +104,10 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const origin = (i: ShoppingItem) => (i.source === 'menu' ? 'из меню' : i.source === 'offer' ? offered(i) : i.source === 'home' ? `закончилось дома · ${name(i.added_by)}` : hasTrip ? name(i.added_by) : `вручную · ${name(i.added_by)}`);
 
   // Urgent lines still to buy get their own card on top; once bought they go back to their department.
-  const urgent = inCart ? [] : shown.filter((i) => i.urgent && !closed(marks.get(i.id)));
+  const urgentOwn = inCart ? [] : shown.filter((i) => i.urgent && !closed(marks.get(i.id)));
+  // With the trip list, every open line of an urgent product joins it there, so the product shows once.
+  const urgentKeys = new Set(urgentOwn.map((i) => stockKey(i)));
+  const urgent = hasTrip ? shown.filter((i) => urgentKeys.has(stockKey(i)) && !closed(marks.get(i.id))) : urgentOwn;
   const urgentIds = new Set(urgent.map((i) => i.id));
   const row = (i: ShoppingItem) => {
     const m = marks.get(i.id);
@@ -202,6 +209,41 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const openList = list.filter((i) => !closed(marks.get(i.id)));
   const doneList = list.filter((i) => closed(marks.get(i.id)));
   const togglePick = (id: string) => setPicked((x) => { const n = new Set(x); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  // One row for a product listed more than once: one tick buys (or picks) all its parts; the name opens them.
+  const sameRow = (s: Same) => {
+    const first = s.lines[0];
+    const all = s.lines.every((l) => closed(marks.get(l.id)));
+    const price = samePrice(s, marks);
+    const parts = partsText(s, origin);
+    const meta = <span className="row-main"><b>{first.title}</b><small>{parts}</small></span>;
+    if (selecting) {
+      const on = s.lines.every((l) => picked.has(l.id));
+      return (
+        <div className={`row ${on ? 'picked' : ''}`} key={s.key}>
+          <button type="button" className="row-btn" aria-pressed={on} aria-label={`Выбрать: ${first.title}`}
+            onClick={() => setPicked((x) => { const n = new Set(x); for (const l of s.lines) { if (on) n.delete(l.id); else n.add(l.id); } return n; })}>
+            <span className="check pick" aria-hidden="true"><Icon name="check" /></span>{meta}
+          </button>
+          <span className="amount">{price !== null ? rub(price) : ''}</span>
+        </div>
+      );
+    }
+    const tickAll = async () => {
+      for (const l of s.lines) await setBought(db, l, me, !all, marks.get(l.id), hasHome && vocab ? { vocab } : undefined);
+      if (!all) toast({ text: `«${first.title}» — куплено`, action: { label: 'Вернуть', run: () => { void (async () => { for (const l of s.lines) await setBought(db, l, me, false, await db.shopping_marks.get(l.id)); })(); } } });
+    };
+    return (
+      <div className={`row ${all ? 'done' : ''}`} key={s.key}>
+        <button type="button" className="check-btn" aria-pressed={all} aria-label={`${first.title}, ${parts}`} onClick={tickAll}>
+          <span className="check" aria-hidden="true"><Icon name="check" /></span>
+        </button>
+        <button type="button" className="row-btn" aria-label={`${first.title}: открыть части`} onClick={() => setSame(s)}>{meta}</button>
+        <button type="button" className={`price-chip ${price === null ? 'empty' : ''}`} aria-label={`${first.title}: части и цены`} onClick={() => setSame(s)}>{price !== null ? rub(price) : '+ цена'}</button>
+      </div>
+    );
+  };
+  // Without the trip column the list keeps one row per line, as before.
+  const rows = (items: ShoppingItem[]) => (hasTrip ? joinSame(items, marks).map((s) => (s.lines.length === 1 ? row(s.lines[0]) : sameRow(s))) : items.map(row));
   const chosen = () => openList.filter((i) => picked.has(i.id));
   const finish = (text: string, run?: () => void) => { setSelecting(false); setPicked(new Set()); toast({ text, ...(run ? { action: { label: 'Вернуть', run } } : {}) }); };
   const buyPicked = async () => {
@@ -303,7 +345,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
           {urgent.length ? (
             <section className="card urgent-card" aria-label="Срочно">
               <div className="card-h"><h2>Срочно</h2>{hasTrip ? null : <span className="note" style={{ margin: 0 }}>{urgent.length}</span>}</div>
-              {urgent.map(row)}
+              {rows(urgent)}
             </section>
           ) : null}
           {groupByDept((hasTrip ? openList : list).filter((i) => !urgentIds.has(i.id)), marks).map((g) => {
@@ -321,7 +363,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
                   {/* Two short lines on the right, so the department name keeps the left side whole. */}
                   <span className="dept-meta"><span>{hasTrip ? `${g.items.length} ${goods(g.items.length)}` : folded ? (done ? 'всё куплено' : `осталось ${g.items.length - got}`) : `${got} из ${g.items.length}`}</span>{money ? <span>{money}</span> : null}</span>
                 </div>
-                {folded ? null : <div id={`${id}-rows`}>{g.items.map(row)}</div>}
+                {folded ? null : <div id={`${id}-rows`}>{rows(g.items)}</div>}
               </section>
             );
           })}
@@ -333,7 +375,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
                 </button></h2>
                 <span className="dept-meta"><span>{doneList.length} {goods(doneList.length)}</span>{totals.bought ? <span>{rub(totals.bought)}</span> : null}</span>
               </div>
-              {showDone ? <div id="done-rows">{groupByDept(doneList, marks).flatMap((g) => g.items).map(row)}</div> : null}
+              {showDone ? <div id="done-rows">{rows(groupByDept(doneList, marks).flatMap((g) => g.items))}</div> : null}
             </section>
           ) : null}
           {selecting ? (
@@ -367,6 +409,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
           cartLines={[...new Map(data.weeks.flatMap((w) => visibleItems(data.items, w.id, { weekStart: w.starts_on, marks, offers: data.offers })).map((i) => [i.id, i])).values()]}
           onStart={(c) => goShopping(db, me, today, c).then(() => setCartView(true))} onClose={() => setPicking(false)} />
       ) : null}
+      {same ? <SameSheet lines={same.lines} marks={marks} origin={origin} onOpen={(l) => { setSame(null); setSheet(l); }} onClose={() => setSame(null)} /> : null}
       {sheet && sheet !== 'add' && hasTrip ? (
         <LineSheet line={sheet} mark={marks.get(sheet.id)} product={productOfLine(sheet, catalog)} who={sheet.source === 'menu' ? '' : added(sheet.added_by)}
           onSave={(c) => updateLine(db, sheet, c, productOfLine(sheet, catalog))}

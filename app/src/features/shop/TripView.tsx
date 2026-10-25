@@ -15,6 +15,8 @@ import QtyStepper from './QtyStepper';
 import LineSheet from './LineSheet';
 import TripSheet from './TripSheet';
 import { useFolds } from './useFolds';
+import { joinSame, partsText, samePrice, type Same } from './sameProduct';
+import SameSheet from './SameSheet';
 import { formatAmount, formatShort, type LineUnit } from './units';
 
 const hhmm = (iso: string) => new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -34,6 +36,7 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
   const [pulling, setPulling] = useState(false);
   const [showRest, setShowRest] = useState(false);
   const [sheet, setSheet] = useState<ShoppingItem | null>(null);
+  const [same, setSame] = useState<Same | null>(null);
   const folds = useFolds();
   const { marks } = data;
   const shopping = !!mine;
@@ -150,6 +153,47 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
   ) : null;
   // In the shop a ticked line stays where it was, so the next one does not slide under the thumb; a department
   // that is all bought folds by itself.
+  // Where a line came from, for a product listed more than once.
+  const fromWhom = (l: ShoppingItem) => (l.source === 'menu' ? 'из меню' : l.source === 'home' ? 'закончилось дома' : name(l.added_by));
+  // One row for a product listed more than once: its parts under the name, one tick for all of them.
+  const sameRow = (s: Same) => {
+    const first = s.lines[0];
+    const all = s.lines.every((l) => marks.get(l.id)?.bought);
+    const price = samePrice(s, marks);
+    const parts = partsText(s, fromWhom);
+    const urgent = s.lines.some((l) => l.urgent);
+    const chip = (
+      <button type="button" className={`price-chip ${price === null ? 'empty' : ''}`} aria-label={`${first.title}: части и цены`} onClick={() => setSame(s)}>
+        {price !== null ? rub(price) : '+ цена'}
+      </button>
+    );
+    if (shopping) {
+      return (
+        <div className={`row trip-row ${all ? 'done' : ''}`} key={s.key}>
+          <button type="button" className="row-btn" aria-pressed={all} aria-label={`${first.title}, ${parts}${all ? ', в корзине' : ''}`}
+            onClick={async () => { for (const l of s.lines) await setBought(db, l, me, !all, marks.get(l.id), hasHome ? { vocab } : undefined); }}>
+            <span className="check" aria-hidden="true"><Icon name="check" /></span>
+            <span className="row-main"><b>{first.title}</b><small>{parts}</small></span>
+            {urgent && !all ? <span className="pill">срочно</span> : null}
+          </button>
+          {chip}
+        </div>
+      );
+    }
+    return (
+      <div className="row trip-row plan" key={s.key}>
+        <div className="trip-row-top">
+          <button type="button" className="row-btn" onClick={() => setSame(s)} aria-label={`${first.title}: ${parts}, открыть части`}>
+            <span className="row-main"><b>{first.title}</b><small>{parts}</small></span>
+            {urgent ? <span className="pill">срочно</span> : null}
+          </button>
+          {chip}
+        </div>
+      </div>
+    );
+  };
+  const rows = (items: ShoppingItem[]) => joinSame(items, marks).map((s) => (s.lines.length === 1 ? row(s.lines[0]) : sameRow(s)));
+
   const groups = groupByDept(lines, marks).map((g) => (shopping
     ? { ...g, items: [...g.items].sort((a, b) => Number(b.urgent) - Number(a.urgent) || a.title.localeCompare(b.title, 'ru')) }
     : g));
@@ -216,7 +260,7 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
               <h2 id={id}><button type="button" className="dept-toggle" aria-expanded={!folded} aria-controls={`${id}-rows`} onClick={() => folds.toggle(`trip:${g.dept}`, done)}>{g.dept}<Icon name="chev" /></button></h2>
               <span className="dept-meta"><span>{shopping ? `${got} из ${g.items.length}` : `${g.items.length} ${goods(g.items.length)}`}</span>{money ? <span>{money}</span> : null}</span>
             </div>
-            {folded ? null : <div id={`${id}-rows`}>{g.items.map(row)}</div>}
+            {folded ? null : <div id={`${id}-rows`}>{rows(g.items)}</div>}
           </section>
         );
       })}
@@ -229,6 +273,7 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
           onStart={async (c) => { if (c) { const ids = new Set(c.items.map((x) => x.id)); await takeAll(listLines.filter((l) => ids.has(l.id)), c.label || 'выбранное'); } }}
           onClose={() => setPulling(false)} />
       ) : null}
+      {same ? <SameSheet lines={same.lines} marks={marks} origin={fromWhom} onOpen={(l) => { setSame(null); setSheet(l); }} onClose={() => setSame(null)} /> : null}
       {sheet ? (
         <LineSheet line={sheet} mark={marks.get(sheet.id)} product={product(sheet)} who={sheet.source === 'menu' ? '' : name(sheet.added_by) ? `добавил(а) ${name(sheet.added_by)}` : ''}
           onSave={(c) => updateLine(db, sheet, c, product(sheet))}

@@ -131,4 +131,21 @@ describe('«Поход»', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Вернуть' }));
     await waitFor(async () => expect((await db.shopping_items.toArray()).filter((i) => i.source === 'menu' && i.week_id === 'w-cur' && !i.deleted_at).length).toBeGreaterThan(2));
   });
+
+  it('shows a product listed twice as one row; one tick buys both parts, the name opens them', async () => {
+    const db = await ready();
+    await db.shopping_items.put({ id: 'u:curd', household_id: 'h1', week_id: null, offer_id: null, source: 'manual', item: 'творог', title: 'Творог', qty: null, unit: null, qty_text: '2 пачки', dept: 'Молочное и яйца', urgent: false, est_price: null, added_by: 'm-mama', updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter initialEntries={['/shop?view=list']}><ToastProvider><ShopPage me={papa} members={[papa, mama]} db={db} today={TUESDAY} /></ToastProvider></MemoryRouter>);
+    const tick = await screen.findByRole('button', { name: /^Творог, .* \+ 2 пачки · Мама/ });
+    expect(screen.getAllByRole('button', { name: /^Творог: / })).toHaveLength(2);
+    await userEvent.click(screen.getByRole('button', { name: 'Творог: открыть части' }));
+    const parts = await screen.findByRole('dialog', { name: 'Творог' });
+    expect(within(parts).getAllByRole('button', { name: /: открыть$/ })).toHaveLength(2);
+    await userEvent.click(within(parts).getByRole('button', { name: 'Закрыть' }));
+    await userEvent.click(tick);
+    await waitFor(async () => {
+      expect((await db.shopping_marks.get('u:curd'))?.bought).toBe(true);
+      expect((await db.shopping_marks.get(menuItemId('w-cur', 'творог')))?.bought).toBe(true);
+    });
+  });
 });
