@@ -100,7 +100,7 @@ describe('board: who sees it and photos', () => {
     await db.wishes.put({ id: 'w1', household_id: 'h', owner_id: 'son', title: 'Велосипед', price: 25000, saved: 10500, done_at: null, created_by: 'son', updated_at: 'x', deleted_at: null });
     await db.goals.put({ id: 'g1', household_id: 'h', owner_id: 'son', title: 'Новый велосипед', target: 25000, saved: 8000, steps: [], created_by: 'son', updated_at: 'x', deleted_at: null });
     render(<MemoryRouter initialEntries={['/board?tab=wishes']}><BoardPage me={son} members={family} db={db} /></MemoryRouter>);
-    expect(await screen.findByText(/отдельно в цели: 8\s000\s₽/)).toBeInTheDocument();
+    expect(await screen.findByText(/и в цели 8\s000\s₽/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('tab', { name: 'Цели' }));
     expect(await screen.findByText(/Отдельно в хотелке «Велосипед»: 10\s500\s₽/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Добавить' }));
