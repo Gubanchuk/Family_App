@@ -6,7 +6,7 @@ import type { LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { useToast } from '../shell/toastContext';
 import { rub } from '../shop/build';
-import { putIn, removeWish, saveWish, takeBack, wishDone } from './boardActions';
+import { joinBanks, putIn, removeWish, saveWish, takeBack, wishDone } from './boardActions';
 import type { Deposit, Wish } from './types';
 import DepositHistory from './DepositHistory';
 import SeenBy, { seenToSave } from './SeenBy';
@@ -60,7 +60,12 @@ export default function WishSheet({ me, members, db, wish, deposits = [], banked
       <Sheet title={wish.title} sub={wish.price ? `${rub(wish.price)} · в копилке ${rub(inBank)}` : `в копилке ${rub(inBank)}`} onClose={onClose}
         actions={canEdit ? <div className="btns fill"><button type="button" className="btn soft" onClick={() => setEditing(true)}>Изменить</button><button type="button" className="btn" onClick={async () => { await wishDone(db, wish); toast({ text: `«${wish.title}» сбылось!` }); onClose(); }}>Сбылось</button></div> : undefined}>
         <Photo path={wish.photo_path} className="sheet-photo" />
-        {twin ? <div style={{ margin: '0 16px 12px' }}><TwinNote twin={twin} kind="goal" me={me} members={members} onOpen={onOpenTwin} /></div> : null}
+        {twin ? <div style={{ margin: '0 16px 12px' }}><TwinNote twin={twin} kind="goal" me={me} members={members} onOpen={onOpenTwin}
+          onJoin={canEdit ? async () => {
+            const r = await joinBanks(db, { kind: 'wish', id: wish.id }, { kind: 'goal', id: twin.id });
+            if (r) toast({ text: `Копилки объединены: +${rub(r.moved)}`, action: { label: 'Вернуть', run: () => { void r.undo(); } } });
+            onClose();
+          } : undefined} /></div> : null}
         {canPut ? (
           <form className="inline-add" style={{ margin: '0 16px' }} onSubmit={async (e) => { e.preventDefault(); const n = parseRub(sum); if (!n) return; await putIn(db, me, { wish }, n, ready); toast({ text: `В копилку +${rub(n)}` }); onClose(); }}>
             <label className="field">Положить в копилку, ₽<input inputMode="numeric" value={sum} onChange={(e) => setSum(e.target.value)} placeholder="1000" /></label>

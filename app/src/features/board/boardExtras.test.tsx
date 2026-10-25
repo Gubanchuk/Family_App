@@ -110,5 +110,27 @@ describe('board: who sees it and photos', () => {
     await userEvent.click(within(note).getByRole('button', { name: 'Открыть хотелку' }));
     expect(await screen.findByRole('dialog', { name: 'Велосипед' })).toBeInTheDocument();
   });
+
+  it('gathers the goal of the same thing into the open wish, with a way back', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await db.meta.put({ key: 'features', value: ['deposits'] });
+    await db.wishes.put({ id: 'w1', household_id: 'h', owner_id: 'son', title: 'Велосипед', price: null, saved: 2000, done_at: null, created_by: 'son', updated_at: 'x', deleted_at: null });
+    await db.goals.put({ id: 'g1', household_id: 'h', owner_id: 'son', title: 'Новый велосипед', target: 25000, saved: 5000, steps: [], created_by: 'son', updated_at: 'x', deleted_at: null });
+    await db.deposits.bulkPut([
+      { id: 'd1', household_id: 'h', wish_id: null, goal_id: 'g1', member_id: 'mama', amount: 3000, created_at: '2026-10-20T10:00:00Z', updated_at: 'x', deleted_at: null },
+      { id: 'd2', household_id: 'h', wish_id: null, goal_id: 'g1', member_id: 'son', amount: 700, created_at: '2026-10-20T10:00:00Z', updated_at: 'x', deleted_at: '2026-10-20T11:00:00Z' },
+    ]);
+    render(<MemoryRouter initialEntries={['/board?tab=wishes&wish=w1']}><BoardPage me={son} members={family} db={db} /></MemoryRouter>);
+    const sheet = await screen.findByRole('dialog', { name: 'Велосипед' });
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Объединить сюда' }));
+    expect(within(sheet).getByRole('note')).toHaveTextContent(/8\s000\s₽ из копилки «Новый велосипед» перейдут сюда, а цель удалится/);
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Объединить' }));
+    await waitFor(async () => {
+      expect((await db.wishes.get('w1'))?.saved).toBe(10000);
+      expect((await db.goals.get('g1'))?.deleted_at).not.toBeNull();
+    });
+    // The wish had no price: it takes the goal's target.
+    expect((await db.wishes.get('w1'))?.price).toBe(25000);
+  });
 });
 

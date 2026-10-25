@@ -76,3 +76,30 @@ export const takeBack = (db: LocalDb, d: Deposit) => writeLocal(db, 'deposits', 
 // The author may take a deposit back within a day (the server allows no more).
 export const canTakeBack = (d: Deposit, me: Member, now = Date.now()) => d.member_id === me.id && !d.deleted_at && (!d.created_at || now - Date.parse(d.created_at) < 23 * 3600_000);
 
+
+// A wish and a goal for the same thing become one piggy bank. Deposits never change on the server, so the other
+// item's whole sum (its old saved part and its deposits) joins the kept item's saved part, and the other item
+// is removed; its deposits stay with it. Returns the moved sum and a way back, or null when either is gone.
+type BankRef = { kind: 'wish' | 'goal'; id: string };
+export async function joinBanks(db: LocalDb, keep: BankRef, drop: BankRef): Promise<{ moved: number; undo: () => Promise<void> } | null> {
+  const row = (r: BankRef) => (r.kind === 'wish' ? db.wishes.get(r.id) : db.goals.get(r.id));
+  const [kept, dropped] = await Promise.all([row(keep), row(drop)]);
+  if (!kept || !dropped || kept.deleted_at || dropped.deleted_at) return null;
+  const deposits = (await db.deposits.where('household_id').equals(dropped.household_id).toArray())
+    .filter((d) => !d.deleted_at && (drop.kind === 'wish' ? d.wish_id : d.goal_id) === drop.id);
+  const moved = dropped.saved + deposits.reduce((s, d) => s + d.amount, 0);
+  const put = async (r: BankRef, x: Wish | Goal) => (r.kind === 'wish' ? writeLocal(db, 'wishes', [x as Wish]) : writeLocal(db, 'goals', [x as Goal]));
+  // A wish without a price takes the goal's target: the goal knew how much is needed.
+  const price = keep.kind === 'wish' && drop.kind === 'goal' && !(kept as Wish).price ? { price: (dropped as Goal).target } : {};
+  await put(keep, { ...kept, ...price, saved: Math.min(MAX_SAVED, kept.saved + moved) });
+  await put(drop, { ...dropped, deleted_at: now() });
+  return {
+    moved,
+    undo: async () => {
+      const k = await row(keep);
+      if (k) await put(keep, { ...k, ...('price' in price ? { price: (kept as Wish).price } : {}), saved: Math.max(0, k.saved - moved) });
+      const d = await row(drop);
+      if (d) await put(drop, { ...d, deleted_at: null });
+    },
+  };
+}

@@ -6,7 +6,7 @@ import type { LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { useToast } from '../shell/toastContext';
 import { rub } from '../shop/build';
-import { putIn, removeGoal, saveGoal, takeBack, toggleStep } from './boardActions';
+import { joinBanks, putIn, removeGoal, saveGoal, takeBack, toggleStep } from './boardActions';
 import type { Deposit, Goal, GoalStep } from './types';
 import DepositHistory from './DepositHistory';
 import PhotoField, { Photo } from '../shell/PhotoField';
@@ -41,7 +41,12 @@ export default function GoalSheet({ me, members, db, goal, deposits = [], banked
       <Sheet title={goal.title} sub={`${rub(banked ?? goal.saved)} из ${rub(goal.target)}`} onClose={onClose}
         actions={canEdit ? <button type="button" className="btn soft" onClick={() => setEditing(true)}>Изменить цель</button> : undefined}>
         <Photo path={goal.photo_path} className="sheet-photo" />
-        {twin ? <div style={{ margin: '0 16px 12px' }}><TwinNote twin={twin} kind="wish" me={me} members={members} onOpen={onOpenTwin} /></div> : null}
+        {twin ? <div style={{ margin: '0 16px 12px' }}><TwinNote twin={twin} kind="wish" me={me} members={members} onOpen={onOpenTwin}
+          onJoin={canEdit ? async () => {
+            const r = await joinBanks(db, { kind: 'goal', id: goal.id }, { kind: 'wish', id: twin.id });
+            if (r) toast({ text: `Копилки объединены: +${rub(r.moved)}`, action: { label: 'Вернуть', run: () => { void r.undo(); } } });
+            onClose();
+          } : undefined} /></div> : null}
         <div style={{ margin: '0 16px' }}>
           {goal.steps.map((s) => (
             <label className="row step" key={s.id}>
