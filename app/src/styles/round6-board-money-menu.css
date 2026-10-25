@@ -1,0 +1,19 @@
+/* Board, money and menu fixes after persona testing (round six). Loaded after components.css. */
+
+/* Board: «В покупки» keeps its label on one line; «В покупках» leads to the list. */
+.row > .need-btn { flex: none; white-space: nowrap; }
+.need-in-shop { flex: none; gap: 6px; white-space: nowrap; }
+.need-in-shop .ic { width: 18px; height: 18px; }
+
+/* Money: the month's spending comes first, what came in is the smaller link beside it. */
+.spend-top { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin: 0 0 6px; }
+.spend-top .spend-sum { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.spend-top .spend-sum small { color: var(--k-ink-2); font-size: 13px; }
+.spend-top .spend-sum b { font: 800 22px var(--font); letter-spacing: -0.015em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* The payment square is a date: the day above, the month under it. */
+.pay-day { align-content: center; gap: 0; line-height: 1; }
+.pay-day small { font-size: 10px; font-weight: 600; }
+
+/* Menu: all seven days fit the width of a phone, no sideways scroll. */
+.days:not(.sheet-days) { gap: 6px; overflow-x: visible; }
+.days:not(.sheet-days) > .day { flex: 1 1 0; min-width: 0; }

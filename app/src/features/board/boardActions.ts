@@ -57,8 +57,9 @@ export async function askFor(db: LocalDb, me: Member, r: { to_id: string; title:
 // Taking a tick back leaves the request taken when the family answers requests, waiting otherwise.
 export const setRequestDone = (db: LocalDb, r: Request, done: boolean, answers = false) =>
   writeLocal(db, 'requests', [{ ...r, status: done ? 'done' : answers ? 'accepted' : 'open', done_at: done ? now() : null }]);
-// The recipient's answer: «Хорошо» takes the request, «Не могу» declines it; either can change later.
-export const answerRequest = (db: LocalDb, r: Request, status: 'accepted' | 'declined') => writeLocal(db, 'requests', [{ ...r, status, done_at: null }]);
+// The recipient's answer: «Хорошо» takes the request, «Не могу» declines it, «Передумал» takes the answer
+// back and the request waits again; any of them can change later.
+export const answerRequest = (db: LocalDb, r: Request, status: 'accepted' | 'declined' | 'open') => writeLocal(db, 'requests', [{ ...r, status, done_at: null }]);
 export const cancelRequest = (db: LocalDb, r: Request) => writeLocal(db, 'requests', [{ ...r, status: 'cancelled' }]);
 
 // A deposit is its own row, so two phones putting money in at once both count. Until the server has

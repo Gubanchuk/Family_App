@@ -44,8 +44,14 @@ describe('things to buy', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Тёма' }));
     await userEvent.type(screen.getByLabelText('Пометка'), 'размер 37');
     await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Зимние ботинки: в покупки' }));
+    // The cart button says what it does; once the thing is on the list, the row says so and leads there.
+    const send = await screen.findByRole('button', { name: 'Зимние ботинки: в покупки' });
+    expect(send).toHaveTextContent('В покупки');
+    await userEvent.click(send);
     await waitFor(async () => expect(await db.shopping_items.get('n:' + (await db.needs.toArray())[0].id)).toMatchObject({ dept: 'Одежда и обувь' }));
-    expect(await screen.findByText(/в покупках/)).toBeInTheDocument();
+    const there = await screen.findByRole('link', { name: 'Зимние ботинки: в покупках, открыть список' });
+    expect(there).toHaveTextContent('В покупках');
+    expect(there).toHaveAttribute('href', '/shop');
+    expect(screen.queryByRole('button', { name: 'Зимние ботинки: в покупки' })).toBeNull();
   });
 });

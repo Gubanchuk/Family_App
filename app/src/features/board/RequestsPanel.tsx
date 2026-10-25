@@ -8,7 +8,7 @@ import { useToast } from '../shell/toastContext';
 import { answerRequest, cancelRequest, setRequestDone } from './boardActions';
 import { useFeature } from '../../data/useFeature';
 import { memberName } from './boardMath';
-import { answerText, mineAsked, mineToDo, whenText } from './requestText';
+import { answerText, changedMindWord, doneWord, mineAsked, mineToDo, takenText, whenText } from './requestText';
 import RequestSheet from './RequestSheet';
 import type { BoardData } from './useBoard';
 import type { Request } from './types';
@@ -19,9 +19,10 @@ export default function RequestsPanel({ me, members, db, data, adding, onAdded }
   const toast = useToast();
   const [cancel, setCancel] = useState<Request | null>(null);
   const answers = useFeature(db, 'requestAnswers');
-  const answer = async (r: Request, status: 'accepted' | 'declined') => {
+  const answer = async (r: Request, status: 'accepted' | 'declined' | 'open') => {
     await answerRequest(db, r, status);
-    toast({ text: `${memberName(members, r.from_id)} узнает: ${status === 'accepted' ? 'вы сделаете' : 'вы не можете'}.` });
+    const from = memberName(members, r.from_id);
+    toast({ text: status === 'open' ? `${from} снова ждёт вашего ответа.` : `${from} узнает: ${status === 'accepted' ? 'вы сделаете' : 'вы не можете'}.` });
   };
   const today = todayIso();
   const face = (id: string) => {
@@ -54,18 +55,32 @@ export default function RequestsPanel({ me, members, db, data, adding, onAdded }
               </div>
             );
           }
-          const done = r.status === 'done';
+          if (r.status === 'done') {
+            return (
+              <div className="row done" key={r.id}>
+                <button type="button" className="row-btn" aria-pressed="true" aria-label={`${r.title}: вернуть`} onClick={() => setRequestDone(db, r, false, answers)}>
+                  <span className="check" aria-hidden="true"><Icon name="check" /></span>
+                  {face(r.from_id)}
+                  <span className="row-main"><b>{r.title}</b><small>{memberName(members, r.from_id)} · сделано</small></span>
+                </button>
+              </div>
+            );
+          }
+          // Taken (or simply asked, before the family answers requests): the tick says what it does, and a
+          // taken request can go back to waiting for the answer.
           return (
-            <div className={`row ${done ? 'done' : ''}`} key={r.id}>
-              <button type="button" className="row-btn" aria-pressed={done} aria-label={`${r.title}: ${done ? 'вернуть' : 'сделано'}`} onClick={async () => {
-                await setRequestDone(db, r, !done, answers);
-                if (!done) toast({ text: `Готово: ${r.title}. ${memberName(members, r.from_id)} узнает.` });
-              }}>
-                <span className="check" aria-hidden="true"><Icon name="check" /></span>
-                {face(r.from_id)}
-                <span className="row-main"><b>{r.title}</b><small>{memberName(members, r.from_id)} · {whenText(r.due_on, today)}</small></span>
-                {r.urgent && !done ? <span className="pill">срочно</span> : null}
-              </button>
+            <div className="row ask" key={r.id}>
+              {face(r.from_id)}
+              <span className="row-main"><b>{r.title}</b><small>{memberName(members, r.from_id)} · {whenText(r.due_on, today)}{r.urgent ? <span className="pill inline">срочно</span> : null}</small>
+                {answers ? <small className="req-taken">{takenText(me)}</small> : null}
+                <span className="btns ask-btns">
+                  <button type="button" className="btn sm" aria-label={`${r.title}: ${doneWord(me).toLowerCase()}`} onClick={async () => {
+                    await setRequestDone(db, r, true, answers);
+                    toast({ text: `Готово: ${r.title}. ${memberName(members, r.from_id)} узнает.` });
+                  }}><Icon name="check" />{doneWord(me)}</button>
+                  {answers ? <button type="button" className="btn soft sm" aria-label={`${r.title}: ${changedMindWord(me).toLowerCase()}`} onClick={() => answer(r, 'open')}>{changedMindWord(me)}</button> : null}
+                </span>
+              </span>
             </div>
           );
         }) : <p className="note" style={{ margin: 0 }}>Вас ни о чём не просили.</p>}

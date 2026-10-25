@@ -1,3 +1,5 @@
+import { byKin } from '../family/kin';
+import type { Member } from '../family/useFamily';
 import type { Request } from './types';
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
@@ -31,3 +33,12 @@ export function answerText(r: Request, today: string, answers: boolean): string 
   if (r.status === 'accepted') return `сделает · ${whenText(r.due_on, today)}`;
   return answers ? `ждёт ответа · ${whenText(r.due_on, today)}` : whenText(r.due_on, today);
 }
+
+// What the recipient sees on a request they took: that the answer counts and what is left to do.
+// A child is spoken to as «ты», adults as «вы».
+export function takenText(me: Pick<Member, 'role' | 'kin'>): string {
+  return me.role === 'child' ? `Ты ${byKin(me, 'взялся', 'взялась', 'взялся')} · отметь, когда сделаешь` : 'Вы взялись · отметьте, когда сделаете';
+}
+// The recipient's own buttons speak in the first person: «Сделал», «Сделала», «Сделал(а)».
+export const doneWord = (me: Pick<Member, 'kin'>) => byKin(me, 'Сделал', 'Сделала');
+export const changedMindWord = (me: Pick<Member, 'kin'>) => byKin(me, 'Передумал', 'Передумала');

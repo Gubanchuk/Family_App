@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Link } from 'react-router-dom';
 import type { LocalDb } from '../../data/db';
 import AvatarFace from '../family/AvatarFace';
 import { memberColor } from '../family/colors';
@@ -29,7 +30,7 @@ export default function NeedsPanel({ me, members, db, data, adding, onAdded }: {
   const bought = rows.filter((r) => r.state === 'bought');
   const line = (n: Need, state: string) => {
     const who = members.find((m) => m.id === n.for_id);
-    const sub = [who ? who.name : 'для дома', n.note, n.due_on ? by(n.due_on) : '', n.price ? `≈ ${rub(n.price)}` : '', seenLine(n.visible_to, members) ?? '', state === 'in-shop' ? 'в покупках' : ''].filter(Boolean).join(' · ');
+    const sub = [who ? who.name : 'для дома', n.note, n.due_on ? by(n.due_on) : '', n.price ? `≈ ${rub(n.price)}` : '', seenLine(n.visible_to, members) ?? ''].filter(Boolean).join(' · ');
     return (
       <div className={`row ${state === 'bought' ? 'done' : ''}`} key={n.id}>
         <button type="button" className="row-btn" aria-label={`${n.title}, изменить`} onClick={() => setOpen(n)}>
@@ -37,11 +38,13 @@ export default function NeedsPanel({ me, members, db, data, adding, onAdded }: {
           <span className="row-main"><b>{n.title}</b><small>{sub}</small></span>
         </button>
         {state === 'todo' ? (
-          <button type="button" className="btn soft sm" aria-label={`${n.title}: в покупки`} onClick={async () => {
+          <button type="button" className="btn soft sm need-btn" aria-label={`${n.title}: в покупки`} onClick={async () => {
             const r = await sendNeedToShop(db, me, n, who?.name ?? null);
             toast({ text: r === 'added' ? `«${n.title}» в списке покупок` : 'Уже в списке покупок', action: { label: 'К покупкам', to: '/shop' } });
-          }}><Icon name="cart" /></button>
+          }}><Icon name="cart" />В покупки</button>
         ) : null}
+        {/* Already on the list: says so and leads there. */}
+        {state === 'in-shop' ? <Link className="more need-in-shop" to="/shop" aria-label={`${n.title}: в покупках, открыть список`}><Icon name="check" />В покупках</Link> : null}
       </div>
     );
   };

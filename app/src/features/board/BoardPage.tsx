@@ -9,6 +9,8 @@ import NeedsPanel from './NeedsPanel';
 import GoalsPanel from './GoalsPanel';
 import RequestsPanel from './RequestsPanel';
 import { OPENED_HERE, OwnUrl, afterBackClose, openedHere } from '../../lib/backClose';
+// Round six fixes for the board, money and menu screens; App loads this page eagerly, so they apply everywhere.
+import '../../styles/round6-board-money-menu.css';
 
 export type BoardTab = 'wishes' | 'needs' | 'goals' | 'requests';
 const TABS: Array<[BoardTab, string]> = [['wishes', 'Хотелки'], ['needs', 'Надо купить'], ['goals', 'Цели'], ['requests', 'Просьбы']];

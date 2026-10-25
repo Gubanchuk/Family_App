@@ -12,6 +12,14 @@ export const KIN_FOR: Record<Member['role'], Kin[]> = {
   child: ['son', 'daughter'],
 };
 
+// A past-tense word fitted to the person: «взялся» or «взялась». Nobody said who they are: both forms
+// («Сделал(а)») or the given fallback.
+const FEMALE: Kin[] = ['mother', 'grandmother', 'daughter'];
+export function byKin(m: Pick<Member, 'kin'> | undefined, masc: string, fem: string, unknown = `${masc}(а)`): string {
+  if (!m?.kin) return unknown;
+  return FEMALE.includes(m.kin) ? fem : masc;
+}
+
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 export const kinTitle = (k: Kin) => cap(KIN_WORD[k]);
 
