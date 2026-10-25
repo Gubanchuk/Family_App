@@ -11,7 +11,7 @@ export function offerSub(o: DishOffer, me: Member, members: Member[]): string {
   if (o.from_member === me.id) return `вы предложили · кому: ${o.to_member ? name(o.to_member) : 'всем'} · ${MEAL_FOR[o.meal]}`;
   if (o.to_member === me.id) return `${name(o.from_member)} просит ${MEAL_FOR[o.meal]}, ${how}`;
   // Addressed to someone else: say whom, not «всем».
-  if (o.to_member) return `${name(o.from_member)} просит ${name(o.to_member)} ${MEAL_FOR[o.meal]}, ${how}`;
+  if (o.to_member) return `${name(o.from_member)} предлагает · кому: ${name(o.to_member)} · ${MEAL_FOR[o.meal]}, ${how}`;
   return `${name(o.from_member)} предлагает всем ${MEAL_FOR[o.meal]}, ${how}`;
 }
 
