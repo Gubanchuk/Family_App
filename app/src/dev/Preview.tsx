@@ -77,6 +77,7 @@ async function seed() {
     await db.votes.put({ week_id: 'p-next', member_id: 'p-son', household_id: 'p-home', value: 'yes', comment: '', updated_at: now });
     const today = addDaysIso(start, dayOfWeek(new Date()));
     await db.dish_offers.put({ id: 'p-offer', household_id: 'p-home', from_member: 'p-mama', to_member: 'p-papa', dish_id: 'ex-shakshuka', on_date: today, meal: 'dinner', how: 'over', status: 'open', taken_by: null, updated_at: now, deleted_at: null });
+    await db.dish_offers.put({ id: 'p-offer-mine', household_id: 'p-home', from_member: 'p-papa', to_member: null, dish_id: 'br-oladi-kabachki', on_date: today, meal: 'breakfast', how: 'instead', status: 'open', taken_by: null, updated_at: now, deleted_at: null });
     await db.shopping_items.put({ id: 'u:p-milk', household_id: 'p-home', week_id: null, offer_id: null, source: 'manual', item: 'молоко', title: 'Молоко', qty: null, unit: null, qty_text: '2 л', dept: 'Молочное и яйца', urgent: true, est_price: null, added_by: 'p-mama', updated_at: now, deleted_at: null });
     // The board, as in the chosen mockups.
     const h = 'p-home';

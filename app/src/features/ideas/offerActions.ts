@@ -3,7 +3,7 @@ import type { DishOffer, LocalDb, ShoppingItem } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { addDaysIso, dayOfWeek, mondayOf, type Meal } from '../menu/week';
 import { buildMenuList, formatQty } from '../shop/build';
-import { capitalize } from '../shop/menuList';
+import { capitalize, regenerateWeekList } from '../shop/menuList';
 
 export const MEAL_FOR: Record<Meal, string> = { breakfast: 'на завтрак', lunch: 'на обед', snack: 'на полдник', dinner: 'на ужин' };
 export const COLLECTIONS = [
@@ -34,13 +34,55 @@ export async function createOffer(db: LocalDb, a: { me: Member; to: string | nul
     taken_by: a.cookMyself ? a.me.id : null, updated_at: '', deleted_at: null,
   };
   await writeLocal(db, 'dish_offers', [offer]);
-  if (a.cookMyself) await addOfferItems(db, offer);
+  if (a.cookMyself) { await addOfferItems(db, offer); await relistWeek(db, offer); }
   return offer;
 }
 
 export async function takeOffer(db: LocalDb, offer: DishOffer, me: Member) {
   await writeLocal(db, 'dish_offers', [{ ...offer, status: 'taken', taken_by: me.id }]);
   await addOfferItems(db, offer);
+  await relistWeek(db, offer);
+}
+
+// Whoever offered a dish can take the offer back: it leaves every phone, and so do its lines not bought yet.
+// Returns the way back for «Вернуть».
+export async function cancelOffer(db: LocalDb, offer: DishOffer): Promise<() => Promise<void>> {
+  await writeLocal(db, 'dish_offers', [{ ...offer, deleted_at: new Date().toISOString() }]);
+  return afterExit(db, offer);
+}
+
+// The cook backs out of someone else's offer: it is open again for the family, its lines leave the list.
+export async function leaveOffer(db: LocalDb, offer: DishOffer): Promise<() => Promise<void>> {
+  await writeLocal(db, 'dish_offers', [{ ...offer, status: 'open', taken_by: null }]);
+  return afterExit(db, offer);
+}
+
+async function afterExit(db: LocalDb, offer: DishOffer): Promise<() => Promise<void>> {
+  const dropped = await dropOfferItems(db, offer);
+  await relistWeek(db, offer);
+  return async () => {
+    await writeLocal(db, 'dish_offers', [offer]);
+    if (dropped.length) await writeLocal(db, 'shopping_items', dropped);
+    await relistWeek(db, offer);
+  };
+}
+
+// Lines of an offer nobody cooks any more, except those already bought. Returns them as they were.
+async function dropOfferItems(db: LocalDb, offer: DishOffer): Promise<ShoppingItem[]> {
+  const lines = (await db.shopping_items.where('household_id').equals(offer.household_id).toArray()).filter((i) => i.offer_id === offer.id && !i.deleted_at);
+  const marks = await db.shopping_marks.bulkGet(lines.map((i) => i.id));
+  const open = lines.filter((_, k) => !marks[k]?.bought);
+  const now = new Date().toISOString();
+  if (open.length) await writeLocal(db, 'shopping_items', open.map((i) => ({ ...i, deleted_at: now })));
+  return open;
+}
+
+// A dish taken «instead» takes the menu dish's products off its week's list; they come back when it goes.
+async function relistWeek(db: LocalDb, offer: DishOffer) {
+  if (offer.how !== 'instead') return;
+  const [y, m, d] = offer.on_date.split('-').map(Number);
+  const week = await db.weeks.where('[household_id+starts_on]').equals([offer.household_id, mondayOf(new Date(y, m - 1, d))]).filter((w) => !w.deleted_at).first();
+  if (week) await regenerateWeekList(db, week.id);
 }
 
 export async function declineOffer(db: LocalDb, offer: DishOffer) {

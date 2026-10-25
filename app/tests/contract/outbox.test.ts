@@ -10,7 +10,7 @@ import { replaceMeal } from '../../src/features/menu/actions';
 import { approveWeek, setWeekFromTemplate, voteWeek } from '../../src/features/menu/weekActions';
 import { saveWeekAsTemplate } from '../../src/features/menu/saveTemplate';
 import { addManualItem, goShopping, setBought } from '../../src/features/shop/shopActions';
-import { createOffer, takeOffer } from '../../src/features/ideas/offerActions';
+import { cancelOffer, createOffer, leaveOffer, takeOffer } from '../../src/features/ideas/offerActions';
 import { pgClient } from './pgClient';
 
 const PAPA = '00000000-0000-0000-0000-0000000000f1';
@@ -62,7 +62,8 @@ describe('every change the app queues is accepted by the real schema', { timeout
     const r2 = await pushOutbox(s, pgClient(pg, SON) as never);
     expect(r2.rejected).toEqual([]);
 
-    await p.weeks.put((await asUser(pg, PAPA, 'select * from public.weeks where id = $1', [next.id])).rows[0] as never);
+    // PostgREST hands dates to phones as text; PGlite gives a Date.
+    await p.weeks.put({ ...(await asUser(pg, PAPA, 'select * from public.weeks where id = $1', [next.id])).rows[0] as object, starts_on: '2026-10-19' } as never);
     await p.week_slots.bulkPut((await asUser(pg, PAPA, 'select * from public.week_slots where week_id = $1', [next.id])).rows as never[]);
     await approveWeek(p, (await p.weeks.get(next.id))!, papa);
     await takeOffer(p, { ...offer }, papa);
@@ -71,5 +72,17 @@ describe('every change the app queues is accepted by the real schema', { timeout
     expect(await count("select count(*) as n from public.dish_offers where status = 'taken'")).toBe(1);
     expect(await count("select count(*) as n from public.shopping_items where source = 'offer'")).toBeGreaterThan(0);
     expect(await count("select count(*) as n from public.weeks where status = 'approved'")).toBe(2);
+
+    // Backing out, its undo and taking an offer back are plain updates the schema accepts.
+    const undo = await leaveOffer(p, (await p.dish_offers.get(offer.id))!);
+    expect((await pushOutbox(p, pgClient(pg, PAPA) as never)).rejected).toEqual([]);
+    expect(await count("select count(*) as n from public.dish_offers where status = 'open' and taken_by is null")).toBe(1);
+    expect(await count("select count(*) as n from public.shopping_items where source = 'offer' and deleted_at is null")).toBe(0);
+    await undo();
+    expect((await pushOutbox(p, pgClient(pg, PAPA) as never)).rejected).toEqual([]);
+    expect(await count("select count(*) as n from public.shopping_items where source = 'offer' and deleted_at is null")).toBeGreaterThan(0);
+    await cancelOffer(p, (await p.dish_offers.get(offer.id))!);
+    expect((await pushOutbox(p, pgClient(pg, PAPA) as never)).rejected).toEqual([]);
+    expect(await count('select count(*) as n from public.dish_offers where deleted_at is not null')).toBe(1);
   });
 });

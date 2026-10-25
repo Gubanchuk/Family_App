@@ -9,7 +9,7 @@ import Icon from '../shell/Icon';
 import { localDb, type LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import { getMealTimes } from '../../lib/mealTimes';
-import { dayOfWeek, MEAL_LABEL, MEALS, soupOn, type Meal } from '../menu/week';
+import { dayOfWeek, MEAL_LABEL, MEALS, soupOn, soupTest, type Meal } from '../menu/week';
 import MealSheet from '../menu/MealSheet';
 import { DishThumb } from '../menu/DishPhoto';
 import { canEditWeek } from '../menu/actions';
@@ -73,7 +73,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
     const sw = swapOf(m);
     if (sw) return name(sw.dish_id);
     const s = slot(m);
-    if (m === 'lunch') { const pot = soupOn(data.slots, d); if (pot) return `${name(pot.dish_id)}${pot.of > 1 ? `, ${pot.nth}-й день из ${pot.of}` : ''}`; }
+    if (m === 'lunch') { const pot = soupOn(data.slots, d, soupTest(data.recipes)); if (pot) return `${name(pot.dish_id)}${pot.of > 1 ? `, ${pot.nth}-й день из ${pot.of}` : ''}`; }
     if (m === 'snack' && !s?.dish_id && s?.simple) return s.simple.simple;
     return [name(s?.dish_id), s?.side_id ? lower(name(s.side_id)) : ''].filter(Boolean).join(' + ');
   };
@@ -86,7 +86,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
     const sw = swapOf(m);
     if (sw) return { dish_id: sw.dish_id, side_id: null, salad_id: null, simple: null };
     const s = slot(m);
-    const pot = m === 'lunch' ? soupOn(data.slots, d) : null;
+    const pot = m === 'lunch' ? soupOn(data.slots, d, soupTest(data.recipes)) : null;
     return { dish_id: pot?.dish_id ?? s?.dish_id ?? null, side_id: s?.side_id ?? null, salad_id: s?.salad_id ?? null, simple: s?.simple ?? null };
   };
   // Today's meals open their recipe; an empty one goes to the menu to be chosen.
@@ -115,7 +115,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const who = (id: string) => members.find((m) => m.id === id)?.name ?? 'Кто-то';
   // The dish asked for on top is not repeated under «Сегодня едим»; other offers stay there.
   const listed = data.offers.filter((o) => main.kind !== 'offer' || o.id !== main.offer.id);
-  const offerRows = listed.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} onOpen={() => setDish(o.dish_id)} />);
+  const offerRows = listed.map((o) => <OfferRow key={o.id} db={db} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} onOpen={() => setDish(o.dish_id)} />);
 
   return (
     <>

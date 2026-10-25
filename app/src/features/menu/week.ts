@@ -31,9 +31,10 @@ export function weekLabel(start: string): string {
     : `${a.getDate()} ${MONTHS[a.getMonth()]} – ${b.getDate()} ${MONTHS[b.getMonth()]}`;
 }
 
-export function soupBatches(slots: SlotLike[]): Array<{ dish_id: string; from: number; to: number }> {
+// isSoup: a lunch may now be any dish; only soups make a pot. Without it every lunch counts as a soup.
+export function soupBatches(slots: SlotLike[], isSoup?: (id: string) => boolean): Array<{ dish_id: string; from: number; to: number }> {
   const byDay = new Map<number, string | null>();
-  slots.filter((s) => s.meal === 'lunch').forEach((s) => byDay.set(s.day, s.dish_id));
+  slots.filter((s) => s.meal === 'lunch').forEach((s) => byDay.set(s.day, s.dish_id && (!isSoup || isSoup(s.dish_id)) ? s.dish_id : null));
   const out: Array<{ dish_id: string; from: number; to: number }> = [];
   for (let d = 0; d < 7; d += 1) {
     const id = byDay.get(d) ?? null;
@@ -45,8 +46,8 @@ export function soupBatches(slots: SlotLike[]): Array<{ dish_id: string; from: n
   return out;
 }
 
-export function soupOn(slots: SlotLike[], day: number) {
-  const b = soupBatches(slots).find((x) => day >= x.from && day <= x.to);
+export function soupOn(slots: SlotLike[], day: number, isSoup?: (id: string) => boolean) {
+  const b = soupBatches(slots, isSoup).find((x) => day >= x.from && day <= x.to);
   return b ? { dish_id: b.dish_id, nth: day - b.from + 1, of: b.to - b.from + 1 } : null;
 }
 
@@ -55,12 +56,12 @@ const DAY_FROM = ['с понедельника', 'со вторника', 'со 
 
 // What replacing one lunch does to the pot of soup it was part of: the pot gets shorter, or the days after
 // the replaced one become a pot of their own. Null when the lunch was not in a pot of two days or more.
-export function potChange(slots: SlotLike[], day: number, dishId: string | null) {
-  const pot = soupOn(slots, day);
+export function potChange(slots: SlotLike[], day: number, dishId: string | null, isSoup?: (id: string) => boolean) {
+  const pot = soupOn(slots, day, isSoup);
   if (!pot || pot.of < 2 || pot.dish_id === dishId) return null;
   const from = day - pot.nth + 1;
   const to = from + pot.of - 1;
-  const parts = soupBatches(slots.map((s) => (s.meal === 'lunch' && s.day === day ? { ...s, dish_id: dishId } : s)))
+  const parts = soupBatches(slots.map((s) => (s.meal === 'lunch' && s.day === day ? { ...s, dish_id: dishId } : s)), isSoup)
     .filter((b) => b.dish_id === pot.dish_id && b.from >= from && b.to <= to)
     .map((b) => ({ from: b.from, days: b.to - b.from + 1 }));
   return { dish_id: pot.dish_id, from, was: pot.of, parts };
@@ -74,6 +75,9 @@ export function potNote(c: NonNullable<ReturnType<typeof potChange>>, dish: stri
   const second = b ? `, ${DAY_FROM[b.from]} — новая кастрюля` : '';
   return `${dish} теперь на ${a.days} ${daysWord(a.days)} вместо ${c.was}${start}${second}.`;
 }
+
+// A recipe the phone does not have yet counts as a soup, as every lunch did before any dish could stand there.
+export const soupTest = (recipes: Map<string, { category: string }>) => (id: string) => (recipes.get(id)?.category ?? 'soup') === 'soup';
 
 export function fitsMeal(r: { category: string; meals: string[] }, meal: Meal): boolean {
   if (meal === 'lunch') return r.category === 'soup';

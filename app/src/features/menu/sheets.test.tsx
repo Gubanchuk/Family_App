@@ -4,7 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import ToastProvider from '../shell/Toast';
 import { describe, expect, it } from 'vitest';
-import { createLocalDb } from '../../data/db';
+import { createLocalDb, type DishOffer } from '../../data/db';
+import { regenerateWeekList, menuItemId } from '../shop/menuList';
 import type { Member } from '../family/useFamily';
 import MenuPage from './MenuPage';
 import { seedMenu } from './testData';
@@ -150,7 +151,7 @@ describe('replace sheets', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Заменить ужин' }));
     await userEvent.click(screen.getByRole('button', { name: 'Быстрая' }));
     await userEvent.click(await screen.findByRole('button', { name: /Пт · Плов/ }));
-    const toast = (await screen.findByText('Ужин заменён.')).closest('.toast') as HTMLElement;
+    const toast = (await screen.findByText('Ужин заменён. Покупки пересчитаны.')).closest('.toast') as HTMLElement;
     await waitFor(async () => expect((await db.week_slots.get(['w-cur', 1, 'dinner']))?.dish_id).toBe('mn-plov'));
     await userEvent.click(within(toast).getByRole('button', { name: 'Отменить' }));
     await waitFor(async () => expect((await db.week_slots.get(['w-cur', 1, 'dinner']))).toMatchObject({ dish_id: 'mn-kotlety', side_id: 'side-grechka' }));
@@ -165,6 +166,83 @@ describe('replace sheets', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Заменить обед' }));
     await userEvent.click(screen.getByRole('tab', { name: 'Все рецепты' }));
     await userEvent.click(screen.getByRole('button', { name: /^Уха/ }));
-    expect(await screen.findByText('Обед заменён. Борщ теперь на 1 день вместо 7, со среды — новая кастрюля.')).toBeInTheDocument();
+    expect(await screen.findByText('Обед заменён. Борщ теперь на 1 день вместо 7, со среды — новая кастрюля. Покупки пересчитаны.')).toBeInTheDocument();
+  });
+
+  it('shows every recipe under «Все рецепты», whatever the meal, and narrows them by a chip', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    render(<MemoryRouter><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Заменить завтрак' }));
+    await userEvent.click(screen.getByRole('tab', { name: 'Все рецепты' }));
+    for (const n of ['Сырники', 'Борщ', 'Котлеты', 'Печёные яблоки']) expect(screen.getByRole('button', { name: new RegExp(`^${n}`) })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Ужины' }));
+    expect(screen.getByRole('button', { name: /^Котлеты/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Сырники/ })).toBeNull();
+  });
+
+  it('puts a dinner dish on breakfast', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    render(<MemoryRouter><ToastProvider><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></ToastProvider></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Заменить завтрак' }));
+    await userEvent.click(screen.getByRole('tab', { name: 'Все рецепты' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Плов/ }));
+    await waitFor(async () => expect((await db.week_slots.get(['w-cur', 1, 'breakfast']))?.dish_id).toBe('mn-plov'));
+    expect(await screen.findByRole('button', { name: /Завтрак: Плов/ })).toBeInTheDocument();
+  });
+
+  it('removes a meal from the menu and its products from the list, and puts both back', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    await db.meta.put({ key: 'family_portions', value: 3.5 });
+    await regenerateWeekList(db, 'w-cur');
+    const mince = async () => (await db.shopping_items.get(menuItemId('w-cur', 'фарш')))?.qty_text;
+    expect(await mince()).toBe('3,7 кг');
+    render(<MemoryRouter><ToastProvider><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></ToastProvider></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Заменить ужин' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Убрать ужин' }));
+    const toast = (await screen.findByText('Ужин убран. Покупки пересчитаны.')).closest('.toast') as HTMLElement;
+    expect(await db.week_slots.get(['w-cur', 1, 'dinner'])).toMatchObject({ dish_id: null, side_id: null });
+    expect(await screen.findByRole('button', { name: /Ужин: Не выбрано/ })).toBeInTheDocument();
+    expect(await mince()).toBe('3,2 кг');
+    await userEvent.click(within(toast).getByRole('button', { name: 'Отменить' }));
+    await waitFor(async () => expect(await db.week_slots.get(['w-cur', 1, 'dinner'])).toMatchObject({ dish_id: 'mn-kotlety', side_id: 'side-grechka' }));
+    await waitFor(async () => expect(await mince()).toBe('3,7 кг'));
+  });
+
+  it('removes a meal from its recipe sheet', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    render(<MemoryRouter><ToastProvider><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></ToastProvider></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: /Полдник: Печёные яблоки/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Убрать' }));
+    expect(await screen.findByText('Полдник убран. Покупки пересчитаны.')).toBeInTheDocument();
+    expect((await db.week_slots.get(['w-cur', 1, 'snack']))?.dish_id).toBeNull();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('does not let a child remove a meal of an approved week', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    const son: Member = { ...papa, id: 'm-son', user_id: 'u2', name: 'Сын', role: 'child', is_owner: false };
+    render(<MemoryRouter><MenuPage me={son} members={[papa, son]} db={db} today={TUESDAY} /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: /Ужин: Котлеты/ }));
+    expect(await screen.findByRole('heading', { name: 'Котлеты' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Убрать' })).toBeNull();
+  });
+
+  it('replaces a dish someone took «instead»: the offer goes, the new dish shows', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    const swap: DishOffer = { id: 'o-swap', household_id: 'h1', from_member: 'm-papa', to_member: 'm-papa', dish_id: 'br-syrniki', on_date: '2026-10-13', meal: 'dinner', how: 'instead', status: 'taken', taken_by: 'm-papa', updated_at: 'x', deleted_at: null };
+    await db.dish_offers.put(swap);
+    render(<MemoryRouter><ToastProvider><MenuPage me={papa} members={[papa]} db={db} today={TUESDAY} /></ToastProvider></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Заменить ужин' }));
+    expect(screen.getByRole('dialog')).toHaveTextContent('Сейчас: Сырники');
+    await userEvent.click(screen.getByRole('tab', { name: 'Все рецепты' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Плов/ }));
+    expect(await screen.findByRole('button', { name: /Ужин: Плов/ })).toBeInTheDocument();
+    expect((await db.dish_offers.get('o-swap'))?.deleted_at).toBeTruthy();
   });
 });

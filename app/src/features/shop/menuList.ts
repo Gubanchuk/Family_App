@@ -1,13 +1,21 @@
 import { writeLocal } from '../../data/sync';
 import type { LocalDb, ShoppingItem } from '../../data/db';
 import { buildMenuList, formatQty } from './build';
-import { mondayOf } from '../menu/week';
+import { addDaysIso, mondayOf } from '../menu/week';
 import { dictUnit, formatAmount, sellOf, stepOf } from './units';
 
 export const menuItemId = (weekId: string, item: string) => `m:${weekId}:${item}`;
 export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const round1 = (n: number | null) => (n === null ? null : Math.round(n * 10) / 10);
 const SAME: Array<keyof ShoppingItem> = ['title', 'qty', 'unit', 'qty_text', 'dept', 'est_price', 'deleted_at'];
+
+// Meals of a week that someone took over with a dish «instead»: «<date>:<meal>».
+async function insteadMeals(db: LocalDb, householdId: string, start: string): Promise<Set<string>> {
+  const end = addDaysIso(start, 6);
+  return new Set((await db.dish_offers.where('household_id').equals(householdId).toArray())
+    .filter((o) => !o.deleted_at && o.how === 'instead' && o.status === 'taken' && o.on_date >= start && o.on_date <= end)
+    .map((o) => `${o.on_date}:${o.meal}`));
+}
 
 // Rebuilds the menu part of an approved week's list from the days it is for. Bought lines stay as they are;
 // if any dish of the week is missing on this phone, nothing is written.
@@ -16,10 +24,14 @@ export async function regenerateWeekList(db: LocalDb, weekId: string): Promise<'
   if (!week || week.status !== 'approved' || week.deleted_at) return 'skipped';
   // Only the days the list is for: a week set late leaves its past days out.
   const days = week.list_days?.length ? new Set(week.list_days) : null;
-  const slots = (await db.week_slots.where('week_id').equals(weekId).toArray()).filter((s) => !days || days.has(s.day));
+  // A meal someone cooks «instead» is bought by that offer's own lines, not by the menu.
+  const instead = await insteadMeals(db, week.household_id, week.starts_on);
+  const slots = (await db.week_slots.where('week_id').equals(weekId).toArray())
+    .filter((s) => (!days || days.has(s.day)) && !instead.has(`${addDaysIso(week.starts_on, s.day)}:${s.meal}`));
   const ids = [...new Set(slots.flatMap((s) => [s.dish_id, s.side_id, s.salad_id]).filter((x): x is string => !!x))];
   const recipes = await db.recipes.bulkGet(ids);
   if (recipes.some((r) => !r)) return 'skipped';
+  const kind = new Map(recipes.map((r) => [r!.id, r!.category]));
   const rows = await db.recipe_ingredients.where('recipe_id').anyOf(ids).toArray();
   const ingredientsOf = new Map<string, Array<{ item: string; qty: number | null }>>();
   for (const r of rows) ingredientsOf.set(r.recipe_id, [...(ingredientsOf.get(r.recipe_id) ?? []), { item: r.item, qty: r.qty === null ? null : Number(r.qty) }]);
@@ -32,6 +44,8 @@ export async function regenerateWeekList(db: LocalDb, weekId: string): Promise<'
     vocab,
     prices,
     portions: Number((await db.meta.get('family_portions'))?.value ?? 3.5),
+    // Any dish may stand at lunch now; only a soup is cooked as a pot.
+    isSoup: (id) => kind.get(id) === 'soup',
   });
 
   const existing = new Map((await db.shopping_items.where('week_id').equals(weekId).toArray()).filter((i) => i.source === 'menu').map((i) => [i.id, i]));
@@ -86,7 +100,8 @@ export async function refreshLists(db: LocalDb, householdId: string, now: Date):
     const slots = (await db.week_slots.where('week_id').equals(w.id).toArray())
       .map((s) => [s.day, s.meal, s.dish_id, s.side_id, s.salad_id, s.simple?.simple ?? null])
       .sort((a, b) => String(a).localeCompare(String(b)));
-    const print = JSON.stringify([slots, portions, content, w.list_days ?? null]);
+    const instead = [...await insteadMeals(db, householdId, w.starts_on)].sort();
+    const print = JSON.stringify([slots, portions, content, w.list_days ?? null, instead]);
     const key = `list:${w.id}`;
     if ((await db.meta.get(key))?.value === print) continue;
     if ((await regenerateWeekList(db, w.id)) === 'done') {

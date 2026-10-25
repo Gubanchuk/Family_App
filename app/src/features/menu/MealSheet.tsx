@@ -25,8 +25,9 @@ export function Locked({ onPropose }: { onPropose: () => void }) {
 // A meal opens on what is cooked: the dish, its side and salad, each with its recipe.
 // Replacing is a separate button, so looking at a recipe never changes the menu by accident.
 // Without onReplace and onPropose it only shows a dish (an offered one), with no buttons.
-export default function MealSheet({ db, parts, recipes, onReplace, onPropose, onClose }: {
-  db: LocalDb; parts: MealParts; recipes: Map<string, Recipe>; onReplace: (() => void) | null; onPropose?: () => void; onClose: () => void;
+// onRemove: the meal is not cooked at all and leaves the menu and the list.
+export default function MealSheet({ db, parts, recipes, onReplace, onRemove, onPropose, onClose }: {
+  db: LocalDb; parts: MealParts; recipes: Map<string, Recipe>; onReplace: (() => void) | null; onRemove?: () => void; onPropose?: () => void; onClose: () => void;
 }) {
   const ids = [parts.dish_id, parts.side_id, parts.salad_id].filter((x): x is string => !!x && recipes.has(x));
   const [pick, setPick] = useState(ids[0] ?? null);
@@ -41,8 +42,9 @@ export default function MealSheet({ db, parts, recipes, onReplace, onPropose, on
     return { rows, vocab, portions: Number(portions?.value ?? 3.5) };
   }, [db, pick, parts.simple]);
 
+  const replace = onReplace ? <button type="button" className="btn soft" onClick={onReplace}><Icon name="swap" />Заменить</button> : null;
   const actions = onReplace
-    ? <button type="button" className="btn soft" onClick={onReplace}><Icon name="swap" />Заменить</button>
+    ? onRemove ? <div className="btns fill"><button type="button" className="btn soft" onClick={onRemove}><Icon name="x" />Убрать</button>{replace}</div> : replace
     : onPropose ? <Locked onPropose={onPropose} /> : null;
 
   if (!recipe) {
