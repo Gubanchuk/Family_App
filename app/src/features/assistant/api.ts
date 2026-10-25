@@ -41,3 +41,15 @@ export async function callAssistant(body: ChatBody, invoke: Invoke = invokeFn): 
     return { error: 'network' };
   }
 }
+
+// A product typed in by hand: does its price and unit look like a real shop's? null when there is no answer
+// (no network, no credit): the check is a hint, never a gate.
+export async function checkProduct(product: { title: string; unit: string; price: number | null; dept: string }, invoke: Invoke = invokeFn): Promise<{ ok: boolean; note: string } | null> {
+  try {
+    const { data, error } = await invoke('assistant', { body: { mode: 'check_product', product } });
+    if (error || !isObject(data) || typeof data.ok !== 'boolean') return null;
+    return { ok: data.ok, note: typeof data.note === 'string' ? data.note.slice(0, 200) : '' };
+  } catch {
+    return null;
+  }
+}

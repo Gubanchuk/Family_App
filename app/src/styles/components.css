@@ -662,3 +662,4 @@ a.more, a.av { text-decoration: none; }
 .ask-card .ask-sugs { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 0 16px 2px; scrollbar-width: none; }
 .ask-card .ask-sugs::-webkit-scrollbar { display: none; }
 .ask-card .ask-sug { flex: none; white-space: nowrap; }
+.picker-hint { margin: 0; padding: 10px 12px; border-radius: 14px; background: color-mix(in oklab, var(--k-urgent) var(--k-tint-focal, 10%), var(--k-card)); color: var(--k-ink); }

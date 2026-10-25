@@ -10,15 +10,17 @@ import { addProductLine } from './tripActions';
 import QtyStepper from './QtyStepper';
 import { lineEstimate, OWN_UNITS, parseTyped, sellOf, stepOf, unitPriceLabel } from './units';
 import type { Ingredient } from '../../data/db';
+import { checkProduct } from '../assistant/api';
 
 const FOOD_DEPTS = DEPT_ORDER;
 const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // «Добавить товар»: search the dictionary and the family's own products, pick an amount, or describe a new
 // product once. The sheet stays open after each add, so a whole list goes in one go.
-export default function ProductPicker({ db, me, vocab, catalog, inTrip, onClose, onAdded }: {
+// check: asks the assistant whether a new product's price and unit look real (injectable for tests).
+export default function ProductPicker({ db, me, vocab, catalog, inTrip, onClose, onAdded, check = checkProduct }: {
   db: LocalDb; me: Member; vocab: Map<string, Ingredient>; catalog: Product[]; inTrip: boolean;
-  onClose: () => void; onAdded?: (text: string) => void;
+  onClose: () => void; onAdded?: (text: string) => void; check?: typeof checkProduct;
 }) {
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<Product | null>(null);
@@ -26,6 +28,8 @@ export default function ProductPicker({ db, me, vocab, catalog, inTrip, onClose,
   const [qty, setQty] = useState(0);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
+  // The assistant's word on a product just described, shown under the search until the next add.
+  const [hint, setHint] = useState('');
   // A new product: name, how it is counted, price per that unit, department.
   const [ownTitle, setOwnTitle] = useState('');
   const [ownUnit, setOwnUnit] = useState(0);
@@ -63,6 +67,14 @@ export default function ProductPicker({ db, me, vocab, catalog, inTrip, onClose,
         : { product: null, title, qty, unit: ou.unit, pricePerUnit: ownPerUnit, dept: ownDept, inTrip });
       const text = r.merged ? `Прибавили к «${title}» ${where}` : `«${title}» ${where}`;
       setNote(text);
+      setHint('');
+      // A new product with a price: the assistant looks at it in the background; a doubt shows here.
+      if (!picked && ownPerUnit !== null && !r.merged) {
+        const price = parseTyped(ownPrice, 1);
+        void check({ title, unit: ou.label, price, dept: ownDept }).then((c) => {
+          if (c && !c.ok && c.note) setHint(`Помощник сомневается: ${c.note} Цену можно поправить в строке.`);
+        });
+      }
       onAdded?.(text);
       setQuery(''); setPicked(null); setOwn(false);
       setTimeout(() => search.current?.focus(), 0);
@@ -92,6 +104,7 @@ export default function ProductPicker({ db, me, vocab, catalog, inTrip, onClose,
       ) : undefined}>
       <div className="picker">
         {note ? <p className="note picker-note" role="status">{note}</p> : null}
+        {hint ? <p className="note picker-hint" role="status">{hint}</p> : null}
         {!chosen ? (
           <>
             <label className="field picker-search"><span className="vh">Найти товар</span>
