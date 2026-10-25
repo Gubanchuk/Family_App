@@ -33,7 +33,7 @@ async function setup(script: Array<ApiReply | ((n: number) => ApiReply)>, me: Me
   const base = db ?? createLocalDb(`t-${Math.random()}`);
   if (!db) {
     await seedMenu(base);
-    await base.meta.put({ key: 'features', value: ['homeCart'] });
+    await base.meta.put({ key: 'features', value: ['homeCart', 'tripList'] });
   }
   const { api, calls } = fakeApi(script);
   const s = new AssistantSession({ db: base, me, members: family, api, now: () => NOW });

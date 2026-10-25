@@ -5,7 +5,10 @@ import { KIN_WORD } from '../family/kin';
 import { addDaysIso, fitsMeal, MEALS, mondayOf, type Meal } from '../menu/week';
 import { formatQty } from '../shop/build';
 import { capitalize } from '../shop/menuList';
-import { addManualItem, guessDept, guessIngredient, removeItem } from '../shop/shopActions';
+import { guessDept, guessIngredient, removeItem } from '../shop/shopActions';
+import { buildCatalog, type Product } from '../shop/catalog';
+import { addProductLine, pullToTrip, setInTrip, tripListOn } from '../shop/tripActions';
+import { formatAmount, stepOf, type LineUnit } from '../shop/units';
 import { removeStock, runOut, setStock, stockKey } from '../shop/stock';
 import { askFor } from '../board/boardActions';
 import { MAX_RUB } from '../board/boardMath';
@@ -231,6 +234,28 @@ async function removeOwnLines(db: LocalDb, ids: string[]) {
 
 const UNITS = ['г', 'кг', 'мл', 'л', 'шт', 'уп'];
 
+// A model's «2 кг», «1 л», «3 шт» in the product's own unit; nothing sensible — one step of what the shop sells.
+function amountFor(p: Product | null, amount: number | null, unit: string | null): { qty: number; unit: LineUnit } {
+  if (!p) {
+    const own: LineUnit = unit === 'кг' || unit === 'г' ? 'г' : unit === 'л' || unit === 'мл' ? 'мл' : unit === 'уп' ? 'уп' : 'шт';
+    const factor = unit === 'кг' || unit === 'л' ? 1000 : 1;
+    return { qty: amount !== null ? Math.round(amount * factor * 1000) / 1000 : own === 'г' ? 500 : own === 'мл' ? 1000 : 1, unit: own };
+  }
+  const step = stepOf(p.sell, p.unit, p.pieceWeight);
+  let qty: number | null = null;
+  if (amount !== null) {
+    if (p.unit === 'г' && (unit === 'кг' || unit === 'г')) qty = unit === 'кг' ? amount * 1000 : amount;
+    else if (p.unit === 'мл' && (unit === 'л' || unit === 'мл')) qty = unit === 'л' ? amount * 1000 : amount;
+    else if (unit === 'шт' && p.unit === 'шт') qty = amount;
+    else if (unit === 'шт' && p.pieceWeight) qty = amount * p.pieceWeight;
+    else if (unit === 'уп' && p.sell.sell === 'pack') qty = amount * p.sell.size;
+    else if (!unit && p.unit === 'шт') qty = amount;
+  }
+  // An amount someone asked for goes to the nearest thing the shop sells («1 л молока» is one 900 ml pack).
+  const q = qty !== null && qty > 0 ? Math.max(step, Math.round(qty / step) * step) : step;
+  return { qty: Math.round(q * 1000) / 1000, unit: p.unit };
+}
+
 async function planAddToShopping(input: unknown, { db, me, today }: ToolCtx): Promise<Plan> {
   const raw = obj(input).items;
   if (!Array.isArray(raw) || !raw.length) return fail(TITLE.add_to_shopping, 'Нужен непустой список товаров items.');
@@ -242,33 +267,58 @@ async function planAddToShopping(input: unknown, { db, me, today }: ToolCtx): Pr
     seen.add(norm(name));
     const amount = num(o.amount);
     const unit = typeof o.unit === 'string' && UNITS.includes(o.unit) ? o.unit : null;
-    const qty = amount !== null && amount > 0 && amount <= 100_000 ? `${dec(amount)}${unit ? ` ${unit}` : ''}` : '';
-    return [{ name, qty, urgent: o.urgent === true }];
+    return [{ name, amount: amount !== null && amount > 0 && amount <= 100_000 ? amount : null, unit, urgent: o.urgent === true }];
   });
   if (!wanted.length) return fail(TITLE.add_to_shopping, 'У каждого товара нужно название (name).');
   const vocab = await vocabOf(db);
+  const prices = new Map((await db.prices.toArray()).map((x) => [x.item, Number(x.price_per_unit)]));
+  const items = (await db.shopping_items.where('household_id').equals(me.household_id).toArray()).filter((i) => !i.deleted_at);
+  const marks = new Map((await db.shopping_marks.bulkGet(items.map((i) => i.id))).filter((m): m is ShoppingMark => !!m).map((m) => [m.item_id, m]));
+  const catalog = buildCatalog({ vocab, prices, items, marks });
+  const trip = await tripListOn(db);
   const open = await openLines(db, me.household_id, today);
-  const isOpen = (name: string) => {
+  // The product a name means: the dictionary's own or the family's, by exact name, then by the dictionary's guess.
+  const productOf = (name: string): Product | null => {
     const g = guessIngredient(name, vocab);
-    return open.some((l) => norm(l.title) === norm(name) || (!!g?.exact && l.item === g.item));
+    return catalog.find((p) => norm(p.title) === norm(name)) ?? (g?.exact ? catalog.find((p) => p.item === g.item) ?? null : null);
   };
-  const already = wanted.filter((w) => isOpen(w.name));
-  const fresh = wanted.filter((w) => !isOpen(w.name));
-  const summary = fresh.length
-    ? `Добавляю в поход: ${listed(fresh.map((w) => `${lowerFirst(w.name)}${w.qty ? ` ${w.qty}` : ''}`))}`
-    : `Уже в списке: ${listed(already.map((w) => lowerFirst(w.name)))}`;
+  const plan = wanted.map((w) => {
+    const product = productOf(w.name);
+    const key = product?.key ?? stockKey({ item: null, title: w.name });
+    const line = open.find((l) => stockKey(l) === key || norm(l.title) === norm(w.name));
+    return { ...w, product, line, ...amountFor(product, w.amount, w.unit) };
+  });
+  // Already in the trip: left as it is. In the list but not the trip: taken into the trip. New: added.
+  const inTrip = plan.filter((x) => x.line && (!trip || x.line.in_trip));
+  const pull = plan.filter((x) => x.line && trip && !x.line.in_trip);
+  const fresh = plan.filter((x) => !x.line);
+  const where = trip ? 'в поход' : 'в список';
+  const parts = [
+    fresh.length ? `Добавляю ${where}: ${listed(fresh.map((x) => `${lowerFirst(x.product?.title ?? x.name)} ${formatAmount(x.qty, x.unit, x.product?.sell, x.product?.pieceWeight ?? null)}`))}` : '',
+    pull.length ? `Беру в поход из списка: ${listed(pull.map((x) => lowerFirst(x.line!.title)))}` : '',
+    inTrip.length ? `Уже ${trip ? 'в походе' : 'в списке'}: ${listed(inTrip.map((x) => lowerFirst(x.line!.title)))}` : '',
+  ].filter(Boolean);
   return {
-    summary,
+    summary: parts.join('. '),
     run: async () => {
       const ids: string[] = [];
-      for (const w of fresh) {
+      for (const x of fresh) {
         const id = `u:${crypto.randomUUID()}`;
-        await addManualItem(db, me, { title: w.name, qtyText: w.qty, urgent: w.urgent, vocab, id });
+        await addProductLine(db, me, {
+          product: x.product, title: x.product?.title ?? capitalize(x.name), qty: x.qty, unit: x.unit, pricePerUnit: x.product?.price ?? null,
+          dept: x.product?.dept ?? guessDept(x.name, vocab), inTrip: true, urgent: x.urgent, id,
+        });
         ids.push(id);
       }
+      const pulled = pull.map((x) => x.line!);
+      if (pulled.length) await pullToTrip(db, pulled, catalog);
       return {
-        result: JSON.stringify({ added: fresh.map((w) => capitalize(w.name)), already: already.map((w) => capitalize(w.name)) }),
-        ...(ids.length ? { undo: () => removeOwnLines(db, ids) } : {}),
+        result: JSON.stringify({ added: fresh.map((x) => x.product?.title ?? capitalize(x.name)), taken_from_list: pulled.map((l) => l.title), already: inTrip.map((x) => x.line!.title) }),
+        ...(ids.length || pulled.length ? { undo: async () => {
+          await removeOwnLines(db, ids);
+          const back = (await db.shopping_items.bulkGet(pulled.map((l) => l.id))).filter((l): l is ShoppingItem => !!l && !l.deleted_at);
+          await setInTrip(db, back, false);
+        } } : {}),
       };
     },
   };

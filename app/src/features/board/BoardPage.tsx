@@ -28,7 +28,7 @@ export default function BoardPage({ me, members, db = localDb }: { me: Member; m
   const closeAdd = () => afterBackClose(() => (add && openedHere(state) ? navigate(-1) : setParams({ tab }, { replace: true })));
   return (
     <>
-      <Header title="Доска" subtitle="Видно всей семье" action={<button type="button" className="head-pill" onClick={openAdd}><Icon name="plus" />Добавить</button>} />
+      <Header ask="board" title="Доска" subtitle="Видно всей семье" action={<button type="button" className="head-pill" onClick={openAdd}><Icon name="plus" />Добавить</button>} />
       <div className="segs" role="tablist" aria-label="Разделы доски">
         {TABS.map(([t, label]) => <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>{label}</button>)}
       </div>

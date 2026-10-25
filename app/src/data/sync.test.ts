@@ -41,10 +41,10 @@ describe('sync', () => {
     const fake = fakeSupabase({}, KEY_FIELDS);
     fake.missingColumn('weeks', 'list_days');
     await syncNow(db, fake.client as never);
-    expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'needDept', 'homeCart', 'requestAnswers']));
+    expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'needDept', 'homeCart', 'requestAnswers', 'tripList']));
     fake.missingColumn('weeks', 'list_days', false);
     await syncNow(db, fake.client as never);
-    expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'needDept', 'listDays', 'homeCart', 'requestAnswers']));
+    expect(await features(db)).toEqual(new Set(['photos', 'visibility', 'needDept', 'listDays', 'homeCart', 'requestAnswers', 'tripList']));
   });
 
   it('finds homeCart only when the column answers', async () => {

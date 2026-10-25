@@ -20,6 +20,7 @@ import HomePage from '../features/home/HomePage';
 import BoardPage from '../features/board/BoardPage';
 import { useBoardReady } from '../features/board/useBoard';
 import MoneyPage from '../features/money/MoneyPage';
+import AssistantPage from '../features/assistant/AssistantPage';
 import { useMoneyReady } from '../features/money/useMoney';
 import { tabsFor } from '../features/shell/tabs';
 import { localDb } from '../data/db';
@@ -93,6 +94,7 @@ function MemberShell() {
           <Route path="/shop" element={<ShopPage me={me} members={fam.members} />} />
           <Route path="/settings" element={<Settings me={me} members={fam.members} reload={fam.reload} />} />
           <Route path="/board" element={<BoardPage me={me} members={fam.members} />} />
+          <Route path="/assistant" element={<AssistantPage me={me} members={fam.members} />} />
           {me.role === 'parent' ? <Route path="/money" element={<MoneyPage me={me} members={fam.members} />} /> : null}
           <Route path="/join" element={<Header title="Вы уже в семье" />} />
           {/* An old or mistyped link, or a parent's page opened by a child, lands on Home, not a blank screen. */}

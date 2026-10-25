@@ -39,7 +39,7 @@ async function fresh(opts: { home?: boolean } = {}): Promise<LocalDb> {
     ...rows('sp-griby', [['грибы', 300], ['картофель', 400]]),
   ]);
   await db.meta.put({ key: 'family_portions', value: 3.5 });
-  if (opts.home !== false) await db.meta.put({ key: 'features', value: ['homeCart'] });
+  if (opts.home !== false) await db.meta.put({ key: 'features', value: ['homeCart', 'tripList'] });
   return db;
 }
 const ctx = (db: LocalDb, me: Member = papa): ToolCtx => ({ db, me, members: family, today: TUESDAY });
@@ -51,10 +51,10 @@ describe('assistant tools: shopping', () => {
     const db = await fresh();
     const r = await runTool('add_to_shopping', { items: [{ name: 'молоко', amount: 1, unit: 'л' }, { name: 'яйца', amount: 10, unit: 'шт', urgent: true }] }, ctx(db));
     expect(r.error).toBeFalsy();
-    expect(r.summary).toBe('Добавляю в поход: молоко 1 л, яйца 10 шт');
+    expect(r.summary).toBe('Добавляю в поход: молоко 1 пакет · 900 мл, яйца 10 шт');
     const lines = await live(db);
     expect(lines.map((l) => [l.title, l.qty_text, l.urgent, l.source, l.added_by])).toEqual(expect.arrayContaining([
-      ['Молоко', '1 л', false, 'manual', 'm-papa'], ['Яйца', '10 шт', true, 'manual', 'm-papa'],
+      ['Молоко', '1 пакет · 900 мл', false, 'manual', 'm-papa'], ['Яйца', '10 шт', true, 'manual', 'm-papa'],
     ]));
     expect(lines.find((l) => l.title === 'Яйца')?.dept).toBe('Молочное и яйца');
     // Someone else adds bread, and the eggs get bought before the undo.
@@ -82,7 +82,7 @@ describe('assistant tools: shopping', () => {
     // A bad amount or unit is dropped, the product still goes in.
     const r = await runTool('add_to_shopping', { items: [{ name: 'сок', amount: -3, unit: 'бочка' }] }, ctx(db));
     expect(r.error).toBeFalsy();
-    expect((await live(db))[0]).toMatchObject({ title: 'Сок', qty_text: '' });
+    expect((await live(db))[0]).toMatchObject({ title: 'Сок', qty_text: '1 шт' });
     expect(await db.shopping_items.count()).toBe(1);
   });
 });

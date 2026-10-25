@@ -56,7 +56,7 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
   const toast = useToast();
   const times = getMealTimes();
   const panel = params.get('panel') === 'ideas' ? 'ideas' : 'week';
-  if (!data) return <><Header title="Меню" /><p className="note" style={{ margin: 16 }}>Загружаем меню…</p></>;
+  if (!data) return <><Header ask="menu" title="Меню" /><p className="note" style={{ margin: 16 }}>Загружаем меню…</p></>;
   const { current, recipes, templates } = data;
   const parent = me.role === 'parent';
   const name = (id: string | null) => (id ? recipes.get(id)?.name ?? 'Блюдо не загружено' : '');
@@ -72,7 +72,7 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
     </div>
   );
   if (panel === 'ideas') {
-    return <><Header title="Меню" subtitle="Что покушать" />{noRecipes}{refused}{segs}<IdeasPanel me={me} members={members} db={db} today={today} /></>;
+    return <><Header ask="menu" title="Меню" subtitle="Что покушать" />{noRecipes}{refused}{segs}<IdeasPanel me={me} members={members} db={db} today={today} /></>;
   }
   const slotAt = (d: number, meal: Meal): WeekSlot | undefined => current.slots.find((s) => s.day === d && s.meal === meal);
   const template = templates.find((t) => t.id === current.week?.template_id);
@@ -82,7 +82,7 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
     const weekOffers = [...data.offers].sort((a, b) => a.on_date.localeCompare(b.on_date));
     return (
       <>
-        <Header title="Меню" subtitle={`Неделя ${weekLabel(current.start)}`} />
+        <Header ask="menu" title="Меню" subtitle={`Неделя ${weekLabel(current.start)}`} />
         {noRecipes}
         {refused}
         {segs}
@@ -139,7 +139,7 @@ export default function MenuPage({ me, members, db = localDb, today: fixedToday 
 
   return (
     <>
-      <Header title="Меню" subtitle={`Неделя ${weekLabel(current.start)} · ${current.week.status === 'approved' ? 'утверждена' : 'предложена'}`} />
+      <Header ask="menu" title="Меню" subtitle={`Неделя ${weekLabel(current.start)} · ${current.week.status === 'approved' ? 'утверждена' : 'предложена'}`} />
       {noRecipes}
       {refused}
       {segs}

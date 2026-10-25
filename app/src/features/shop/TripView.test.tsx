@@ -39,10 +39,10 @@ describe('«Поход»', () => {
     expect(screen.getByText(/Поход пока пуст/)).toBeInTheDocument();
     await userEvent.click(await screen.findByRole('button', { name: /Всё по меню/ }));
     await waitFor(async () => expect((await db.shopping_items.get(menuItemId('w-cur', 'творог')))?.in_trip).toBe(true));
-    const sum = await screen.findByRole('region', { name: 'Итог похода' });
-    expect(sum).toHaveTextContent(/В походе \d+ товар/);
+    await waitFor(() => expect(screen.getByRole('button', { name: /Иду в магазин/ })).toBeEnabled());
+    const sum = screen.getByRole('region', { name: 'Итог похода' });
+    expect(sum).toHaveTextContent(/В походе [1-9]\d* товар/);
     expect(sum).toHaveTextContent(/≈/);
-    expect(screen.getByRole('button', { name: /Иду в магазин/ })).toBeEnabled();
   });
 
   it('goes to the shop without any sheet and ticks lines into the cart', async () => {

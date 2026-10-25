@@ -567,3 +567,94 @@ a.more, a.av { text-decoration: none; }
 .picker-title b { display: block; font: 700 18px/1.25 var(--font); overflow-wrap: anywhere; }
 .picker-title small { display: block; margin-top: 2px; color: var(--k-ink-2); font-size: 13px; }
 .picker-qty { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+/* Assistant: the header button, Home's card. */
+.ask-btn { color: color-mix(in oklab, var(--k-primary) 85%, var(--k-ink)); }
+.ask-btn .ic { width: 22px; height: 22px; }
+.ask-card { display: grid; gap: 12px; background: color-mix(in oklab, var(--k-primary) 7%, var(--k-card)); }
+.ask-card-h { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; }
+.ask-card-h .ic { align-self: center; width: 20px; height: 20px; color: color-mix(in oklab, var(--k-primary) 85%, var(--k-ink)); }
+.ask-card-h h2 { margin: 0; font: 700 18px/1.2 var(--font); }
+.ask-card-h .note { margin: 0; }
+.ask-row { display: flex; align-items: center; gap: 8px; }
+.ask-row input { flex: 1; min-width: 0; min-height: 48px; padding: 0 14px; border: 1px solid var(--k-rule); border-radius: 16px; background: var(--k-card); color: var(--k-ink); font: 400 16px var(--font); }
+.ask-row input:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 1px; }
+.ask-send { flex: none; width: 48px; height: 48px; background: var(--k-primary); color: var(--k-primary-ink); }
+.ask-send:disabled { background: color-mix(in oklab, var(--k-ink) 7%, var(--k-card)); color: var(--k-ink-2); cursor: default; }
+.ask-sugs { display: flex; flex-wrap: wrap; gap: 6px; }
+.ask-sug { min-height: 36px; padding: 7px 12px; font-size: 13px; text-align: left; background: var(--k-card); }
+
+/* «Поход»: the total on top with the way to the shop, the search, taking from the list, the rows. */
+.trip-sum { --h: var(--k-shop); display: grid; gap: 4px; margin: 0 16px 12px; padding: 16px; border-radius: 22px; background: color-mix(in oklab, var(--k-shop) var(--k-tint), var(--k-card)); }
+.trip-k { font: 600 14px var(--font); color: color-mix(in oklab, var(--k-shop) 70%, var(--k-ink)); }
+.trip-total { font: 800 32px/1.1 var(--font); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.trip-sum small { color: var(--k-ink-2); font-size: 13px; }
+.trip-go { display: flex; gap: 8px; margin-top: 10px; }
+.trip-go .btn:first-child { flex: 1; }
+.trip-sum-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.trip-sum-cols > div { display: grid; gap: 2px; min-width: 0; }
+.trip-sum-cols b { font: 800 20px/1.15 var(--font); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.trip-sum .bar { margin: 8px 0 2px; background: color-mix(in oklab, var(--k-shop) 22%, var(--k-card)); }
+.trip-shop-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 16px 12px; font-size: 15px; color: var(--k-ink-2); }
+.trip-shop-head b { color: var(--k-ink); }
+.trip-add { margin: 0 16px 12px; }
+.trip-search { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 0 16px; border: 1px solid var(--k-rule); border-radius: 16px; background: var(--k-card); color: var(--k-ink-2); font: 400 16px var(--font); text-align: left; cursor: pointer; box-shadow: 0 1px 2px var(--k-shadow); }
+.trip-search .ic { width: 20px; height: 20px; color: color-mix(in oklab, var(--k-primary) 85%, var(--k-ink)); }
+.trip-pull-btns { display: grid; gap: 8px; }
+.pull-btn { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 12px 14px; border: 0; border-radius: 16px; background: color-mix(in oklab, var(--k-ink) 5%, var(--k-card)); color: var(--k-ink); font: inherit; text-align: left; cursor: pointer; }
+.pull-btn b { display: block; font-weight: 600; font-size: 15px; }
+.pull-btn small { display: block; margin-top: 1px; color: var(--k-ink-2); font-size: 13px; }
+.pull-btn .ic { flex: none; width: 20px; height: 20px; color: color-mix(in oklab, var(--k-primary) 85%, var(--k-ink)); }
+.trip-row.plan { gap: 8px; }
+.trip-row.plan .row-btn { flex: 1; min-width: 0; }
+.trip-row-end { flex: none; display: flex; align-items: center; gap: 6px; }
+.trip-row-end .amount-btn { min-width: 52px; text-align: right; }
+.sm-btn { width: 36px; height: 36px; flex: none; }
+.sm-btn .ic { width: 18px; height: 18px; }
+
+/* Assistant screen: the log scrolls, the input stays above the tab bar. */
+.asst { display: flex; flex-direction: column; min-height: calc(100dvh - 76px - env(safe-area-inset-bottom, 0px)); }
+.asst-head { align-items: center; gap: 10px; }
+.asst-title { flex: 1; min-width: 0; }
+.asst-title h1 { margin: 0; font: 800 22px/1.1 var(--font); letter-spacing: -0.02em; }
+.asst-title p { margin: 2px 0 0; font-size: 13px; color: var(--k-ink-2); overflow-wrap: anywhere; }
+.asst-head .btn.sm { flex: none; }
+.asst-log { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 4px 16px 16px; }
+.asst-note { text-align: center; }
+.asst-empty { display: grid; gap: 12px; margin-top: 8px; }
+.asst-hello { margin: 0; padding: 14px 16px; border-radius: 20px 20px 20px 6px; background: var(--k-card); box-shadow: 0 1px 2px var(--k-shadow); font-size: 16px; line-height: 1.4; }
+.asst-sugs { display: grid; gap: 6px; justify-items: start; }
+.msg { max-width: 86%; padding: 11px 14px; font-size: 16px; line-height: 1.42; overflow-wrap: anywhere; }
+.msg p { margin: 0; }
+.msg p + p, .msg p + ul, .msg p + ol, .msg ul + p, .msg ol + p { margin-top: 8px; }
+.msg ul, .msg ol { margin: 4px 0 0; padding-left: 20px; }
+.msg li + li { margin-top: 3px; }
+.msg.me { align-self: flex-end; border-radius: 20px 20px 6px 20px; background: var(--k-primary); color: var(--k-primary-ink); }
+.msg.bot { align-self: flex-start; border-radius: 20px 20px 20px 6px; background: var(--k-card); box-shadow: 0 1px 2px var(--k-shadow); }
+.msg-photos { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.msg-photos img { width: 120px; height: 120px; object-fit: cover; border-radius: 14px; }
+.typing { display: flex; gap: 5px; padding: 15px 16px; }
+.typing span { width: 8px; height: 8px; border-radius: 50%; background: var(--k-ink-2); animation: typing 1.2s infinite ease-in-out; }
+.typing span:nth-child(2) { animation-delay: 0.15s; }
+.typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typing { 0%, 80%, 100% { opacity: 0.25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .typing span { animation: none; opacity: 0.6; } }
+.act-card { align-self: stretch; display: grid; gap: 6px; padding: 12px 14px; border-radius: 18px; border: 1px solid color-mix(in oklab, var(--k-primary) 25%, var(--k-rule)); background: color-mix(in oklab, var(--k-primary) 5%, var(--k-card)); }
+.act-h { display: flex; align-items: center; gap: 6px; font-size: 14px; color: color-mix(in oklab, var(--k-primary) 85%, var(--k-ink)); }
+.act-h .ic { width: 18px; height: 18px; }
+.act-card.done .act-h { color: color-mix(in oklab, var(--k-shop) 80%, var(--k-ink)); }
+.act-card.failed .act-h { color: color-mix(in oklab, var(--k-urgent) 82%, var(--k-ink)); }
+.act-card.declined, .act-card.undone { opacity: 0.7; }
+.act-what { margin: 0; font-size: 15px; line-height: 1.4; overflow-wrap: anywhere; }
+.act-err { margin: 0; font-size: 13px; color: color-mix(in oklab, var(--k-urgent) 82%, var(--k-ink)); }
+.act-undo { justify-self: start; min-height: 36px; padding: 6px 0; border: 0; background: none; color: color-mix(in oklab, var(--k-primary) 85%, var(--k-ink)); font: 700 14px var(--font); cursor: pointer; }
+.asst-input { position: sticky; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 4; padding: 10px 16px 12px; background: var(--k-base); border-top: 1px solid var(--k-rule); }
+.asst-input textarea { flex: 1; min-width: 0; min-height: 48px; max-height: 140px; padding: 13px 14px; border: 1px solid var(--k-rule); border-radius: 16px; background: var(--k-card); color: var(--k-ink); font: 400 16px/1.35 var(--font); resize: none; field-sizing: content; }
+.asst-input textarea:focus-visible { outline: 3px solid var(--k-primary); outline-offset: 1px; }
+.asst-photo { flex: none; width: 48px; height: 48px; }
+.asst-error { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; padding: 10px 12px; border-radius: 14px; background: color-mix(in oklab, var(--k-urgent) var(--k-tint), var(--k-card)); font-size: 14px; }
+.asst-attach { display: flex; gap: 8px; margin-bottom: 8px; }
+.asst-thumb { position: relative; }
+.asst-thumb img { width: 64px; height: 64px; object-fit: cover; border-radius: 12px; }
+.asst-thumb button { position: absolute; top: -6px; right: -6px; width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--k-ink); color: var(--k-card); cursor: pointer; }
+.asst-thumb button .ic { width: 14px; height: 14px; }

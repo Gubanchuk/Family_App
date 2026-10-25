@@ -61,7 +61,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
     const weekStart = data.weeks.find((w) => w.id === weekId)?.starts_on ?? data.start;
     return visibleItems(data.items, weekId, { weekStart, marks: data.marks, offers: data.offers });
   }, [data, weekId]);
-  if (!data) return <><Header title="Покупки" /><p className="note" style={{ margin: 16 }}>Загружаем список…</p></>;
+  if (!data) return <><Header ask="shop" title="Покупки" /><p className="note" style={{ margin: 16 }}>Загружаем список…</p></>;
 
   const { marks } = data;
   // Who is in the shop now; my own trip may carry a cart.
@@ -137,7 +137,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   if (view === 'trip' && vocab) {
     return (
       <>
-        <Header title="Покупки" subtitle={mine ? 'Вы в магазине' : 'Что берём в магазин'} />
+        <Header ask="shop" title="Покупки" subtitle={mine ? 'Отмечайте, что положили в корзину' : 'Что берём в магазин'} />
         {views}
         {sync.message ? (
           <section className="notice" role="alert"><span className="row-main"><b>{sync.message}</b></span>
@@ -151,7 +151,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   if (view === 'home') {
     return (
       <>
-        <Header title="Покупки" subtitle="Что есть дома" />
+        <Header ask="shop" title="Покупки" subtitle="Что есть дома" />
         {views}
         <HomePanel db={db} me={me} stock={data.stock} vocab={vocab ?? new Map()} items={shown} marks={marks}
           weekStart={data.weeks.find((w) => w.id === weekId)?.starts_on ?? data.start} />
@@ -167,7 +167,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
 
   return (
     <>
-      <Header title="Покупки" subtitle={`Отмечено ${totals.doneCount} из ${totals.count}`}
+      <Header ask="shop" title="Покупки" subtitle={`Отмечено ${totals.doneCount} из ${totals.count}`}
         action={<button type="button" className="head-pill" onClick={() => setSheet('add')}><Icon name="plus" />Добавить</button>} />
       {views}
       {others.length ? (

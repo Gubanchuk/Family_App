@@ -93,6 +93,35 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
     );
   };
 
+  // Taking lines from the list: on top while the trip is empty, under its lines once it has some.
+  const pullCard = !shopping && (byWeek.length || other.length) ? (
+    <section className="card trip-pull" aria-label="Взять из списка">
+      <div className="card-h"><h2>Взять из списка</h2></div>
+      <div className="trip-pull-btns">
+        {byWeek.map(({ w, ls, sum }) => (
+          <button key={w.id} type="button" className="pull-btn" onClick={() => takeAll(ls, `всё по меню на ${weekLabel(w.starts_on)}`)}>
+            <span><b>Всё по меню на {weekLabel(w.starts_on)}</b><small>{ls.length} {goods(ls.length)}{sum ? ` · ≈ ${rub(sum)}` : ''}</small></span><Icon name="plus" />
+          </button>
+        ))}
+        {data.weeks.length ? (
+          <button type="button" className="pull-btn" onClick={() => setPulling(true)}>
+            <span><b>На завтрак, обед или ужин</b><small>продукты одного приёма пищи или блюда</small></span><Icon name="chev" />
+          </button>
+        ) : null}
+      </div>
+      {other.length ? (
+        <>
+          <button type="button" className="more" aria-expanded={showRest} onClick={() => setShowRest(!showRest)}>{showRest ? 'Скрыть' : `Добавлено вручную и с доски · ${other.length}`}</button>
+          {showRest ? other.map((l) => (
+            <div className="row" key={l.id}>
+              <span className="row-main"><b>{l.title}</b><small>{[l.qty_text, name(l.added_by)].filter(Boolean).join(' · ')}</small></span>
+              <button type="button" className="round-btn sm-btn" aria-label={`В поход: ${l.title}`} onClick={() => takeAll([l], l.title)}><Icon name="plus" /></button>
+            </div>
+          )) : null}
+        </>
+      ) : null}
+    </section>
+  ) : null;
   const groups = groupByDept(lines, marks);
   return (
     <>
@@ -118,8 +147,8 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
         {shopping ? (
           <>
             <div className="trip-sum-cols">
-              <div><span className="trip-k">В корзине</span><b>{t.inCart.count} · {rub(t.inCart.sum)}</b></div>
-              <div><span className="trip-k">Осталось</span><b>{t.left.count} · ≈&nbsp;{rub(t.left.sum)}</b></div>
+              <div><span className="trip-k">В корзине</span><b>{rub(t.inCart.sum)}</b><small>{t.inCart.count} {goods(t.inCart.count)}</small></div>
+              <div><span className="trip-k">Осталось</span><b>≈&nbsp;{rub(t.left.sum)}</b><small>{t.left.count} {goods(t.left.count)}</small></div>
             </div>
             <span className="bar" aria-hidden="true"><i style={{ width: `${t.count ? (t.inCart.count / t.count) * 100 : 0}%` }} /></span>
             <small>Всего ≈ {rub(t.total)} за {t.count} {goods(t.count)}{t.unpriced ? ` · ${t.unpriced} без цены` : ''}</small>
@@ -128,7 +157,11 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
           <>
             <span className="trip-k">В походе {t.count} {goods(t.count)}</span>
             <b className="trip-total">≈&nbsp;{rub(t.total)}</b>
-            {t.unpriced ? <small>{t.unpriced} без цены — цену можно указать в строке</small> : <small>Прикидка по ценам Магнита</small>}
+            <small>{t.unpriced ? `${t.unpriced} без цены — цену можно указать в строке` : 'Примерно, по ценам Магнита'}</small>
+            <div className="trip-go">
+              <button type="button" className="btn" disabled={!lines.length} onClick={() => goShopping(db, me, today)}><Icon name="bag" />Иду в магазин</button>
+              <button type="button" className="btn soft" disabled={!lines.length} onClick={() => onCopy(lines)}><Icon name="copy" />Скопировать</button>
+            </div>
           </>
         )}
       </section>
@@ -137,30 +170,7 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
         <button type="button" className="trip-search" onClick={() => setPicker(true)}><Icon name="plus" /><span>Найти и добавить товар</span></button>
       </div>
 
-      {!shopping && (byWeek.length || other.length) ? (
-        <section className="card trip-pull" aria-label="Взять из списка">
-          <div className="card-h"><h2>Взять из списка</h2><span className="note" style={{ margin: 0 }}>{rest.length}</span></div>
-          <div className="trip-pull-btns">
-            {byWeek.map(({ w, ls, sum }) => (
-              <button key={w.id} type="button" className="btn soft sm" onClick={() => takeAll(ls, `всё по меню на ${weekLabel(w.starts_on)}`)}>
-                Всё по меню · {weekLabel(w.starts_on)} · {ls.length}{sum ? ` · ≈ ${rub(sum)}` : ''}
-              </button>
-            ))}
-            {data.weeks.length ? <button type="button" className="btn soft sm" onClick={() => setPulling(true)}>По приёму пищи или блюду</button> : null}
-          </div>
-          {other.length ? (
-            <>
-              <button type="button" className="more" aria-expanded={showRest} onClick={() => setShowRest(!showRest)}>{showRest ? 'Скрыть' : `Добавлено вручную и с доски · ${other.length}`}</button>
-              {showRest ? other.map((l) => (
-                <div className="row" key={l.id}>
-                  <span className="row-main"><b>{l.title}</b><small>{[l.qty_text, name(l.added_by)].filter(Boolean).join(' · ')}</small></span>
-                  <button type="button" className="round-btn sm-btn" aria-label={`В поход: ${l.title}`} onClick={() => takeAll([l], l.title)}><Icon name="plus" /></button>
-                </div>
-              )) : null}
-            </>
-          ) : null}
-        </section>
-      ) : null}
+      {!lines.length ? pullCard : null}
 
       {lines.length === 0 ? (
         <section className="card"><p className="note" style={{ margin: 0 }}>
@@ -184,12 +194,7 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
         );
       })}
 
-      {!shopping ? (
-        <div className="trip-go">
-          <button type="button" className="btn" disabled={!lines.length} onClick={() => goShopping(db, me, today)}><Icon name="bag" />Иду в магазин</button>
-          <button type="button" className="btn soft" disabled={!lines.length} onClick={() => onCopy(lines)}><Icon name="copy" />Скопировать</button>
-        </div>
-      ) : null}
+      {lines.length ? pullCard : null}
 
       {picker ? <ProductPicker db={db} me={me} vocab={vocab} catalog={catalog} inTrip onClose={() => setPicker(false)} /> : null}
       {pulling ? (

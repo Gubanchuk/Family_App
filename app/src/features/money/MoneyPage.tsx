@@ -49,7 +49,7 @@ export default function MoneyPage({ me, members, db = localDb, today: fixed }: {
   // one opened by a link from elsewhere drops ?add from the address instead.
   const close = () => afterBackClose(() => (add && openedHere(state) ? navigate(-1) : setParams(month === current ? {} : { m: month }, { replace: true })));
   const head = (
-    <Header title="Деньги" subtitle={`${monthTitle(month)} · видят только родители`}
+    <Header ask="money" title="Деньги" subtitle={`${monthTitle(month)} · видят только родители`}
       action={<button type="button" className="head-pill" onClick={() => openAdd('expense')}><Icon name="plus" />Расход</button>} />
   );
   if (!data) return head;

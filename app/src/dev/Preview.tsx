@@ -1,11 +1,11 @@
 // Development-only preview: fills a separate local database from content/ and shows the screens
 // without signing in, so layouts can be checked in a browser. Never part of the production bundle.
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import ingredientsJson from '../../../content/ingredients.json';
 import pricesJson from '../../../content/prices.json';
 import weeksJson from '../../../content/weeks.json';
-import { createLocalDb, type Recipe, type RecipeIngredient, type TemplateSlot, type WeekSlot } from '../data/db';
+import { createLocalDb, type LocalDb, type Recipe, type RecipeIngredient, type TemplateSlot, type WeekSlot } from '../data/db';
 import type { Member } from '../features/family/useFamily';
 import HomePage from '../features/home/HomePage';
 import MenuPage from '../features/menu/MenuPage';
@@ -15,6 +15,9 @@ import MoneyPage from '../features/money/MoneyPage';
 import RecipeEditor from '../features/ideas/RecipeEditor';
 import { emptyDraft } from '../features/ideas/recipeDraft';
 import TabBar from '../features/shell/TabBar';
+import AssistantPage from '../features/assistant/AssistantPage';
+import { AssistantSession } from '../features/assistant/loop';
+import type { ChatBody } from '../features/assistant/types';
 import { mondayOf, addDaysIso, dayOfWeek } from '../features/menu/week';
 import { regenerateWeekList } from '../features/shop/menuList';
 import { StoriesContext } from '../features/stories/storiesContext';
@@ -193,6 +196,7 @@ export default function Preview() {
           <Route path="/dev/story-edit" element={<StoriesPreview edit />} />
           <Route path="/dev/menu" element={<MenuPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
           <Route path="/dev/shop" element={<ShopPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
+          <Route path="/dev/assistant" element={<AssistantPreview me={me} db={db} />} />
           <Route path="/dev/board" element={<BoardPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
           <Route path="/dev/money" element={<MoneyPage me={me} members={PREVIEW_MEMBERS} db={db} />} />
           <Route path="/dev/recipe-new" element={<RecipeEditor me={me} db={db} onClose={() => {}} />} />
@@ -206,4 +210,18 @@ export default function Preview() {
       <TabBar tabs={['home', 'menu', 'shop']} />
     </>
   );
+}
+
+// The assistant against a stand-in server: a reply that adds two products, then a short confirmation.
+function AssistantPreview({ me, db }: { me: Member; db: LocalDb }) {
+  const session = useMemo(() => new AssistantSession({ db, me, members: PREVIEW_MEMBERS, api: async (body: ChatBody) => {
+    await new Promise((r) => setTimeout(r, 1200));
+    const last = body.messages[body.messages.length - 1];
+    if (last.content.some((b) => b.type === 'tool_result')) return { content: [{ type: 'text', text: 'Готово, молоко и яйца в походе. Ещё что-нибудь к ужину?' }], stop_reason: 'end_turn' };
+    return { content: [
+      { type: 'text', text: 'На ужин быстро выйдет **омлет с овощами** — 15 минут, и Диме можно, если без соли.\n\nДома не хватает:\n- молока\n- яиц\n\nСейчас добавлю их в поход.' },
+      { type: 'tool_use', id: `tu-${Date.now()}`, name: 'add_to_shopping', input: { items: [{ name: 'молоко', amount: 1, unit: 'л' }, { name: 'яйца куриные', amount: 10, unit: 'шт' }] } },
+    ], stop_reason: 'tool_use' };
+  } }), [db, me]);
+  return <AssistantPage me={me} members={PREVIEW_MEMBERS} db={db} session={session} />;
 }
