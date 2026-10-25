@@ -13,6 +13,15 @@ const support = (permission: string) => {
 
 describe('PushPrompt', () => {
   afterEach(() => { vi.unstubAllGlobals(); localStorage.clear(); });
+  it('promises payments to a parent only: a child sees none', () => {
+    support('default');
+    const { unmount } = render(<PushPrompt me={me} />);
+    expect(screen.getByText('Просьбы, предложения блюд и платежи придут сразу.')).toBeInTheDocument();
+    unmount();
+    render(<PushPrompt me={{ ...me, id: 'm-son', name: 'Сын', role: 'child' }} />);
+    expect(screen.getByText('Просьбы и предложения блюд придут сразу.')).toBeInTheDocument();
+    expect(screen.queryByText(/платеж/)).toBeNull();
+  });
   it('asks a phone that never chose and subscribes it in one tap', async () => {
     support('default');
     const subscribe = vi.fn(async () => 'on' as const);

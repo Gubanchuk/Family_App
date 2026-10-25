@@ -19,7 +19,7 @@ export default function PushPrompt({ me, subscribe = subscribePush }: { me: Memb
   };
   return (
     <section className="notice stack" aria-label="Уведомления">
-      <span className="row-main"><b>Включите уведомления</b><small>{msg || 'Просьбы, предложения блюд и платежи придут сразу.'}</small></span>
+      <span className="row-main"><b>Включите уведомления</b><small>{msg || (me.role === 'child' ? 'Просьбы и предложения блюд придут сразу.' : 'Просьбы, предложения блюд и платежи придут сразу.')}</small></span>
       <span className="btns">
         <button type="button" className="btn sm" onClick={on}>Включить</button>
         <button type="button" className="more" onClick={later}>Не сейчас</button>

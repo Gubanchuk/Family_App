@@ -47,7 +47,42 @@ describe('HomePage', () => {
     await db.dish_offers.put({ id: 'o1', household_id: 'h1', from_member: 'm-mama', to_member: 'm-papa', dish_id: 'mn-plov', on_date: '2026-10-13', meal: 'dinner', how: 'instead', status: 'open', taken_by: null, updated_at: 'x', deleted_at: null });
     render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
     expect(await screen.findByRole('heading', { name: 'Мама просит: Плов' })).toBeInTheDocument();
+    // The dish on top is not repeated under «Сегодня едим».
+    expect(screen.queryByText('Предложили на сегодня')).toBeNull();
+    expect(screen.getAllByRole('button', { name: 'Сделаю' })).toHaveLength(1);
+  });
+
+  it('lists the other offers of today under the meals, without the one on top', async () => {
+    const db = await ready();
+    await db.dish_offers.bulkPut([
+      { id: 'o1', household_id: 'h1', from_member: 'm-mama', to_member: 'm-papa', dish_id: 'mn-plov', on_date: '2026-10-13', meal: 'dinner', how: 'over', status: 'open', taken_by: null, updated_at: 'x', deleted_at: null },
+      { id: 'o2', household_id: 'h1', from_member: 'm-mama', to_member: null, dish_id: 'sn-yabloki', on_date: '2026-10-13', meal: 'snack', how: 'over', status: 'open', taken_by: null, updated_at: 'x', deleted_at: null },
+    ]);
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('heading', { name: 'Мама просит: Плов' })).toBeInTheDocument();
     expect(screen.getByText('Предложили на сегодня')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Печёные яблоки: Мама предлагает всем/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Плов: / })).toBeNull();
+  });
+
+  it('puts an urgent request and an overdue payment over a dish asked for today', async () => {
+    const db = await ready();
+    await db.dish_offers.put({ id: 'o1', household_id: 'h1', from_member: 'm-mama', to_member: 'm-papa', dish_id: 'mn-plov', on_date: '2026-10-13', meal: 'dinner', how: 'over', status: 'open', taken_by: null, updated_at: 'x', deleted_at: null });
+    await db.payments.put({ id: 'p1', household_id: 'h1', title: 'Интернет и ТВ', amount: 650, day: 11, kind: 'monthly', total: null, first_month: null, note: '', created_by: null, updated_at: 'x', deleted_at: null });
+    await db.requests.put({ id: 'r1', household_id: 'h1', from_id: 'm-mama', to_id: 'm-papa', title: 'Забрать посылку', due_on: null, urgent: true, status: 'open', done_at: null, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    expect(await screen.findByRole('heading', { name: 'Мама просит: Забрать посылку' })).toBeInTheDocument();
+    // Meanwhile the dish waits in its row and the payment in its tile.
+    expect(screen.getByRole('button', { name: /^Плов: Мама просит/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Скоро платить.*Интернет и ТВ.*просрочен на 2 дня/ })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Сделано' }));
+    expect(await screen.findByRole('heading', { name: 'Просрочен платёж: Интернет и ТВ' })).toBeInTheDocument();
+    expect(screen.getByText('650 ₽, срок был 11 октября.')).toBeInTheDocument();
+    // The payment on top has no second tile below.
+    expect(screen.queryByRole('link', { name: /Скоро платить/ })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Отметить оплаченным' }));
+    expect(await screen.findByRole('heading', { name: 'Мама просит: Плов' })).toBeInTheDocument();
+    expect((await db.payment_marks.get(['p1', '2026-10']))?.paid).toBe(true);
   });
 
   it('opens the recipe of a meal of today, and sends «Заменить» to the menu', async () => {
@@ -104,6 +139,21 @@ describe('HomePage', () => {
     const tiles = document.querySelectorAll('.tile');
     const cells = [...tiles].reduce((n, t) => n + (t.classList.contains('wide') || t.classList.contains('tall') ? 2 : 1), 0);
     expect(cells % 2).toBe(0);
+    // A tall goal tile stood half empty; the goal lies wide under shopping and the payment instead.
+    const goalTile = screen.getByRole('link', { name: /Море летом/ });
+    expect(goalTile).toHaveClass('wide');
+    expect(tiles[tiles.length - 1]).toBe(goalTile);
+    expect(document.querySelector('.tile.tall')).toBeNull();
+  });
+
+  it('puts the goal beside shopping when nothing else shares the row', async () => {
+    const db = await ready();
+    await db.goals.put({ id: 'g1', household_id: 'h1', owner_id: null, title: 'Море летом', target: 120000, saved: 30000, steps: [], created_by: null, updated_at: 'x', deleted_at: null });
+    render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
+    const goalTile = await screen.findByRole('link', { name: /Море летом/ });
+    expect(document.querySelectorAll('.tile')).toHaveLength(2);
+    expect(goalTile).not.toHaveClass('wide');
+    expect(screen.getByRole('link', { name: /Покупки/ })).not.toHaveClass('wide');
   });
 
   it('asks to choose a week when there is none', async () => {
@@ -147,14 +197,15 @@ describe('HomePage', () => {
   it('names a breakfast taken instead in its row, and opens an offered dish from its row', async () => {
     const db = await ready();
     await db.dish_offers.put({ id: 'o5', household_id: 'h1', from_member: 'm-mama', to_member: 'm-papa', dish_id: 'br-syrniki', on_date: '2026-10-13', meal: 'breakfast', how: 'instead', status: 'taken', taken_by: 'm-papa', updated_at: 'x', deleted_at: null });
-    await db.dish_offers.put({ id: 'o6', household_id: 'h1', from_member: 'm-mama', to_member: null, dish_id: 'mn-plov', on_date: '2026-10-13', meal: 'snack', how: 'over', status: 'open', taken_by: null, updated_at: 'x', deleted_at: null });
+    // My own offer stays in its row: an offer to me would go on top instead.
+    await db.dish_offers.put({ id: 'o6', household_id: 'h1', from_member: 'm-papa', to_member: null, dish_id: 'mn-plov', on_date: '2026-10-13', meal: 'snack', how: 'over', status: 'open', taken_by: null, updated_at: 'x', deleted_at: null });
     render(<MemoryRouter><HomePage me={papa} members={[papa, mama, dima]} db={db} today={TUESDAY_MORNING} /></MemoryRouter>);
     expect(await screen.findByRole('button', { name: /^07:30Сырники|Сырники.*Завтрак/ })).toBeInTheDocument();
     expect(screen.queryByText('Овсяная каша')).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /^Сырники: готовит Папа.*Открыть рецепт/ }));
     expect(await screen.findByRole('dialog')).toHaveTextContent('Сырники');
     await userEvent.click(screen.getByRole('button', { name: 'Закрыть' }));
-    await userEvent.click(screen.getByRole('button', { name: /^Плов: Мама предлагает всем.*Открыть рецепт/ }));
+    await userEvent.click(screen.getByRole('button', { name: /^Плов: вы предложили.*Открыть рецепт/ }));
     expect(await screen.findByRole('dialog')).toHaveTextContent('Плов');
   });
 

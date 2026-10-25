@@ -23,7 +23,9 @@ import { answerRequest, setRequestDone } from '../board/boardActions';
 import { useFeature } from '../../data/useFeature';
 import { mineToDo, whenText } from '../board/requestText';
 import { progress, savedIn } from '../board/boardMath';
-import { daysTo, dueText, nextDue } from '../money/month';
+import { dayTitle, daysTo, dueText, nextDue } from '../money/month';
+import { setPaid } from '../money/moneyActions';
+import { useToast } from '../shell/toastContext';
 import { memberColor } from '../family/colors';
 import AvatarFace from '../family/AvatarFace';
 import FamilyRow from './FamilyRow';
@@ -47,6 +49,7 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const moneyReady = useMoneyReady(db);
   const answers = useFeature(db, 'requestAnswers');
   const hasTrip = useFeature(db, 'tripList');
+  const toast = useToast();
   const avatar = <NavLink to="/settings" className="av" style={{ ['--c' as string]: memberColor(me.color) }} aria-label="Настройки и профиль"><AvatarFace member={me} /></NavLink>;
   const actions = (
     <>
@@ -89,7 +92,11 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   // Today's meals open their recipe; an empty one goes to the menu to be chosen.
   const openMeal = (m: Meal) => { const p = partsOf(m); if (p.dish_id || p.simple) setOpen(m); else navigate(`/menu?replace=${m}`); };
   const dinner = name(swap?.dish_id ?? slot('dinner')?.dish_id);
-  const main = mainThing({ me, today: data.todayIso, offers: data.offers, urgent, dinner: data.week && dinner ? lower(dinner) : null, hasWeek: !!data.week, requests: data.requests });
+  // A parent sees the next unpaid payment of the month when it is a week away or less (or overdue).
+  const nextPay = me.role === 'parent' ? nextDue(data.payments, data.paymentMarks, data.todayIso) : undefined;
+  const main = mainThing({ me, today: data.todayIso, offers: data.offers, urgent, dinner: data.week && dinner ? lower(dinner) : null, hasWeek: !!data.week, requests: data.requests, pay: nextPay });
+  // An overdue payment on top has no second tile below.
+  const pay = main.kind !== 'pay' && nextPay && daysTo(data.todayIso, nextPay.due) <= 7 ? nextPay : undefined;
   // Open requests to me beyond the one on top, for the «Просьбы мне» card.
   const heroRequest = main.kind === 'request' ? main.request.id : null;
   const moreRequests = mineToDo(data.requests, me.id).filter((r) => (r.status === 'open' || r.status === 'accepted') && r.id !== heroRequest).slice(0, 3);
@@ -101,15 +108,14 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
   const myWish = me.role === 'child'
     ? data.wishes.filter((w) => w.owner_id === me.id).sort((a, b) => left(a) - left(b) || String(b.updated_at).localeCompare(String(a.updated_at)))[0]
     : undefined;
-  // A parent sees the next unpaid payment of the month when it is a week away or less (or overdue).
-  const nextPay = me.role === 'parent' ? nextDue(data.payments, data.paymentMarks, data.todayIso) : undefined;
-  const pay = nextPay && daysTo(data.todayIso, nextPay.due) <= 7 ? nextPay : undefined;
   const nowMin = today.getHours() * 60 + today.getMinutes();
   const next = MEALS.find((m) => mins(times[m]) > nowMin);
   const trip = hasTrip ? tripTotals(data.trip, data.marks) : null;
   const totals = listTotals(data.items.map((i) => ({ est: i.est_price, real: data.marks.get(i.id)?.price_real ?? null, bought: !!data.marks.get(i.id)?.bought, home: !!data.marks.get(i.id)?.at_home })));
   const who = (id: string) => members.find((m) => m.id === id)?.name ?? 'Кто-то';
-  const offerRows = data.offers.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} onOpen={() => setDish(o.dish_id)} />);
+  // The dish asked for on top is not repeated under «Сегодня едим»; other offers stay there.
+  const listed = data.offers.filter((o) => main.kind !== 'offer' || o.id !== main.offer.id);
+  const offerRows = listed.map((o) => <OfferRow key={o.id} offer={o} me={me} members={members} dishName={name(o.dish_id)} onTake={() => takeOffer(db, o, me)} onOpen={() => setDish(o.dish_id)} />);
 
   return (
     <>
@@ -143,6 +149,15 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
               </div>
             )}
           </>
+        ) : main.kind === 'pay' ? (
+          <>
+            <h2>Просрочен платёж: {main.pay.p.title}</h2>
+            <p>{rub(main.pay.p.amount)}, срок был {dayTitle(main.pay.due)}.</p>
+            <div className="hero-chips">
+              <button type="button" className="hero-chip primary" onClick={async () => { await setPaid(db, me, main.pay, main.pay.month, true); toast({ text: `«${main.pay.p.title}» оплачен` }); }}><Icon name="check" />Отметить оплаченным</button>
+              <Link className="hero-chip" to="/money">Деньги</Link>
+            </div>
+          </>
         ) : main.kind === 'urgent' ? (
           <>
             <h2>Срочно купить: {main.item.title}</h2>
@@ -173,11 +188,11 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
             {MEALS.filter((m) => m !== next).map((m) => (
               <button type="button" className={`row meal-row ${mins(times[m]) < nowMin ? 'past' : ''}`} key={m} onClick={() => openMeal(m)}><span className="tl-t">{times[m]}</span><DishThumb recipe={data.recipes.get(partsOf(m).dish_id ?? '')} /><span className="row-main"><b>{text(m) || 'Не выбрано'}</b><small>{MEAL_LABEL[m]}</small></span></button>
             ))}
-            {data.offers.length ? <p className="tl-group">Предложили на сегодня</p> : null}
+            {listed.length ? <p className="tl-group">Предложили на сегодня</p> : null}
             {offerRows}
           </section>
         </>
-      ) : data.offers.length ? (
+      ) : listed.length ? (
         // Without a menu for the week, a dish offered or taken for today is still what someone cooks.
         <>
           <div className="sec-h"><h2>Предложили на сегодня</h2></div>
@@ -211,15 +226,9 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
       {dish ? (
         <MealSheet key={`dish-${dish}`} db={db} parts={{ dish_id: dish, side_id: null, salad_id: null, simple: null }} recipes={data.recipes} onClose={() => setDish(null)} onReplace={null} />
       ) : null}
-      {/* As in the mockup: the goal stands tall on the left when two tiles share the right; no holes in two columns. */}
+      {/* Shopping and the payment (a child's wish) share a row; the goal joins them, or lies wide under both.
+          A tall goal tile had nothing to fill its second row. No holes in two columns. */}
       <div className="bento">
-        {goal ? (
-          <Link className={`tile ${pay || myWish ? 'tall' : ''}`} to={`/board?tab=goals&goal=${goal.id}`} style={{ ['--h' as string]: 'var(--k-goal)' }}>
-            <span className="t-k"><Icon name="board" />{goal.title}</span><span className="t-v num">{rub(inBank(goal))}</span>
-            <span className="bar" aria-hidden="true"><i style={{ width: `${Math.round(progress(inBank(goal), goal.target) * 100)}%` }} /></span>
-            <span className="t-s">из {rub(goal.target)}</span>
-          </Link>
-        ) : null}
         <Link className={`tile ${goal || pay || myWish ? '' : 'wide'}`} to="/shop" style={{ ['--h' as string]: 'var(--k-shop)' }}>
           {trip && trip.count ? (
             <><span className="t-k"><Icon name="cart" />Поход в магазин</span><span className="t-v num">{trip.count}</span>
@@ -238,6 +247,13 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
           <Link className="tile" to={`/board?tab=wishes&wish=${myWish.id}`} style={{ ['--h' as string]: 'var(--k-money)' }}>
             <span className="t-k"><Icon name="gift" />Хотелки</span><span className="t-v">{myWish.title}</span>
             <span className="t-s">в копилке {rub(inBank(myWish))}</span>
+          </Link>
+        ) : null}
+        {goal ? (
+          <Link className={`tile goal-tile ${pay || myWish ? 'wide' : ''}`} to={`/board?tab=goals&goal=${goal.id}`} style={{ ['--h' as string]: 'var(--k-goal)' }}>
+            <span className="t-k"><Icon name="board" />{goal.title}</span><span className="t-v num">{rub(inBank(goal))}</span>
+            <span className="bar" aria-hidden="true"><i style={{ width: `${Math.round(progress(inBank(goal), goal.target) * 100)}%` }} /></span>
+            <span className="t-s">из {rub(goal.target)}</span>
           </Link>
         ) : null}
       </div>

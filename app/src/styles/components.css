@@ -17,12 +17,18 @@
 @keyframes toast-in { from { transform: translateY(8px); opacity: 0.4; } to { transform: none; opacity: 1; } }
 @media (max-width: 599px) { .toast { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
 .toast.update-bar { top: calc(12px + env(safe-area-inset-top, 0px)); bottom: auto; z-index: 60; }
+/* While a sheet is open the toast drops to the top, over the dimmed page, so it hides nothing in the sheet. */
+body:has(.sheet) .toast-zone .toast { top: calc(12px + env(safe-area-inset-top, 0px)); bottom: auto; animation-name: toast-drop; }
+@keyframes toast-drop { from { transform: translateY(-8px); opacity: 0.4; } to { transform: none; opacity: 1; } }
 
 /* ---------- Shared pieces ---------- */
 .k-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 20px 16px 12px; }
 .k-head h1 { margin: 0; font: 800 24px/1.1 var(--font); letter-spacing: -0.025em; text-wrap: balance; }
 .k-head p { margin: 4px 0 0; color: var(--k-ink-2); font-size: 15px; }
 .k-head-r { display: flex; align-items: center; gap: 8px; }
+/* With buttons the title shares their row and the subtitle runs full width under both. */
+.k-head.split { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 12px; padding-top: 12px; }
+.k-head.split > p { grid-column: 1 / -1; margin-top: -2px; }
 .av { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--c); color: #FFFFFF; font: 800 17px var(--font); flex: none; border: 0; }
 .av.sm { width: 30px; height: 30px; font-size: 12px; }
 .av > img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
@@ -104,6 +110,8 @@
 .tile .t-v.num { font: 800 32px/1 var(--font); font-size: clamp(20px, 20cqi, 32px); white-space: nowrap; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .tile .t-s { font-size: 13px; color: var(--k-ink-2); margin-top: auto; }
 .tile .bar { margin-top: 2px; background: color-mix(in oklab, var(--h) 22%, var(--k-card)); }
+/* The goal's track lies over the tile's own tint, so its empty part still shows at night. */
+.tile.goal-tile .bar { background: color-mix(in oklab, var(--h) 24%, transparent); }
 
 .sec-h { display: flex; justify-content: space-between; align-items: baseline; margin: 6px 16px 10px; }
 .sec-h h2 { margin: 0; font: 800 20px var(--font); letter-spacing: -0.02em; }
