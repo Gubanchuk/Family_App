@@ -37,12 +37,13 @@ describe('home stock and trip carts reach the server', { timeout: 120_000 }, () 
     expect(await one('select at_home, bought from public.shopping_marks')).toEqual({ at_home: true, bought: false });
 
     await runOut(phone, mama, (await phone.home_stock.get([hh, 'молоко']))!, { items: [], marks: new Map(), weekStart: '2026-10-12' });
-    await goShopping(phone, mama, new Date(), { label: 'молоко', items: [{ id: 'h:2026-10-12:0:молоко', hint: null }] });
+    const homeId = `h:${hh}:2026-10-12:0:молоко`;
+    await goShopping(phone, mama, new Date(), { label: 'молоко', items: [{ id: homeId, hint: null }] });
     await push();
-    expect(await one("select source from public.shopping_items where id = 'h:2026-10-12:0:молоко'")).toEqual({ source: 'home' });
+    expect(await one('select source from public.shopping_items where id = $1', [homeId])).toEqual({ source: 'home' });
     expect(await one("select state from public.home_stock where key = 'молоко'")).toEqual({ state: 'out' });
 
-    const line = (await phone.shopping_items.get('h:2026-10-12:0:молоко'))!;
+    const line = (await phone.shopping_items.get(homeId))!;
     await setBought(phone, line, mama, true, undefined, { vocab });
     await endTrip(phone, (await phone.shop_trips.toArray())[0]);
     await push();

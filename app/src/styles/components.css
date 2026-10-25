@@ -698,3 +698,35 @@ a.more, a.av { text-decoration: none; }
 .asst-head-r { display: flex; gap: 6px; flex: none; }
 .chat-list { margin: 0 16px; }
 .chat-row.now .row-main b { color: color-mix(in oklab, var(--k-primary) 85%, var(--k-ink)); }
+
+/* Trip rows on a narrow phone: name and price on top, the stepper under them. */
+.trip-row.plan { display: grid; gap: 6px; }
+.trip-row-top { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.trip-row-top .row-btn { flex: 1; min-width: 0; }
+.trip-row .row-main b { overflow-wrap: break-word; word-break: normal; hyphens: auto; }
+.trip-row-qty { display: flex; }
+.price-chip { flex: none; min-height: 36px; padding: 6px 12px; border: 0; border-radius: 12px; background: color-mix(in oklab, var(--k-ink) 5%, var(--k-card)); color: var(--k-ink); font: 600 15px var(--font); font-variant-numeric: tabular-nums; white-space: nowrap; cursor: pointer; }
+.price-chip.empty { color: color-mix(in oklab, var(--k-primary) 85%, var(--k-ink)); font-weight: 700; font-size: 14px; }
+.trip-strip-add { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 6px 12px; border: 0; border-radius: 12px; background: var(--k-card); color: var(--k-ink); font: 700 14px var(--font); cursor: pointer; }
+.trip-strip-add .ic { width: 16px; height: 16px; }
+.trip-strip .trip-strip-row .bar { flex: 1; }
+
+/* «Весь список»: the square buys, the name opens the line; a short sum and tools above; «Выбрать». */
+.check-btn { flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin: -4px 0 -4px -10px; border: 0; background: none; cursor: pointer; }
+.list-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 16px 12px; }
+.list-sum { font-size: 14px; color: var(--k-ink-2); }
+.list-tools-r { display: flex; gap: 14px; }
+.check.pick { border-radius: 50%; }
+.row.picked .check { background: var(--k-primary); border-color: var(--k-primary); }
+.row.picked .check .ic { opacity: 1; }
+.row.picked .row-main b { color: color-mix(in oklab, var(--k-primary) 85%, var(--k-ink)); }
+.select-bar { position: sticky; bottom: calc(var(--tabbar-h, 64px) + 8px); z-index: 4; display: grid; gap: 10px; margin: 8px 16px 0; padding: 12px; border-radius: 20px; background: var(--k-card); box-shadow: 0 6px 24px var(--k-shadow); }
+.select-bar-top { display: flex; align-items: center; gap: 12px; }
+.select-bar-top b { flex: 1; font-size: 15px; }
+.select-bar-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.select-bar-acts .btn { flex: 1 1 auto; }
+.btn.danger-text { color: color-mix(in oklab, var(--k-urgent) 82%, var(--k-ink)); }
+
+.picker-more { justify-self: start; text-align: left; }
+
+.act-card.undone .act-what { text-decoration: line-through; }
