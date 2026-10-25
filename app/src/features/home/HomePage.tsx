@@ -239,8 +239,9 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
           )}
         </Link>
         {pay ? (
-          <Link className="tile" to="/money" style={{ ['--h' as string]: 'var(--k-money)' }}>
-            <span className="t-k"><Icon name="wallet" />Скоро платить</span><span className="t-v">{pay.p.title} · {rub(pay.p.amount)}</span>
+          // An overdue payment is named so, in the urgent colour; «Скоро платить» is for one still ahead.
+          <Link className="tile" to="/money" style={{ ['--h' as string]: daysTo(data.todayIso, pay.due) < 0 ? 'var(--k-urgent)' : 'var(--k-money)' }}>
+            <span className="t-k"><Icon name="wallet" />{payLabel(daysTo(data.todayIso, pay.due))}</span><span className="t-v">{pay.p.title} · {rub(pay.p.amount)}</span>
             <span className="t-s">{dueText(daysTo(data.todayIso, pay.due))}</span>
           </Link>
         ) : myWish ? (
@@ -260,3 +261,6 @@ export default function HomePage({ me, members, db = localDb, today: fixedToday 
     </>
   );
 }
+
+// What the payment tile is called; the line under it says when («сегодня», «через 3 дня», «просрочен на 2 дня»).
+const payLabel = (days: number) => (days < 0 ? 'Просрочен платёж' : 'Скоро платить');

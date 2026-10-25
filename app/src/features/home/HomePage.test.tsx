@@ -74,12 +74,12 @@ describe('HomePage', () => {
     expect(await screen.findByRole('heading', { name: 'Мама просит: Забрать посылку' })).toBeInTheDocument();
     // Meanwhile the dish waits in its row and the payment in its tile.
     expect(screen.getByRole('button', { name: /^Плов: Мама просит/ })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Скоро платить.*Интернет и ТВ.*просрочен на 2 дня/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Просрочен платёж.*Интернет и ТВ.*просрочен на 2 дня/ })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Сделано' }));
     expect(await screen.findByRole('heading', { name: 'Просрочен платёж: Интернет и ТВ' })).toBeInTheDocument();
     expect(screen.getByText('650 ₽, срок был 11 октября.')).toBeInTheDocument();
     // The payment on top has no second tile below.
-    expect(screen.queryByRole('link', { name: /Скоро платить/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /Просрочен платёж|Скоро платить/ })).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'Отметить оплаченным' }));
     expect(await screen.findByRole('heading', { name: 'Мама просит: Плов' })).toBeInTheDocument();
     expect((await db.payment_marks.get(['p1', '2026-10']))?.paid).toBe(true);
