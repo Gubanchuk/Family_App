@@ -96,7 +96,8 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
     const dish = o ? data.dishes.get(o.dish_id) : undefined;
     return dish ? `к блюду «${dish}»` : 'к предложенному блюду';
   };
-  const origin = (i: ShoppingItem) => (i.source === 'menu' ? 'из меню' : i.source === 'offer' ? offered(i) : i.source === 'home' ? `закончилось дома · ${name(i.added_by)}` : `вручную · ${name(i.added_by)}`);
+  // Who a line came from, in plain words; «вручную» is how the old list put it.
+  const origin = (i: ShoppingItem) => (i.source === 'menu' ? 'из меню' : i.source === 'offer' ? offered(i) : i.source === 'home' ? `закончилось дома · ${name(i.added_by)}` : hasTrip ? name(i.added_by) : `вручную · ${name(i.added_by)}`);
 
   // Urgent lines still to buy get their own card on top; once bought they go back to their department.
   const urgent = inCart ? [] : shown.filter((i) => i.urgent && !closed(marks.get(i.id)));
@@ -150,7 +151,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
         </button>
         <button type="button" className="row-btn" aria-label={`${i.title}: открыть`} onClick={() => setSheet(i)}>
           {meta}
-          {i.urgent && !done ? <span className="pill">срочно</span> : null}
+          {i.urgent && !done && !urgentIds.has(i.id) ? <span className="pill">срочно</span> : null}
         </button>
         <button type="button" className={`price-chip ${price === null ? 'empty' : ''}`} aria-label={`${i.title}: ${price !== null ? `цена ${rub(price)}, изменить` : 'указать цену'}`} onClick={() => setSheet(i)}>{price !== null ? rub(price) : '+ цена'}</button>
       </div>
@@ -264,7 +265,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
       {hasTrip ? (
         selecting ? null : (
           <div className="list-tools">
-            <span className="list-sum">{totals.count - totals.doneCount ? `Осталось ${totals.count - totals.doneCount} ${goods(totals.count - totals.doneCount)} ≈ ${rub(totals.left)}` : 'Всё куплено'}</span>
+            <span className="list-sum">{totals.count - totals.doneCount ? `Осталось ${totals.count - totals.doneCount} · ≈\u00A0${rub(totals.left)}` : 'Всё куплено'}</span>
             <span className="list-tools-r">
               <button type="button" className="more" disabled={!openList.length} onClick={() => { setPicked(new Set()); setSelecting(true); }}>Выбрать</button>
               <button type="button" className="more" onClick={copy}>Скопировать</button>
@@ -301,7 +302,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
           )}
           {urgent.length ? (
             <section className="card urgent-card" aria-label="Срочно">
-              <div className="card-h"><h2>Срочно</h2><span className="note" style={{ margin: 0 }}>{urgent.length}</span></div>
+              <div className="card-h"><h2>Срочно</h2>{hasTrip ? null : <span className="note" style={{ margin: 0 }}>{urgent.length}</span>}</div>
               {urgent.map(row)}
             </section>
           ) : null}
@@ -318,7 +319,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
                 <div className="card-h dept-h">
                   <h2 id={id}><button type="button" className="dept-toggle" aria-expanded={!folded} aria-controls={`${id}-rows`} onClick={() => folds.toggle(g.dept, done)}>{g.dept}<Icon name="chev" /></button></h2>
                   {/* Two short lines on the right, so the department name keeps the left side whole. */}
-                  <span className="dept-meta"><span>{folded ? (done ? 'всё куплено' : `осталось ${g.items.length - got}`) : `${got} из ${g.items.length}`}</span>{money ? <span>{money}</span> : null}</span>
+                  <span className="dept-meta"><span>{hasTrip ? `${g.items.length} ${goods(g.items.length)}` : folded ? (done ? 'всё куплено' : `осталось ${g.items.length - got}`) : `${got} из ${g.items.length}`}</span>{money ? <span>{money}</span> : null}</span>
                 </div>
                 {folded ? null : <div id={`${id}-rows`}>{g.items.map(row)}</div>}
               </section>
