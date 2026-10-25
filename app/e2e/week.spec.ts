@@ -20,7 +20,8 @@ test('a week the son proposes and mom approves builds the same shopping list on 
   await tab(mom.page, 'Покупки');
   const size = await listSize(mom.page);
   await tab(son.page, 'Покупки');
-  await expect(listHead(son.page)).toHaveText(`Отмечено 0 из ${size}`);
+  await son.page.getByRole('tab', { name: 'Весь список' }).click();
+  await expect(listHead(son.page)).toHaveText(new RegExp(`^Осталось ${size} ·`));
 
   await mom.close();
   await son.close();

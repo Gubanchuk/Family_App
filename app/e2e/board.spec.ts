@@ -51,6 +51,8 @@ test('a thing to buy goes to the shopping list', async ({ browser }) => {
   await mom.page.getByRole('button', { name: 'Сохранить' }).click();
   await mom.page.getByRole('button', { name: 'Зимние ботинки: в покупки' }).click();
   await tab(son.page, 'Покупки');
+  // A thing to buy from the Board goes to the whole list (into the trip only while someone is in the shop).
+  await son.page.getByRole('tab', { name: 'Весь список' }).click();
   await expect(son.page.getByText('Зимние ботинки')).toBeVisible({ timeout: 30_000 });
   await mom.close();
   await son.close();

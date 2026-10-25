@@ -34,7 +34,9 @@ test('mom takes today’s dinner into the trip and shops while the son adds brea
 
   // Mom ticks the first line; the son's list shows it bought.
   await first.click();
-  await son.page.getByRole('tab', { name: 'Список' }).click();
+  await son.page.getByRole('tab', { name: 'Весь список' }).click();
+  // Bought lines fold into «Куплено» at the bottom of the whole list.
+  await son.page.getByRole('button', { name: /^Куплено/ }).click({ timeout: 30_000 });
   await expect(son.page.getByRole('button', { name: new RegExp(`^${title},`) })).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 });
 
   // The bought product is at home; once it runs out it is back in the trip for the son.

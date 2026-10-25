@@ -77,9 +77,11 @@ export async function setCurrentWeek(page: Page) {
   await expect(page.getByText(/· утверждена$/)).toBeVisible();
 }
 
-export const listHead = (page: Page) => page.getByText(/^Отмечено \d+ из \d+$/);
+// «Весь список» says how many lines are still to buy: «Осталось 9 · ≈ 2 340 ₽».
+export const listHead = (page: Page) => page.getByText(/^Осталось \d+ ·/);
 
 export async function listSize(page: Page): Promise<number> {
-  await expect(listHead(page)).toHaveText(/из [1-9]\d*$/);
-  return Number((await listHead(page).textContent())!.match(/из (\d+)/)![1]);
+  await page.getByRole('tab', { name: 'Весь список' }).click();
+  await expect(listHead(page)).toHaveText(/^Осталось [1-9]\d* ·/);
+  return Number((await listHead(page).textContent())!.match(/Осталось (\d+)/)![1]);
 }
