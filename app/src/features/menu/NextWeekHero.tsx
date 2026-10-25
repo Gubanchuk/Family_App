@@ -49,13 +49,24 @@ export default function NextWeekHero({ me, members, db, data, openWeek, openOthe
   const approved = next.week.status === 'approved';
   // A proposal reaches this phone meal by meal; approving it before all 28 arrive would be refused.
   const complete = next.slots.length >= 28;
+  // Nothing for this person to do (approved, or a child who has voted): a short card, so this week stays first.
+  if (approved || (me.role !== 'parent' && voted)) {
+    return (
+      <section className="card next-mini" aria-label={`Неделя на ${label}`}>
+        <span className="row-main">
+          <b>Неделя на {label}: «{t?.name ?? 'своя'}»</b>
+          <small>{approved ? 'утверждена, список покупок собран' : 'вы проголосовали, ждём родителей'}</small>
+        </span>
+        <button type="button" className="btn soft sm" onClick={openWeek}>Посмотреть</button>
+      </section>
+    );
+  }
   return (
-    <section className="hero" aria-label={`Неделя на ${label}`}>
+    <section className="hero compact" aria-label={`Неделя на ${label}`}>
       <h2>{by ? `${by.name}${by.id === me.id ? ' (вы)' : ''} предлагает неделю` : 'Предложена неделя'} «{t?.name ?? 'своя'}» на {label}</h2>
       <p>{yes.length ? `${yes.length === 1 ? 'Голос' : 'Голоса'} «за»: ${yes.join(', ')}.` : 'Голосов пока нет.'}{complete ? '' : ' Неделя ещё загружается.'}</p>
       {/* The main action first, so it stays at the start of the row when the chips wrap. */}
       <div className="hero-chips">
-        {approved ? <span className="hero-chip">Утверждено</span> : null}
         {!approved && complete && me.role === 'parent' ? <button type="button" className="hero-chip primary" onClick={async () => {
           await approveWeek(db, next.week!, me);
           const s = await weekListStats(db, next.week!.id);
@@ -63,7 +74,7 @@ export default function NextWeekHero({ me, members, db, data, openWeek, openOthe
         }}>Утвердить</button> : null}
         {!approved && me.role !== 'parent' && !voted ? <button type="button" className="hero-chip primary" onClick={() => voteWeek(db, next.week!, me, 'yes')}><Icon name="check" />За</button> : null}
         <button type="button" className="hero-chip" onClick={openWeek}>Посмотреть</button>
-        {approved ? null : <button type="button" className="hero-chip" onClick={openOther}>Другая неделя</button>}
+        <button type="button" className="hero-chip" onClick={openOther} aria-label="Предложить другую неделю">Другая</button>
       </div>
     </section>
   );

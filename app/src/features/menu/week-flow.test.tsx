@@ -78,7 +78,7 @@ describe('choosing and approving weeks', () => {
     render(<MemoryRouter><MenuPage me={papa} members={[papa, son]} db={db} today={TUESDAY} /></MemoryRouter>);
     expect(await screen.findByText('Голос «за»: Сын.')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Утвердить' }));
-    expect(await screen.findByText('Утверждено')).toBeInTheDocument();
+    expect(await screen.findByText(/утверждена, список покупок собран/)).toBeInTheDocument();
   });
 
   it('names a week proposed by someone this phone does not know yet in proper words', async () => {
@@ -131,19 +131,30 @@ describe('choosing and approving weeks', () => {
     const db = createLocalDb(`t-${Math.random()}`);
     await seedMenu(db, { currentWeek: true });
     await db.weeks.put({ id: 'w-next', household_id: 'h1', starts_on: '2026-10-19', template_id: 'quick', status: 'proposed', proposed_by: 'm-son', approved_by: null, updated_at: 'x', deleted_at: null });
+    // The son has not voted yet, so the proposal still asks him for something.
     await db.votes.bulkPut([
-      { week_id: 'w-next', member_id: 'm-son', household_id: 'h1', value: 'yes', comment: '', updated_at: 'x' },
       { week_id: 'w-next', member_id: 'm-papa', household_id: 'h1', value: 'yes', comment: '', updated_at: 'x' },
     ]);
     await db.week_slots.bulkPut(templateDays('quick', 'mn-plov', 'sp-ukha').map(({ template_id: _t, ...s }): WeekSlot => ({ ...s, week_id: 'w-next', household_id: 'h1' })));
     render(<MemoryRouter><MenuPage me={son} members={[papa, son]} db={db} today={TUESDAY} /></MemoryRouter>);
-    expect(await screen.findByText('Голоса «за»: Папа, Сын.')).toBeInTheDocument();
+    expect(await screen.findByText('Голос «за»: Папа.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /или/ })).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'Посмотреть' }));
     expect(await screen.findByRole('radio', { name: /Быстрая/ })).toHaveAttribute('aria-checked', 'true');
     await userEvent.click(screen.getByRole('button', { name: 'Закрыть' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Другая неделя' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Предложить другую неделю' }));
     expect(await screen.findByRole('radio', { name: /Осенняя/ })).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByRole('button', { name: 'Предложить неделю «Осенняя»' })).toBeInTheDocument();
+  });
+
+  it('folds the proposal into a short card once the child has voted', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    await db.weeks.put({ id: 'w-next', household_id: 'h1', starts_on: '2026-10-19', template_id: 'quick', status: 'proposed', proposed_by: 'm-papa', approved_by: null, updated_at: 'x', deleted_at: null });
+    await db.votes.put({ week_id: 'w-next', member_id: 'm-son', household_id: 'h1', value: 'yes', comment: '', updated_at: 'x' });
+    await db.week_slots.bulkPut(templateDays('quick', 'mn-plov', 'sp-ukha').map(({ template_id: _t, ...s }): WeekSlot => ({ ...s, week_id: 'w-next', household_id: 'h1' })));
+    render(<MemoryRouter><MenuPage me={son} members={[papa, son]} db={db} today={TUESDAY} /></MemoryRouter>);
+    expect(await screen.findByText(/вы проголосовали, ждём родителей/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Посмотреть' })).toBeInTheDocument();
   });
 });

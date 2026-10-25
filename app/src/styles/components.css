@@ -730,3 +730,11 @@ a.more, a.av { text-decoration: none; }
 .picker-more { justify-self: start; text-align: left; }
 
 .act-card.undone .act-what { text-decoration: line-through; }
+
+/* The next week's proposal asks for an action without outshouting the week on screen. */
+.hero.compact { padding: 16px; }
+.hero.compact h2 { font-size: 19px; line-height: 1.2; }
+.hero.compact .hero-chips { margin-top: 12px; }
+.hero.compact .hero-chip { min-height: 40px; padding: 8px 14px; }
+.next-mini { display: flex; align-items: center; gap: 12px; }
+.next-mini .btn { flex: none; }
