@@ -8,6 +8,7 @@ import type { Member } from '../family/useFamily';
 import { seedMenu } from '../menu/testData';
 import { regenerateWeekList, menuItemId } from './menuList';
 import ShopPage from './ShopPage';
+import ToastProvider from '../shell/Toast';
 
 const papa: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: 'Папа', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1 };
 const mama: Member = { ...papa, id: 'm-mama', user_id: 'u2', name: 'Мама', is_owner: false };
@@ -76,5 +77,16 @@ describe('«Поход»', () => {
     await userEvent.type(within(sheet).getByRole('textbox'), 'чип');
     const found = await within(sheet).findByRole('button', { name: /^Чипсы/ });
     expect(found.textContent?.replace(/\s/g, ' ')).toContain('≈ 120 ₽/уп.');
+  });
+
+  it('takes an ended trip back with «Вернуться»', async () => {
+    const db = await ready();
+    const id = menuItemId('w-cur', 'творог');
+    await db.shopping_items.put({ ...(await db.shopping_items.get(id))!, in_trip: true });
+    render(<MemoryRouter><ToastProvider><ShopPage me={papa} members={[papa, mama]} db={db} today={new Date()} /></ToastProvider></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: /Иду в магазин/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /Закончить/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Вернуться' }));
+    expect(await screen.findByRole('button', { name: /Закончить/ })).toBeInTheDocument();
   });
 });

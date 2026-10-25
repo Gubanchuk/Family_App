@@ -163,14 +163,14 @@ export default function ProductPicker({ db, me, vocab, catalog, inTrip, shopper 
             <label className="field">Цена за {ou.per}, ₽, если знаете
               <input inputMode="decimal" value={ownPrice} onChange={(e) => setOwnPrice(e.target.value)} placeholder="Например, 120" maxLength={9} />
             </label>
+            <div className="picker-qty">
+              <QtyStepper qty={qty} unit={ou.unit} sell={sellOf(null, ou.unit)} title={ownTitle || 'Новый товар'} onChange={setQty} />
+              <span className="amount">{est !== null ? `≈ ${rub(est)}` : 'без цены'}</span>
+            </div>
             <div className="pick-g"><span>Отдел</span>
               <div className="picks">
                 {[ownGuess, ...FOOD_DEPTS.filter((d) => d !== ownGuess)].map((d) => <button key={d} type="button" className="pick" aria-pressed={d === ownDept} onClick={() => setOwnDept(d)}>{d}</button>)}
               </div>
-            </div>
-            <div className="picker-qty">
-              <QtyStepper qty={qty} unit={ou.unit} sell={sellOf(null, ou.unit)} title={ownTitle || 'Новый товар'} onChange={setQty} />
-              <span className="amount">{est !== null ? `≈ ${rub(est)}` : 'без цены'}</span>
             </div>
           </div>
         )}
