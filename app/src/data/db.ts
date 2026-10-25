@@ -2,6 +2,7 @@ import Dexie, { type Table } from 'dexie';
 import type { Deposit, Goal, Need, Request, Wish, WishGift, WishMetoo } from '../features/board/types';
 import type { Budget, MoneyEntry, Payment, PaymentMark } from '../features/money/types';
 import type { Meal } from '../features/menu/week';
+import type { AssistantThread } from '../features/assistant/types';
 
 export type Recipe = {
   id: string; household_id: string | null; name: string; about: string; category: string; meals: string[];
@@ -112,6 +113,8 @@ export class LocalDb extends Dexie {
   deposits!: Table<Deposit, string>;
   budgets!: Table<Budget, [string, string]>;
   home_stock!: Table<HomeStock, [string, string]>;
+  // Local only: not a SyncTable, never in the outbox or a pull.
+  assistant_threads!: Table<AssistantThread, string>;
 
   constructor(name: string) {
     super(name);
@@ -144,6 +147,9 @@ export class LocalDb extends Dexie {
     });
     this.version(7).stores({
       home_stock: '[household_id+key], household_id',
+    });
+    this.version(8).stores({
+      assistant_threads: 'member_id',
     });
   }
 }

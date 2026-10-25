@@ -18,6 +18,21 @@ describe('local db version 2', () => {
     expect(await db.not_eat.get(['h1', 'item', 'грибы'])).toBeTruthy();
   });
 
+  it('adds the assistant threads as a local table that never syncs', async () => {
+    const name = `t-${Math.random()}`;
+    const old = new Dexie(name);
+    old.version(7).stores({ ...V1_STORES, home_stock: '[household_id+key], household_id' });
+    await old.open();
+    await old.table('home_stock').put({ household_id: 'h1', key: 'молоко', item: 'молоко', title: 'Молоко', dept: 'Молочное и яйца', state: 'have', by_member: null, updated_at: 'x', deleted_at: null });
+    old.close();
+    const db = createLocalDb(name);
+    expect(await db.home_stock.count()).toBe(1);
+    await db.assistant_threads.put({ member_id: 'm1', messages: [{ role: 'user', content: [{ type: 'text', text: 'Привет' }] }], snapshot_hash: 'abc', updated_at: 'x' });
+    expect((await db.assistant_threads.get('m1'))?.messages).toHaveLength(1);
+    expect(Object.keys(KEY_FIELDS)).not.toContain('assistant_threads');
+    expect(await db.outbox.count()).toBe(0);
+  });
+
   it('knows the keys of the new tables', () => {
     expect(KEY_FIELDS.shopping_marks).toEqual(['item_id']);
     expect(slotKey('not_eat', { household_id: 'h', kind: 'item', ref: 'грибы' })).toBe('h|item|грибы');
