@@ -86,8 +86,8 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
         <button type="button" className="round-btn" aria-label="Назад" onClick={() => navigate(-1)}><Icon name="back" /></button>
         <div className="asst-title"><h1>Помощник</h1><p>{screen === 'home' ? 'знает наше меню, покупки и дела' : `из раздела «${SCREEN_NAME[screen]}»`}</p></div>
         <div className="asst-head-r">
-          {chats.length ? <button type="button" className="btn soft sm" onClick={() => setListOpen(true)}>Разговоры</button> : null}
-          {a.items.length ? <button type="button" className="btn soft sm" aria-label="Новый разговор" disabled={a.busy} onClick={() => void a.newThread()}>Новый чат</button> : null}
+          {/* One button keeps the title whole on a phone; a new conversation starts from the list. */}
+          {chats.length || a.items.length ? <button type="button" className="btn soft sm" onClick={() => setListOpen(true)}>Разговоры</button> : null}
         </div>
       </header>
 
