@@ -658,3 +658,7 @@ a.more, a.av { text-decoration: none; }
 .asst-thumb img { width: 64px; height: 64px; object-fit: cover; border-radius: 12px; }
 .asst-thumb button { position: absolute; top: -6px; right: -6px; width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--k-ink); color: var(--k-card); cursor: pointer; }
 .asst-thumb button .ic { width: 14px; height: 14px; }
+/* On Home the questions take one scrolling row, so the day's meals stay close. */
+.ask-card .ask-sugs { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 0 16px 2px; scrollbar-width: none; }
+.ask-card .ask-sugs::-webkit-scrollbar { display: none; }
+.ask-card .ask-sug { flex: none; white-space: nowrap; }

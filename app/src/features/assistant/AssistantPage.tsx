@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { localDb, type LocalDb } from '../../data/db';
 import type { Member } from '../family/useFamily';
 import Icon from '../shell/Icon';
@@ -11,9 +11,10 @@ import { asScreen, SCREEN_NAME, suggestionsFor } from './suggestions';
 import type { AssistantImage } from './types';
 
 // «Помощник»: one conversation per person, kept on this phone. Opened from Home or a section's header
-// (?from=), with a question to send at once from Home's card (?q=).
+// (?from=), with a question to send at once from Home's card (router state q).
 export default function AssistantPage({ me, members, db = localDb, session }: { me: Member; members: Member[]; db?: LocalDb; session?: AssistantSession }) {
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const screen = asScreen(params.get('from'));
   const a = useAssistant(me, members, screen, { db, session });
@@ -26,12 +27,11 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
 
   // A question typed on Home goes once, as soon as the conversation is read from the phone.
   useEffect(() => {
-    const q = params.get('q');
+    const q = (location.state as { q?: string } | null)?.q;
     if (!q || !a.loaded || asked.current) return;
     asked.current = true;
-    const next = new URLSearchParams(params);
-    next.delete('q');
-    setParams(next, { replace: true });
+    // Sent once: going back and forth must not ask it again.
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
     void a.send(q);
   }, [a.loaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
