@@ -59,7 +59,9 @@ export async function regenerateWeekList(db: LocalDb, weekId: string): Promise<'
         const step = stepOf(sell, unit, v?.piece_weight ?? null);
         const qty = Math.max(step, Math.ceil(next.qty / step - 1e-9) * step);
         const price = prices.get(l.item);
-        Object.assign(next, { qty, qty_text: formatAmount(qty, unit, sell, v?.piece_weight ?? null), est_price: price === undefined ? next.est_price : Math.round(qty * price) });
+        // What the family set in the trip (amount, a typed price) stays, unless the menu now needs more.
+        if (prev.qty !== null && prev.unit === unit && qty <= prev.qty) Object.assign(next, { qty: prev.qty, qty_text: prev.qty_text, est_price: prev.est_price });
+        else Object.assign(next, { qty, qty_text: formatAmount(qty, unit, sell, v?.piece_weight ?? null), est_price: price === undefined ? next.est_price : Math.round(qty * price) });
       }
     }
     if (!prev || SAME.some((k) => prev[k] !== next[k])) out.push(next);

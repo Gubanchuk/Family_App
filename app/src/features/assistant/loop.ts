@@ -176,6 +176,7 @@ export class AssistantSession {
     this.emit();
     if (this.busy || !(await this.sendResults())) return;
     this.busy = true;
+    this.calls = 0;
     try { await this.cycle(epoch); } catch { if (epoch === this.epoch) await this.fail('failed'); } finally { if (epoch === this.epoch) { this.busy = false; this.emit(); } }
   };
 

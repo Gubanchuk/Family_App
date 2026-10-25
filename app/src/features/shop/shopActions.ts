@@ -86,8 +86,11 @@ export async function addManualItem(db: LocalDb, me: Member, a: { title: string;
   return dept;
 }
 
+// Read afresh: a sheet's older copy must not undo another phone's change to the line it removes.
 export async function removeItem(db: LocalDb, item: ShoppingItem) {
-  await writeLocal(db, 'shopping_items', [{ ...item, deleted_at: new Date().toISOString() }]);
+  const row = (await db.shopping_items.get(item.id)) ?? item;
+  if (row.deleted_at) return;
+  await writeLocal(db, 'shopping_items', [{ ...row, deleted_at: new Date().toISOString() }]);
 }
 
 // A trip may carry a cart: what it is for and which lines it takes. Both travel only once the server keeps them;

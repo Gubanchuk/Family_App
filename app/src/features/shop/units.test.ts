@@ -55,7 +55,7 @@ describe('shop units', () => {
   });
 
   it('prices a line and reads typed amounts', () => {
-    expect(lineEstimate(1500, 0.045)).toBe(68);
+    expect(lineEstimate(1500, 0.045)).toBe(67.5);
     expect(lineEstimate(1500, null)).toBeNull();
     expect(parseTyped('1,3', 1000)).toBe(1300);
     expect(parseTyped('0', 1000)).toBeNull();

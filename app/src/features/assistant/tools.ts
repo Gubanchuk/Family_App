@@ -7,7 +7,7 @@ import { formatQty } from '../shop/build';
 import { capitalize } from '../shop/menuList';
 import { guessDept, guessIngredient, removeItem } from '../shop/shopActions';
 import { buildCatalog, type Product } from '../shop/catalog';
-import { addProductLine, pullToTrip, setInTrip, tripListOn } from '../shop/tripActions';
+import { addProductLine, pullToTrip, tripListOn } from '../shop/tripActions';
 import { formatAmount, stepOf, type LineUnit } from '../shop/units';
 import { removeStock, runOut, setStock, stockKey } from '../shop/stock';
 import { askFor } from '../board/boardActions';
@@ -311,13 +311,17 @@ async function planAddToShopping(input: unknown, { db, me, today }: ToolCtx): Pr
         ids.push(id);
       }
       const pulled = pull.map((x) => x.line!);
+      // The amounts before the pull rounded them to packs, for the undo.
+      const before = new Map(pulled.map((l) => [l.id, { qty: l.qty, qty_text: l.qty_text, est_price: l.est_price }]));
       if (pulled.length) await pullToTrip(db, pulled, catalog);
       return {
         result: JSON.stringify({ added: fresh.map((x) => x.product?.title ?? capitalize(x.name)), taken_from_list: pulled.map((l) => l.title), already: inTrip.map((x) => x.line!.title) }),
         ...(ids.length || pulled.length ? { undo: async () => {
           await removeOwnLines(db, ids);
-          const back = (await db.shopping_items.bulkGet(pulled.map((l) => l.id))).filter((l): l is ShoppingItem => !!l && !l.deleted_at);
-          await setInTrip(db, back, false);
+          const rows = (await db.shopping_items.bulkGet(pulled.map((l) => l.id))).filter((l): l is ShoppingItem => !!l && !l.deleted_at);
+          const bought = await db.shopping_marks.bulkGet(rows.map((l) => l.id));
+          const back = rows.filter((_, k) => !bought[k]?.bought).map((l) => ({ ...l, ...before.get(l.id), in_trip: false }));
+          if (back.length) await writeLocal(db, 'shopping_items', back);
         } } : {}),
       };
     },

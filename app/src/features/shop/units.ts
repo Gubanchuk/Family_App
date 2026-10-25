@@ -113,8 +113,10 @@ export function unitPriceLabel(pricePerUnit: number | null, unit: LineUnit, sell
   return `≈ ${rub(pricePerUnit)}/${unit === 'уп' ? 'уп.' : 'шт'}`;
 }
 
+// Kept to the kopeck: the price per unit of a family's own product is read back from it, and whole rubles
+// would skew a cheap product bought in small amounts. Shown rounded.
 export const lineEstimate = (qty: number | null, pricePerUnit: number | null): number | null =>
-  qty === null || pricePerUnit === null || !(pricePerUnit >= 0) ? null : Math.round(qty * pricePerUnit);
+  qty === null || pricePerUnit === null || !(pricePerUnit >= 0) ? null : Math.round(qty * pricePerUnit * 100) / 100;
 
 // What the number in the stepper means when typed by hand: kilos and litres for loose goods, packs, pieces.
 export function inputUnit(sell: Sell, unit: LineUnit, pieceWeight: number | null = null): { label: string; factor: number; decimals: boolean } {

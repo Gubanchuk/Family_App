@@ -29,6 +29,8 @@ function serverKey(): string {
 // Before the usage migration is applied there is no table and no sum: no limit and no record.
 const notThere = (e: { code?: string } | null) => !!e && ['42P01', '42883', 'PGRST202', 'PGRST205'].includes(e.code ?? '');
 const reason = (e: unknown) => (e instanceof Error ? e.message : String(e));
+// What a question is counted at until its real cost is known: a little above a typical answer.
+const RESERVE_USD = 0.05;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -60,15 +62,26 @@ Deno.serve(async (req) => {
   }
   if (counting && Number(spent.data) >= DAILY_LIMIT_USD) return answer({ error: 'daily_limit' });
 
-  // Best effort: a lost record must not cost the person their answer.
-  const record = async (u: Usage) => {
-    if (!counting) return;
+  // A row is reserved before the model is asked, so questions sent at the same moment all count against the day.
+  // If it cannot be written the limit would be blind: the request stops instead.
+  let usageId: number | null = null;
+  if (counting) {
+    const { data, error } = await admin.from('assistant_usage').insert({ household_id: me.household_id, member_id: me.id, cost_usd: RESERVE_USD, input_tokens: 0, output_tokens: 0 }).select('id').single();
+    if (error && !notThere(error)) {
+      console.error('assistant: usage reservation failed:', error.message);
+      return answer({ error: 'failed' });
+    }
+    usageId = (data as { id?: number } | null)?.id ?? null;
+  }
+  // The reservation becomes the real cost; a failed call costs nothing.
+  const record = async (u: Usage | null) => {
+    if (usageId === null) return;
     try {
-      const { error } = await admin.from('assistant_usage').insert({
-        household_id: me.household_id, member_id: me.id, cost_usd: costUsd(u), input_tokens: u.input_tokens, output_tokens: u.output_tokens,
+      const { error } = await admin.from('assistant_usage').update(u ? {
+        cost_usd: costUsd(u), input_tokens: u.input_tokens, output_tokens: u.output_tokens,
         cache_read_tokens: u.cache_read_input_tokens ?? 0, cache_write_tokens: u.cache_creation_input_tokens ?? 0,
-      });
-      if (error && !notThere(error)) console.error('assistant: usage not recorded:', error.message);
+      } : { cost_usd: 0 }).eq('id', usageId);
+      if (error) console.error('assistant: usage not recorded:', error.message);
     } catch (e) {
       console.error('assistant: usage not recorded:', reason(e));
     }
@@ -94,6 +107,7 @@ Deno.serve(async (req) => {
     if (reply.stop_reason === 'refusal') return answer({ error: 'refusal' });
     return answer({ content: reply.content, stop_reason: reply.stop_reason });
   } catch (e) {
+    await record(null);
     const kind = classifyError(e);
     if (kind === 'busy') return answer({ error: kind });
     console.error('assistant: Claude request failed:', reason(e));

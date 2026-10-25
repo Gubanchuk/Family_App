@@ -4,6 +4,8 @@ import { createLocalDb, type LocalDb, type ShopTrip, type ShoppingItem, type Sho
 import type { Member } from '../family/useFamily';
 import type { Product } from './catalog';
 import { addProductLine, endSummary, pullToTrip, setInTrip, tripLines, tripTotals, updateLine } from './tripActions';
+import { seedMenu } from '../menu/testData';
+import { menuItemId, regenerateWeekList } from './menuList';
 
 const papa: Member = { id: 'm-papa', household_id: 'h1', user_id: 'u1', name: 'Папа', color: '#2F6FDB', role: 'parent', is_owner: true, portion: 1 };
 const potato: Product = { key: 'картофель', title: 'Картофель', item: 'картофель', unit: 'г', dept: 'Овощи и фрукты', price: 0.045, sell: { sell: 'weight', step: 500 }, pieceWeight: 120, custom: false, uses: 0 };
@@ -31,7 +33,7 @@ describe('trip actions', () => {
     const a = await addProductLine(db, papa, { product: potato, title: 'Картофель', qty: 1000, unit: 'г', pricePerUnit: 0.045, dept: potato.dept, inTrip: true });
     const b = await addProductLine(db, papa, { product: potato, title: 'Картофель', qty: 500, unit: 'г', pricePerUnit: 0.045, dept: potato.dept, inTrip: true });
     expect(b).toEqual({ id: a.id, merged: true });
-    expect(await db.shopping_items.get(a.id)).toMatchObject({ qty: 1500, qty_text: '1,5 кг', est_price: 68 });
+    expect(await db.shopping_items.get(a.id)).toMatchObject({ qty: 1500, qty_text: '1,5 кг', est_price: 67.5 });
     expect(await db.shopping_items.count()).toBe(1);
   });
 
@@ -55,7 +57,7 @@ describe('trip actions', () => {
     const menu = line('m:w:картофель', { source: 'menu', item: 'картофель', title: 'Картофель', qty: 1237.5, unit: 'г', est_price: 56, week_id: 'w' });
     await db.shopping_items.put(menu);
     await pullToTrip(db, [menu], [potato]);
-    expect(await db.shopping_items.get(menu.id)).toMatchObject({ in_trip: true, qty: 1500, qty_text: '1,5 кг', est_price: 68 });
+    expect(await db.shopping_items.get(menu.id)).toMatchObject({ in_trip: true, qty: 1500, qty_text: '1,5 кг', est_price: 67.5 });
   });
 
   it('saves a new amount and a typed price in one write without losing either', async () => {
@@ -79,5 +81,28 @@ describe('trip actions', () => {
     const marks = new Map([mark('old', { bought: true, bought_at: '2026-10-24T09:00:00Z' }), mark('now', { bought: true, bought_at: '2026-10-25T09:30:00Z' })]);
     expect(tripLines(ls, marks).map((l) => l.id)).toEqual(['open']);
     expect(tripLines(ls, marks, trip).map((l) => l.id)).toEqual(['open', 'now']);
+  });
+
+  it('never brings back a removed line from an older copy held by a sheet', async () => {
+    const db = await fresh();
+    const l = line('u:9', { title: 'Хлеб', in_trip: true });
+    await db.shopping_items.put(l);
+    await db.shopping_items.put({ ...l, deleted_at: '2026-10-25T09:00:00Z' });
+    await setInTrip(db, [l], false);
+    await updateLine(db, l, { est: 50 });
+    expect(await db.shopping_items.get('u:9')).toMatchObject({ deleted_at: '2026-10-25T09:00:00Z', in_trip: true, est_price: null });
+  });
+
+  it('keeps what the family set on a menu line in the trip when the menu is rebuilt', async () => {
+    const db = createLocalDb(`t-${Math.random()}`);
+    await seedMenu(db, { currentWeek: true });
+    await db.meta.put({ key: 'family_portions', value: 3.5 });
+    await db.meta.put({ key: 'features', value: ['tripList'] });
+    await regenerateWeekList(db, 'w-cur');
+    const id = menuItemId('w-cur', 'творог');
+    const curd = (await db.shopping_items.get(id))!;
+    await db.shopping_items.put({ ...curd, in_trip: true, qty: 5000, qty_text: '5 кг', est_price: 999 });
+    await regenerateWeekList(db, 'w-cur');
+    expect(await db.shopping_items.get(id)).toMatchObject({ in_trip: true, qty: 5000, qty_text: '5 кг', est_price: 999 });
   });
 });

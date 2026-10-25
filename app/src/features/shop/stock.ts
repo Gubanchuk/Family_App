@@ -47,9 +47,11 @@ export async function runOut(db: LocalDb, me: Member, s: HomeStock, ctx: { items
   if (home) {
     const m = ctx.marks.get(home.id)!;
     await writeLocal(db, 'shopping_marks', [{ ...withoutStamp(m), at_home: false, by_member: me.id }]);
+    await toTrip(db, me, home);
     return 'reopened';
   }
-  if (mine.some((i) => !ctx.marks.get(i.id)?.bought)) return 'already';
+  const open = mine.find((i) => !ctx.marks.get(i.id)?.bought);
+  if (open) { await toTrip(db, me, open); return 'already'; }
   const prefix = `h:${ctx.weekStart}:`;
   const earlier = (await db.shopping_items.where('household_id').equals(me.household_id).toArray())
     .filter((i) => i.id.startsWith(prefix) && i.id.endsWith(`:${s.key}`));
@@ -61,6 +63,13 @@ export async function runOut(db: LocalDb, me: Member, s: HomeStock, ctx: { items
     ...(await tripMark(db, me.household_id, true)),
   }]);
   return 'added';
+}
+
+// The line of a product that ran out joins the next trip, once the server keeps the mark.
+async function toTrip(db: LocalDb, me: Member, line: ShoppingItem) {
+  const mark = await tripMark(db, me.household_id, true);
+  const row = await db.shopping_items.get(line.id);
+  if (mark.in_trip && row && !row.deleted_at && !row.in_trip) await writeLocal(db, 'shopping_items', [{ ...row, in_trip: true }]);
 }
 
 const withoutStamp = (m: ShoppingMark) => { const { updated_at: _u, ...rest } = m; return rest; };
