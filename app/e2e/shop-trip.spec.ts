@@ -13,11 +13,14 @@ test('mom puts products in the trip with amounts, goes to the shop and ticks the
   await mom.page.getByRole('button', { name: 'Найти и добавить товар' }).click();
   const sheet = mom.page.getByRole('dialog', { name: 'Добавить товар' });
   await sheet.getByRole('textbox').fill('картоф');
-  await sheet.getByRole('button', { name: /^Картофель/ }).click();
+  // One tap adds the usual amount; «Изменить количество» makes it a kilo.
+  await sheet.getByRole('button', { name: 'Добавить: Картофель' }).click();
+  await expect(sheet.getByRole('status')).toContainText('«Картофель»');
+  await sheet.getByRole('button', { name: 'Изменить количество' }).click();
   await sheet.getByRole('button', { name: /^Больше: Картофель/ }).click();
   await expect(sheet.getByRole('group', { name: 'Картофель: количество' })).toContainText('1 кг');
-  await sheet.getByRole('button', { name: /^Добавить/ }).click();
-  await expect(sheet.getByRole('status')).toContainText('«Картофель» в походе');
+  await sheet.getByRole('button', { name: /^Сохранить/ }).click();
+  await expect(sheet.getByRole('status')).toContainText('1 кг — в походе');
   await sheet.getByRole('button', { name: 'Закрыть' }).click();
 
   const sum = mom.page.getByRole('region', { name: 'Итог похода' });

@@ -9,7 +9,7 @@ import { resizePhoto } from '../../lib/image';
 import ActionCard from './ActionCard';
 import Markdown from './Markdown';
 import { imageFromBlob, useAssistant, type AssistantSession } from './loop';
-import { asScreen, SCREEN_NAME, suggestionsFor } from './suggestions';
+import { asScreen, EXAMPLE, SCREEN_NAME, suggestionsFor } from './suggestions';
 import type { AssistantImage } from './types';
 
 // «Помощник»: one conversation per person, kept on this phone. Opened from Home or a section's header
@@ -34,6 +34,14 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
   // Earlier conversations of this person, on this phone only.
   const chats = useLiveQuery(async () => (await db.assistant_chats.where('member_id').equals(me.id).toArray())
     .sort((x, y) => y.updated_at.localeCompare(x.updated_at)), [db, me.id]) ?? [];
+
+  // The chat covers the screen: the page under it must not scroll when the header or the field is dragged.
+  useEffect(() => {
+    const root = document.documentElement;
+    const prev = root.style.overflow;
+    root.style.overflow = 'hidden';
+    return () => { root.style.overflow = prev; };
+  }, []);
 
   // Opened from Home's bar: the keyboard comes up at once.
   useEffect(() => {
@@ -76,10 +84,10 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
     <div className="asst">
       <header className="k-head sub asst-head">
         <button type="button" className="round-btn" aria-label="Назад" onClick={() => navigate(-1)}><Icon name="back" /></button>
-        <div className="asst-title"><h1>Помощник</h1><p>{screen === 'home' ? 'знает наше меню, покупки и дела' : `вы пришли из раздела «${SCREEN_NAME[screen]}»`}</p></div>
+        <div className="asst-title"><h1>Помощник</h1><p>{screen === 'home' ? 'знает наше меню, покупки и дела' : `из раздела «${SCREEN_NAME[screen]}»`}</p></div>
         <div className="asst-head-r">
           {chats.length ? <button type="button" className="btn soft sm" onClick={() => setListOpen(true)}>Разговоры</button> : null}
-          {a.items.length ? <button type="button" className="btn soft sm" aria-label="Новый разговор" disabled={a.busy} onClick={() => void a.newThread()}>Новый</button> : null}
+          {a.items.length ? <button type="button" className="btn soft sm" aria-label="Новый разговор" disabled={a.busy} onClick={() => void a.newThread()}>Новый чат</button> : null}
         </div>
       </header>
 
@@ -87,7 +95,7 @@ export default function AssistantPage({ me, members, db = localDb, session }: { 
         {a.wasReset ? <p className="note asst-note">Прошлый разговор стал слишком длинным, начали новый.</p> : null}
         {empty ? (
           <div className="asst-empty">
-            <p className="asst-hello">Привет, {me.name}! Спроси что угодно по дому или попроси что-то сделать — например, добавить продукты в поход.</p>
+            <p className="asst-hello">Привет, {me.name}! Спроси что угодно по дому или попроси что-то сделать — {EXAMPLE[screen]}.</p>
             <div className="asst-sugs">
               {suggestionsFor(screen, me.role).map((q) => <button key={q} type="button" className="pick ask-sug" onClick={() => void submit(q)}>{q}</button>)}
             </div>

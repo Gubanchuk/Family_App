@@ -102,6 +102,17 @@ export function formatAmount(qty: number | null, unit: string | null, sell?: Sel
   return measure(qty, unit);
 }
 
+// The short form a stepper shows: packs or pieces when the amount is whole ones, else the weight. The full form
+// («2 пачки · 400 г») goes under the name.
+export function formatShort(qty: number | null, unit: string | null, sell?: Sell, pieceWeight: number | null = null): string {
+  if (qty === null || qty === undefined || !unit) return '';
+  if ((unit === 'г' || unit === 'мл') && sell?.sell === 'pack' && whole(qty, sell.size)) {
+    const n = Math.round(qty / sell.size);
+    return `${n} ${plural(sell.pack, n)}`;
+  }
+  return formatAmount(qty, unit, sell, pieceWeight);
+}
+
 // The price shown next to a product in search: per kilo, litre, pack or piece.
 export function unitPriceLabel(pricePerUnit: number | null, unit: LineUnit, sell: Sell, pieceWeight: number | null = null): string {
   if (pricePerUnit === null || !(pricePerUnit > 0)) return '';

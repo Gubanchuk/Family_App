@@ -20,14 +20,19 @@ async function open(check: Parameters<typeof ProductPicker>[0]['check']) {
 }
 
 describe('ProductPicker', () => {
-  it('adds a dictionary product with its amount and price', async () => {
+  it('adds a dictionary product with one tap, then lets its amount be changed', async () => {
     const { db, sheet } = await open(async () => null);
     await userEvent.type(within(sheet).getByRole('textbox'), 'сыр');
-    await userEvent.click(within(sheet).getByRole('button', { name: /Сыр твёрдый/ }));
-    expect(within(sheet).getAllByText(/≈/).length).toBeGreaterThan(0);
-    await userEvent.click(within(sheet).getByRole('button', { name: /^Добавить/ }));
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Добавить: Сыр твёрдый' }));
     await waitFor(async () => expect(await db.shopping_items.count()).toBe(1));
-    expect(within(sheet).getByRole('status')).toHaveTextContent('«Сыр твёрдый» в походе');
+    expect(within(sheet).getByRole('status')).toHaveTextContent('«Сыр твёрдый»');
+    expect(within(sheet).getByRole('status')).toHaveTextContent('в походе');
+    const before = (await db.shopping_items.toArray())[0].qty!;
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Изменить количество' }));
+    await userEvent.click(within(sheet).getByRole('button', { name: /^Больше: Сыр твёрдый/ }));
+    await userEvent.click(within(sheet).getByRole('button', { name: /^Сохранить/ }));
+    await waitFor(async () => expect((await db.shopping_items.toArray())[0].qty).toBeGreaterThan(before));
+    expect(await db.shopping_items.count()).toBe(1);
   });
 
   it('shows the assistant doubting a new product price, and nothing when it has no answer', async () => {
@@ -35,7 +40,8 @@ describe('ProductPicker', () => {
     const { sheet } = await open(async (p) => { asked.push(p); return { ok: false, note: 'Сыр обычно стоит 700–1000 ₽ за кг.' }; });
     await userEvent.type(within(sheet).getByRole('textbox'), 'Сыр Ламбер');
     await userEvent.click(within(sheet).getByRole('button', { name: /Новый товар «Сыр Ламбер»/ }));
-    // Cheese guesses dairy, sold by the pack; it is bought by the kilo here.
+    // Cheese guesses dairy, sold by the pack; it is bought by the kilo here. The details wait behind «Подробнее».
+    await userEvent.click(within(sheet).getByRole('button', { name: /^Подробнее/ }));
     expect(within(sheet).getByRole('radio', { name: 'упаковка' })).toHaveAttribute('aria-checked', 'true');
     await userEvent.click(within(sheet).getByRole('radio', { name: 'кг' }));
     await userEvent.type(within(sheet).getByRole('textbox', { name: /Цена за 1 кг/ }), '50');

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import Icon from '../shell/Icon';
-import { formatAmount, inputUnit, nextQty, parseTyped, stepOf, type LineUnit, type Sell } from './units';
+import { formatAmount, formatShort, inputUnit, nextQty, parseTyped, stepOf, type LineUnit, type Sell } from './units';
 
 // «− 1,5 кг +»: steps on the product's grid; a tap on the amount lets one type it (kilos and litres with a comma).
 export default function QtyStepper({ qty, unit, sell, pieceWeight = null, title, onChange, disabled }: {
@@ -11,7 +11,9 @@ export default function QtyStepper({ qty, unit, sell, pieceWeight = null, title,
   const settled = useRef(false);
   const step = stepOf(sell, unit, pieceWeight);
   const how = inputUnit(sell, unit, pieceWeight);
-  const text = formatAmount(qty, unit, sell, pieceWeight);
+  // The stepper shows the short form; the full one is read out for a screen reader.
+  const text = formatShort(qty, unit, sell, pieceWeight);
+  const full = formatAmount(qty, unit, sell, pieceWeight);
   const commit = () => {
     if (settled.current) return;
     settled.current = true;
@@ -25,7 +27,7 @@ export default function QtyStepper({ qty, unit, sell, pieceWeight = null, title,
         <Icon name="minus" />
       </button>
       {typing === null ? (
-        <button type="button" className="stepper-val" aria-label={`${text}, ввести количество`} disabled={disabled}
+        <button type="button" className="stepper-val" aria-label={`${full}, ввести количество`} disabled={disabled}
           onClick={() => { settled.current = false; setTyping(String(Math.round((qty / how.factor) * 1000) / 1000).replace('.', ',')); }}>{text}</button>
       ) : (
         <span className="stepper-edit">

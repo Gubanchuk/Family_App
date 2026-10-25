@@ -15,7 +15,7 @@ import QtyStepper from './QtyStepper';
 import LineSheet from './LineSheet';
 import TripSheet from './TripSheet';
 import { useFolds } from './useFolds';
-import type { LineUnit } from './units';
+import { formatAmount, formatShort, type LineUnit } from './units';
 
 const hhmm = (iso: string) => new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 const UNITS: LineUnit[] = ['г', 'мл', 'шт', 'уп'];
@@ -64,7 +64,9 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
     const trip = mine!;
     await endTrip(db, trip);
     const left = s.left.length ? ` ${s.left.slice(0, 3).join(', ')}${s.left.length > 3 ? ' и ещё' : ''} — остались в походе.` : '';
-    onToast({ text: s.count ? `Поход закончен: ${s.count} ${goods(s.count)} на ${approx}${rub(s.sum)}.${left}` : 'Поход закончен.', action: { label: 'Вернуться', run: () => { void reopenTrip(db, trip); } } });
+    // Bought lines are spending by themselves; parents hear it, the child has no Деньги.
+    const money = s.count && me.role === 'parent' ? ' Траты записаны в «Деньги».' : '';
+    onToast({ text: s.count ? `Поход закончен: ${s.count} ${goods(s.count)} на ${approx}${rub(s.sum)}.${money}${left}` : 'Поход закончен.', action: { label: 'Вернуться', run: () => { void reopenTrip(db, trip); } } });
   };
 
   const row = (l: ShoppingItem) => {
@@ -76,10 +78,14 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
     const price = m?.price_real ?? l.est_price;
     const who = l.source === 'menu' ? 'из меню' : l.source === 'home' ? 'закончилось дома' : name(l.added_by);
     const priceBtn = (
-      <button type="button" className="amount amount-btn" aria-label={`${l.title}: ${price !== null ? `цена ${rub(price)}` : 'цена не указана'}`} onClick={() => setSheet(l)}>
-        {price !== null ? rub(price) : '—'}
+      <button type="button" className={`price-chip ${price === null ? 'empty' : ''}`} aria-label={`${l.title}: ${price !== null ? `цена ${rub(price)}, изменить` : 'указать цену'}`} onClick={() => setSheet(l)}>
+        {price !== null ? rub(price) : '+ цена'}
       </button>
     );
+    // The stepper shows «2 пачки»; the weight it means goes under the name.
+    const full = unit && l.qty !== null ? formatAmount(l.qty, unit, p?.sell, p?.pieceWeight ?? null) : '';
+    const short = unit && l.qty !== null ? formatShort(l.qty, unit, p?.sell, p?.pieceWeight ?? null) : '';
+    const weight = full && full !== short ? full.split(' · ')[1] ?? '' : '';
     if (shopping) {
       // In the shop a tap puts the line in the cart; the amount and price open its sheet.
       return (
@@ -96,17 +102,19 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
     }
     return (
       <div className="row trip-row plan" key={l.id}>
-        <button type="button" className="row-btn" onClick={() => setSheet(l)} aria-label={`${l.title}: изменить`}>
-          <span className="row-main"><b>{l.title}</b><small>{[unit && l.qty !== null ? '' : l.qty_text, who].filter(Boolean).join(' · ')}</small></span>
-          {l.urgent ? <span className="pill">срочно</span> : null}
-        </button>
-        <span className="trip-row-end">
-          {unit && l.qty !== null ? (
+        <div className="trip-row-top">
+          <button type="button" className="row-btn" onClick={() => setSheet(l)} aria-label={`${l.title}: изменить`}>
+            <span className="row-main"><b>{l.title}</b><small>{[unit && l.qty !== null ? weight : l.qty_text, who].filter(Boolean).join(' · ')}</small></span>
+            {l.urgent ? <span className="pill">срочно</span> : null}
+          </button>
+          {priceBtn}
+        </div>
+        {unit && l.qty !== null ? (
+          <div className="trip-row-qty">
             <QtyStepper qty={l.qty} unit={unit} sell={p?.sell ?? { sell: 'piece', step: 1 }} pieceWeight={p?.pieceWeight ?? null} title={l.title}
               onChange={(q) => setLineQty(db, l, q, p?.price ?? undefined, p?.sell, p?.pieceWeight ?? null)} />
-          ) : null}
-          {priceBtn}
-        </span>
+          </div>
+        ) : null}
       </div>
     );
   };
@@ -164,7 +172,10 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
             </span>
             <button type="button" className="btn sm" onClick={endShopping}><Icon name="check" />Закончить</button>
           </div>
-          <span className="bar" aria-hidden="true"><i style={{ width: `${t.count ? (t.inCart.count / t.count) * 100 : 0}%` }} /></span>
+          <div className="trip-strip-row">
+            <span className="bar" aria-hidden="true"><i style={{ width: `${t.count ? (t.inCart.count / t.count) * 100 : 0}%` }} /></span>
+            <button type="button" className="trip-strip-add" onClick={() => setPicker(true)}><Icon name="plus" />Добавить</button>
+          </div>
         </section>
       ) : (
       <section className="trip-sum" aria-label="Итог похода">
@@ -198,7 +209,7 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
         const done = shopping && got === g.items.length;
         const folded = folds.isFolded(`trip:${g.dept}`, done);
         const sum = tripTotals(g.items, marks);
-        const money = shopping ? (done ? rub(sum.inCart.sum) : sum.left.sum ? `≈ ${rub(sum.left.sum)}` : '') : sum.total ? `≈ ${rub(sum.total)}` : '';
+        const money = shopping ? (done ? rub(sum.inCart.sum) : sum.left.sum ? `осталось ≈ ${rub(sum.left.sum)}` : '') : sum.total ? `≈ ${rub(sum.total)}` : '';
         return (
           <section className="card" key={g.dept} aria-labelledby={id}>
             <div className="card-h dept-h">
@@ -211,11 +222,6 @@ export default function TripView({ db, me, members, data, vocab, catalog, listLi
       })}
 
       {lines.length ? pullCard : null}
-      {shopping ? (
-        <div className="trip-add">
-          <button type="button" className="trip-search" onClick={() => setPicker(true)}><Icon name="plus" /><span>Добавить, за чем ещё пришли</span></button>
-        </div>
-      ) : null}
 
       {picker ? <ProductPicker db={db} me={me} vocab={vocab} catalog={catalog} inTrip onClose={() => setPicker(false)} /> : null}
       {pulling ? (

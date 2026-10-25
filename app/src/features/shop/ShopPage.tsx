@@ -25,7 +25,9 @@ import ListDays from './ListDays';
 import TripView from './TripView';
 import ProductPicker from './ProductPicker';
 import { buildCatalog } from './catalog';
-import { setInTrip } from './tripActions';
+import { goods, pullToTrip, restoreLines, restoreRemoved, setInTrip, updateLine } from './tripActions';
+import LineSheet from './LineSheet';
+import { productOfLine } from './catalog';
 import { useFeature } from '../../data/useFeature';
 import { setListDays } from '../menu/weekActions';
 import { dayOfWeek } from '../menu/week';
@@ -47,6 +49,11 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const [picking, setPicking] = useState(false);
   // In the shop with a cart: the cart first, the whole list a tap away.
   const [cartView, setCartView] = useState(true);
+  // «Выбрать несколько»: lines picked for one action at once.
+  const [selecting, setSelecting] = useState(false);
+  const [picked, setPicked] = useState<Set<string>>(() => new Set());
+  // Bought and at-home lines fold into one card at the bottom.
+  const [showDone, setShowDone] = useState(false);
   const toast = useToast();
   const folds = useFolds();
   const hasDays = useFeature(db, 'listDays');
@@ -105,15 +112,47 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
     // In the cart a line says how much the chosen meals need, or who added it from home.
     const c = inCart ? extra.get(i.id) : undefined;
     const sub = c ? c.hint ?? (c.addedBy ? added(c.addedBy) : origin(i)) : origin(i);
+    const label = `${i.title}${i.qty_text ? `, ${i.qty_text}` : ''}${i.urgent ? ', срочно' : ''}${home ? ', есть дома' : ''}`;
+    const meta = <span className="row-main"><b>{i.title}</b><small>{home ? 'есть дома' : [i.qty_text, sub, hint, hasTrip && i.in_trip && !done ? 'в походе' : ''].filter(Boolean).join(' · ')}</small></span>;
+    if (selecting) {
+      const on = picked.has(i.id);
+      return (
+        <div className={`row ${on ? 'picked' : ''}`} key={i.id}>
+          <button type="button" className="row-btn" aria-pressed={on} aria-label={`Выбрать: ${i.title}`} onClick={() => togglePick(i.id)}>
+            <span className="check pick" aria-hidden="true"><Icon name="check" /></span>{meta}
+          </button>
+          <span className="amount">{price !== null ? rub(price) : ''}</span>
+        </div>
+      );
+    }
+    if (!hasTrip) {
+      return (
+        <div className={`row ${done || home ? 'done' : ''}`} key={i.id}>
+          <button type="button" className="row-btn" aria-pressed={done} aria-label={label}
+            onClick={() => (home ? setAtHome(db, i, me, false, m) : setBought(db, i, me, !done, m, hasHome && vocab ? { vocab } : undefined))}>
+            <span className="check" aria-hidden="true"><Icon name="check" /></span>
+            {meta}
+            {i.urgent ? <span className="pill">срочно</span> : null}
+          </button>
+          <button type="button" className="amount amount-btn" aria-label={`${i.title}: ${price !== null ? `цена ${rub(price)}` : 'цена не указана'}`} onClick={() => setSheet(i)}>{price !== null ? rub(price) : '—'}</button>
+        </div>
+      );
+    }
+    const tick = async () => {
+      if (home) { await setAtHome(db, i, me, false, m); return; }
+      await setBought(db, i, me, !done, m, hasHome && vocab ? { vocab } : undefined);
+      if (!done) toast({ text: `«${i.title}» — куплено`, action: { label: 'Вернуть', run: () => { void db.shopping_marks.get(i.id).then((x) => setBought(db, i, me, false, x)); } } });
+    };
     return (
       <div className={`row ${done || home ? 'done' : ''}`} key={i.id}>
-        <button type="button" className="row-btn" aria-pressed={done} aria-label={`${i.title}${i.qty_text ? `, ${i.qty_text}` : ''}${i.urgent ? ', срочно' : ''}${home ? ', есть дома' : ''}`}
-          onClick={() => (home ? setAtHome(db, i, me, false, m) : setBought(db, i, me, !done, m, hasHome && vocab ? { vocab } : undefined))}>
+        <button type="button" className="check-btn" aria-pressed={done} aria-label={label} onClick={tick}>
           <span className="check" aria-hidden="true"><Icon name="check" /></span>
-          <span className="row-main"><b>{i.title}</b><small>{home ? 'есть дома' : [i.qty_text, sub, hint, hasTrip && i.in_trip && !done ? 'в походе' : ''].filter(Boolean).join(' · ')}</small></span>
-          {i.urgent ? <span className="pill">срочно</span> : null}
         </button>
-        <button type="button" className="amount amount-btn" aria-label={`${i.title}: ${price !== null ? `цена ${rub(price)}` : 'цена не указана'}`} onClick={() => setSheet(i)}>{price !== null ? rub(price) : '—'}</button>
+        <button type="button" className="row-btn" aria-label={`${i.title}: открыть`} onClick={() => setSheet(i)}>
+          {meta}
+          {i.urgent && !done ? <span className="pill">срочно</span> : null}
+        </button>
+        <button type="button" className={`price-chip ${price === null ? 'empty' : ''}`} aria-label={`${i.title}: ${price !== null ? `цена ${rub(price)}, изменить` : 'указать цену'}`} onClick={() => setSheet(i)}>{price !== null ? rub(price) : '+ цена'}</button>
       </div>
     );
   };
@@ -124,7 +163,7 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
   const views = hasHome || hasTrip ? (
     <div className="segs" role="tablist" aria-label="Покупки">
       {hasTrip ? <button type="button" role="tab" aria-selected={view === 'trip'} onClick={() => setParams({}, { replace: true })}>Поход</button> : null}
-      <button type="button" role="tab" aria-selected={view === 'list'} onClick={() => setParams(hasTrip ? { view: 'list' } : {}, { replace: true })}>Список</button>
+      <button type="button" role="tab" aria-selected={view === 'list'} onClick={() => setParams(hasTrip ? { view: 'list' } : {}, { replace: true })}>{hasTrip ? 'Весь список' : 'Список'}</button>
       {hasHome ? <button type="button" role="tab" aria-selected={view === 'home'} onClick={() => setParams({ view: 'home' }, { replace: true })}>Дома</button> : null}
     </div>
   ) : null;
@@ -159,6 +198,34 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
     );
   }
 
+  const openList = list.filter((i) => !closed(marks.get(i.id)));
+  const doneList = list.filter((i) => closed(marks.get(i.id)));
+  const togglePick = (id: string) => setPicked((x) => { const n = new Set(x); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const chosen = () => openList.filter((i) => picked.has(i.id));
+  const finish = (text: string, run?: () => void) => { setSelecting(false); setPicked(new Set()); toast({ text, ...(run ? { action: { label: 'Вернуть', run } } : {}) }); };
+  const buyPicked = async () => {
+    const ls = chosen();
+    for (const l of ls) await setBought(db, l, me, true, marks.get(l.id), hasHome && vocab ? { vocab } : undefined);
+    finish(`Куплено: ${ls.length} ${goods(ls.length)} — траты записаны`, () => { void (async () => { for (const l of ls) await setBought(db, l, me, false, await db.shopping_marks.get(l.id)); })(); });
+  };
+  const tripPicked = async () => {
+    const ls = chosen();
+    const before = ls.map((l) => ({ ...l }));
+    await pullToTrip(db, ls, catalog);
+    finish(`В поход: ${ls.length} ${goods(ls.length)}`, () => { void restoreLines(db, before); });
+  };
+  const homePicked = async () => {
+    const ls = chosen();
+    for (const l of ls) await setAtHome(db, l, me, true, marks.get(l.id));
+    finish(`Есть дома: ${ls.length} ${goods(ls.length)}`, () => { void (async () => { for (const l of ls) await setAtHome(db, l, me, false, await db.shopping_marks.get(l.id)); })(); });
+  };
+  const removePicked = async () => {
+    const ls = chosen();
+    for (const l of ls) await removeItem(db, l);
+    const menu = ls.some((l) => l.source === 'menu');
+    finish(`Убрали: ${ls.length} ${goods(ls.length)}${menu ? '. Строки меню вернутся, если поменяется меню' : ''}`, () => { void (async () => { for (const l of ls) await restoreRemoved(db, l); })(); });
+  };
+
   const copy = async () => {
     const text = listText(week ? `Покупки на ${weekLabel(week.starts_on)}` : 'Покупки', shown.filter((i) => !closed(marks.get(i.id))));
     const clip = clipboard ?? navigator.clipboard;
@@ -167,9 +234,14 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
 
   return (
     <>
-      <Header ask="shop" title="Покупки" subtitle={`Отмечено ${totals.doneCount} из ${totals.count}`}
-        action={<button type="button" className="head-pill" onClick={() => setSheet('add')}><Icon name="plus" />Добавить</button>} />
+      <Header ask="shop" title="Покупки" subtitle={hasTrip ? 'Всё нужное: меню недели и добавленное' : `Отмечено ${totals.doneCount} из ${totals.count}`}
+        action={hasTrip ? undefined : <button type="button" className="head-pill" onClick={() => setSheet('add')}><Icon name="plus" />Добавить</button>} />
       {views}
+      {hasTrip && !selecting ? (
+        <div className="trip-add">
+          <button type="button" className="trip-search" onClick={() => setSheet('add')}><Icon name="plus" /><span>Найти и добавить товар</span></button>
+        </div>
+      ) : null}
       {others.length ? (
         <section className="notice" aria-live="polite"><span className="row-main">
           {others.map((t) => <b key={t.id}>{`${name(t.member_id)} в магазине с ${hhmm(t.started_at)}${t.label ? `: ${t.label}` : ''}`}</b>)}
@@ -189,14 +261,24 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
         <section className="notice" role="alert"><span className="row-main"><b>{sync.message}</b></span>
           <button type="button" className="btn soft sm" onClick={sync.dismiss}>Понятно</button></section>
       ) : null}
-      <div className="btns fill" style={{ margin: '0 16px 14px' }}>
-        {hasTrip ? null : mine && hasHome ? (
+      {hasTrip ? (
+        selecting ? null : (
+          <div className="list-tools">
+            <span className="list-sum">{totals.count - totals.doneCount ? `Осталось ${totals.count - totals.doneCount} ${goods(totals.count - totals.doneCount)} ≈ ${rub(totals.left)}` : 'Всё куплено'}</span>
+            <span className="list-tools-r">
+              <button type="button" className="more" disabled={!openList.length} onClick={() => { setPicked(new Set()); setSelecting(true); }}>Выбрать</button>
+              <button type="button" className="more" onClick={copy}>Скопировать</button>
+            </span>
+          </div>
+        )
+      ) : <div className="btns fill" style={{ margin: '0 16px 14px' }}>
+        {mine && hasHome ? (
           <button type="button" className="btn" onClick={() => endTrip(db, mine)}><Icon name="check" />Закончить поход</button>
         ) : (
           <button type="button" className="btn" disabled={!!mine} onClick={() => (hasHome ? setPicking(true) : goShopping(db, me, today))}><Icon name="bag" />{mine ? 'Вы в магазине' : 'Иду в магазин'}</button>
         )}
         <button type="button" className="btn soft" onClick={copy}><Icon name="copy" />Скопировать</button>
-      </div>
+      </div>}
       {note ? <p className="note" role="status" style={{ margin: '0 16px 12px' }}>{note}</p> : null}
       {cart ? (
         <div className="segs" role="tablist" aria-label="Что показать">
@@ -210,18 +292,20 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
         <section className="card"><p className="note" style={{ margin: 0 }}>Список соберётся сам, когда родитель утвердит неделю в Меню. Срочное можно добавить вручную.</p></section>
       ) : (
         <>
-          <div className="bento"><div className="tile wide" style={{ ['--h' as string]: 'var(--k-shop)', cursor: 'default' }}>
-            <span className="t-k"><Icon name="cart" />Куплено на {rub(totals.bought)}</span>
-            <span className="t-v">Осталось ≈&nbsp;{rub(totals.left)}{totals.unpriced ? ` · ${totals.unpriced} без цены` : ''}</span>
-            <span className="bar" aria-hidden="true"><i style={{ width: `${totals.bought + totals.left ? (totals.bought / (totals.bought + totals.left)) * 100 : 0}%` }} /></span>
-          </div></div>
+          {hasTrip ? null : (
+            <div className="bento"><div className="tile wide" style={{ ['--h' as string]: 'var(--k-shop)', cursor: 'default' }}>
+              <span className="t-k"><Icon name="cart" />Куплено на {rub(totals.bought)}</span>
+              <span className="t-v">Осталось ≈&nbsp;{rub(totals.left)}{totals.unpriced ? ` · ${totals.unpriced} без цены` : ''}</span>
+              <span className="bar" aria-hidden="true"><i style={{ width: `${totals.bought + totals.left ? (totals.bought / (totals.bought + totals.left)) * 100 : 0}%` }} /></span>
+            </div></div>
+          )}
           {urgent.length ? (
             <section className="card urgent-card" aria-label="Срочно">
               <div className="card-h"><h2>Срочно</h2><span className="note" style={{ margin: 0 }}>{urgent.length}</span></div>
               {urgent.map(row)}
             </section>
           ) : null}
-          {groupByDept(list.filter((i) => !urgentIds.has(i.id)), marks).map((g) => {
+          {groupByDept((hasTrip ? openList : list).filter((i) => !urgentIds.has(i.id)), marks).map((g) => {
             const id = `dept-${g.dept.replace(/\s+/g, '-')}`;
             const got = g.items.filter((i) => closed(marks.get(i.id))).length;
             const done = got === g.items.length;
@@ -240,6 +324,32 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
               </section>
             );
           })}
+          {hasTrip && doneList.length && !selecting ? (
+            <section className="card done-card" aria-labelledby="done-h">
+              <div className="card-h dept-h">
+                <h2 id="done-h"><button type="button" className="dept-toggle" aria-expanded={showDone} aria-controls="done-rows" onClick={() => setShowDone(!showDone)}>
+                  {doneList.some((i) => marks.get(i.id)?.at_home) ? 'Куплено и есть дома' : 'Куплено'}<Icon name="chev" />
+                </button></h2>
+                <span className="dept-meta"><span>{doneList.length} {goods(doneList.length)}</span>{totals.bought ? <span>{rub(totals.bought)}</span> : null}</span>
+              </div>
+              {showDone ? <div id="done-rows">{groupByDept(doneList, marks).flatMap((g) => g.items).map(row)}</div> : null}
+            </section>
+          ) : null}
+          {selecting ? (
+            <div className="select-bar" role="region" aria-label="Выбранные строки">
+              <div className="select-bar-top">
+                <b>Выбрано {picked.size}</b>
+                <button type="button" className="more" onClick={() => setPicked(picked.size === openList.length ? new Set() : new Set(openList.map((i) => i.id)))}>{picked.size === openList.length ? 'Снять все' : 'Выбрать все'}</button>
+                <button type="button" className="btn soft sm" onClick={() => { setSelecting(false); setPicked(new Set()); }}>Готово</button>
+              </div>
+              <div className="select-bar-acts">
+                <button type="button" className="btn sm" disabled={!picked.size} onClick={buyPicked}>Куплено</button>
+                <button type="button" className="btn soft sm" disabled={!picked.size} onClick={tripPicked}>В поход</button>
+                {hasHome ? <button type="button" className="btn soft sm" disabled={!picked.size} onClick={homePicked}>Есть дома</button> : null}
+                <button type="button" className="btn soft sm danger-text" disabled={!picked.size} onClick={removePicked}>Убрать</button>
+              </div>
+            </div>
+          ) : null}
         </>
       )}
       {sheet === 'add' && vocab && hasTrip ? (
@@ -256,10 +366,22 @@ export default function ShopPage({ me, members, db = localDb, today: fixedToday,
           cartLines={[...new Map(data.weeks.flatMap((w) => visibleItems(data.items, w.id, { weekStart: w.starts_on, marks, offers: data.offers })).map((i) => [i.id, i])).values()]}
           onStart={(c) => goShopping(db, me, today, c).then(() => setCartView(true))} onClose={() => setPicking(false)} />
       ) : null}
-      {sheet && sheet !== 'add' ? (
-        <ItemSheet item={sheet} mark={marks.get(sheet.id)} onPrice={(p) => setRealPrice(db, sheet, me, p, marks.get(sheet.id))} onRemove={() => removeItem(db, sheet)}
+      {sheet && sheet !== 'add' && hasTrip ? (
+        <LineSheet line={sheet} mark={marks.get(sheet.id)} product={productOfLine(sheet, catalog)} who={sheet.source === 'menu' ? '' : added(sheet.added_by)}
+          onSave={(c) => updateLine(db, sheet, c, productOfLine(sheet, catalog))}
+          onPrice={(p) => setRealPrice(db, sheet, me, p, marks.get(sheet.id))}
+          onTrip={(on) => setInTrip(db, [sheet], on)}
           onHome={hasHome ? (on) => setAtHome(db, sheet, me, on, marks.get(sheet.id)) : undefined}
-          onTrip={hasTrip ? (on) => setInTrip(db, [sheet], on) : undefined} onClose={() => setSheet(null)} />
+          onUnbuy={() => setBought(db, sheet, me, false, marks.get(sheet.id))}
+          onRemove={async () => {
+            const gone = sheet;
+            await removeItem(db, gone);
+            toast({ text: `«${gone.title}» убрали из списка`, action: { label: 'Вернуть', run: () => { void restoreRemoved(db, gone); } } });
+          }} onClose={() => setSheet(null)} />
+      ) : null}
+      {sheet && sheet !== 'add' && !hasTrip ? (
+        <ItemSheet item={sheet} mark={marks.get(sheet.id)} onPrice={(p) => setRealPrice(db, sheet, me, p, marks.get(sheet.id))} onRemove={() => removeItem(db, sheet)}
+          onHome={hasHome ? (on) => setAtHome(db, sheet, me, on, marks.get(sheet.id)) : undefined} onClose={() => setSheet(null)} />
       ) : null}
     </>
   );

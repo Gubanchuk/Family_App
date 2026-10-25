@@ -108,6 +108,8 @@ export default function TripSheet({ db, me, weeks, base, today, lines, cartLines
         </div>
       ) : null}
       <div style={{ display: 'grid', gap: 12, margin: '0 16px' }}>
+        {/* Days come from approved weeks only: say so, rather than leave «Завтра» missing without a word. */}
+        {!weekB ? <p className="note" style={{ margin: 0 }}>Дни следующей недели появятся здесь, когда её меню утвердят в «Меню».</p> : null}
         {days.length ? (
           <fieldset className="kin-pick"><legend>Приём пищи</legend><div className="picks">
             {MEALS.map((m: Meal) => <button key={m} type="button" className="pick" aria-pressed={pickOn({ kind: 'meal', day, meal: m })} onClick={() => toggle({ kind: 'meal', day, meal: m })}>{MEAL_LABEL[m]}</button>)}

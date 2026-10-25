@@ -23,7 +23,7 @@ describe('AssistantPage', () => {
   it('offers questions for the section it was opened from', async () => {
     setup(async () => ({ error: 'failed' }));
     expect(await screen.findByText(/Привет, Андрей/)).toBeInTheDocument();
-    expect(screen.getByText('вы пришли из раздела «Покупки»')).toBeInTheDocument();
+    expect(screen.getByText('из раздела «Покупки»')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Во сколько примерно выйдет поход/ })).toBeInTheDocument();
   });
 
@@ -52,9 +52,9 @@ describe('AssistantPage', () => {
     expect(within(alert).getByRole('button', { name: 'Повторить' })).toBeInTheDocument();
   });
 
-  it('gives a child home questions instead of money ones', async () => {
+  it('gives a child questions of his own, none about money', async () => {
     setup(async () => ({ error: 'failed' }), son, 'money');
-    expect(await screen.findByRole('button', { name: /Что приготовить на ужин/ })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Помоги с уроками/ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /На что в этом месяце/ })).toBeNull();
   });
 });

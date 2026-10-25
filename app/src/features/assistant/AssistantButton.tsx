@@ -6,7 +6,7 @@ import type { Screen } from './suggestions';
 export default function AssistantButton({ from }: { from: Screen }) {
   return (
     <Link className="head-pill ask-pill" to={`/assistant?from=${from}`} aria-label="Спросить помощника">
-      <Icon name="spark" />Спросить
+      <Icon name="spark" />Помощник
     </Link>
   );
 }

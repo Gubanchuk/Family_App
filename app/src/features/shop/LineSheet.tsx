@@ -54,7 +54,8 @@ export default function LineSheet({ line, mark, product, who, onSave, onPrice, o
           {onHome && !bought ? <button type="button" className="btn soft" onClick={async () => { await onHome(!mark?.at_home); onClose(); }}>{mark?.at_home ? 'Вернуть в покупки' : 'Есть дома'}</button> : null}
         </div>
         {/* Off the list for everyone: set apart and in the warning colour; the toast offers «Вернуть». */}
-        {line.source !== 'menu' ? <button type="button" className="btn danger" onClick={async () => { await onRemove(); onClose(); }}>Убрать из списка совсем</button> : null}
+        <button type="button" className="btn danger" onClick={async () => { await onRemove(); onClose(); }}>Убрать из списка</button>
+        {line.source === 'menu' ? <p className="note" style={{ margin: 0 }}>Строка из меню вернётся, если поменяется меню недели.</p> : null}
       </div>
     </Sheet>
   );
